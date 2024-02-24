@@ -2,7 +2,7 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z5NNXWL)
 
 # GUN4ALL-GUI
-### Reference configuration utility for the open source [IR-GUN4ALL light gun system](https://github.com/SeongGino/ir-light-gun-plus), written in QT.
+### Reference configuration utility for the open source [IR-GUN4ALL light gun system](https://github.com/SeongGino/ir-light-gun-plus), written in C++ & QT.
 
 ***Made for GUN4ALL 4.0 "L.G.A Force" and up.***
 
