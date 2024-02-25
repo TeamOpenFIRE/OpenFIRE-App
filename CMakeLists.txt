@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
         guiwindow.cpp
         guiwindow.h
         guiwindow.ui
+        vectors.qrc
+        about.ui
         ${TS_FILES}
 )
 
@@ -43,9 +45,6 @@ else()
     else()
         add_executable(G4A-GUImain
             ${PROJECT_SOURCES}
-
-            vectors.qrc
-            about.ui
         )
     endif()
 
@@ -59,8 +58,13 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
 target_link_libraries(G4A-GUImain PRIVATE Qt${QT_VERSION_MAJOR}::SerialPort)
 
 # SVG Renderer
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Svg)
-target_link_libraries(G4A-GUImain PRIVATE Qt${QT_VERSION_MAJOR}::Svg)
+if(${QT_VERSION} VERSION_LESS 6.1.0)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Svg)
+    target_link_libraries(G4A-GUImain PRIVATE Qt${QT_VERSION_MAJOR}::Svg)
+else()
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SvgWidgets)
+    target_link_libraries(G4A-GUImain PRIVATE Qt${QT_VERSION_MAJOR}::SvgWidgets)
+endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
