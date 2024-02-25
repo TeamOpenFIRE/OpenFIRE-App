@@ -237,7 +237,7 @@ guiWindow::guiWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(&serialPort, SIGNAL(readyRead()), this, SLOT(serialPort_readyRead()));
+    connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
     // just to be sure, init the inputsMap hashes
     for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
