@@ -225,7 +225,7 @@ void guiWindow::PortsSearch()
             }
         }
         if(!usbName.length()) {
-            PopupWindow("No GUN4ALL devices detected!", "Is the microcontroller board currently running GUN4ALL and is currently plugged in? Make sure it's connected and recognized by the PC.\nGUN4ALL-GUI only supports firmwares starting from v3.0 \"Rinko\" and onwards.\n\nGUN4ALL-GUI will now close.", "ERROR", 4);
+            PopupWindow("No GUN4ALL devices detected!", "Is the microcontroller board currently running GUN4ALL and is currently plugged in? Make sure it's connected and recognized by the PC.\nGUN4ALL-GUI only supports firmwares starting from v4.0 \"L.G.A Force\" and onwards.\n\nGUN4ALL-GUI will now close.", "ERROR", 4);
             exit(1);
         }
     }
