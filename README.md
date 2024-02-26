@@ -4,7 +4,7 @@
 # GUN4ALL-GUI
 ### Reference configuration utility for the open source [IR-GUN4ALL light gun system](https://github.com/SeongGino/ir-light-gun-plus), written in C++ & QT.
 
-***Made for GUN4ALL 4.0 "L.G.A Force" and up.***
+***Made for GUN4ALL v4.0 "L.G.A Force" and up.***
 
 ## Features:
  - Cross-platform QT application, portable across desktops to Pis and other OSes.
@@ -13,7 +13,7 @@
  - Also serves as a testing utility for button input and solenoid/rumble force feedback.
 
 ## Running:
-Boards flashed with IR-GUN4ALL 4.0 (*L.G.A Force*) and up *must be plugged in **before** launching the application.* G4A GUI will notify if it can't find any compatible boards connected.
+Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in **before** launching the application.* G4A GUI will notify if it can't find any compatible boards connected.
 
 ### For Linux:
 ##### Requirements: Anything with QT5 support.
