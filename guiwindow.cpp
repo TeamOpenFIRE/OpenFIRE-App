@@ -468,6 +468,8 @@ bool guiWindow::SerialInit(int portNum)
     if(serialPort.open(QIODevice::ReadWrite)) {
         qDebug() << "Opened port successfully!";
         serialActive = true;
+        // Windows needs DTR enabled to actually read responses.
+        serialPort.setDataTerminalReady(true);
         serialPort.write("XP");
         if(serialPort.waitForBytesWritten(2000)) {
             if(serialPort.waitForReadyRead(2000)) {
@@ -772,27 +774,26 @@ void guiWindow::on_confirmButton_clicked()
             }
 
             for(uint8_t i = 0; i < serialQueue.length(); i++) {
-                if(!serialPort.bytesToWrite()) {
-                    serialPort.write(serialQueue[i].toLocal8Bit());
-                    if(serialPort.waitForReadyRead(2000)) {
-                        QString buffer = serialPort.readLine();
-                        if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
-                            statusProgressBar->setValue(statusProgressBar->value() + 1);
-                        } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                            buffer = serialPort.readLine();
-                            if(buffer.contains("Settings saved to")) {
-                                bool success = true;
-                                // because there's probably some leftover bytes that might congest things:
-                                while(!serialPort.atEnd()) {
-                                    serialPort.readLine();
-                                }
-                            } else {
-                                qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
+                serialPort.write(serialQueue[i].toLocal8Bit());
+                serialPort.waitForBytesWritten(2000);
+                if(serialPort.waitForReadyRead(2000)) {
+                    QString buffer = serialPort.readLine();
+                    if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
+                        statusProgressBar->setValue(statusProgressBar->value() + 1);
+                    } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
+                        buffer = serialPort.readLine();
+                        if(buffer.contains("Settings saved to")) {
+                            success = true;
+                            // because there's probably some leftover bytes that might congest things:
+                            while(!serialPort.atEnd()) {
+                                serialPort.readLine();
                             }
                         } else {
-                            bool success = false;
-                            break;
+                            qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
                         }
+                    } else {
+                        success = false;
+                        break;
                     }
                 }
             }
@@ -810,6 +811,9 @@ void guiWindow::on_confirmButton_clicked()
             }
             serialActive = false;
             serialQueue.clear();
+            if(!serialPort.atEnd()) {
+                serialPort.readAll();
+            }
         } else {
             qDebug() << "Wait, this port wasn't open to begin with!!! WTF SEONG!?!?";
         }
