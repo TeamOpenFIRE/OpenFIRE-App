@@ -20,7 +20,9 @@ Boards flashed with IR-GUN4ALL 4.0 (*L.G.A Force*) and up *must be plugged in **
  - Make sure your user is part of the `dialout` group.
 
 ### For Windows:
- - TODO: Provide Win builds. weh.
+ - Download the latest release zip.
+ - Extract the `G4A-GUI` folder from the archive to anywhere that's most convenient on your system - `G4A-GUI.exe` should be sitting next to `QT5Core.dll` and others, as well as the `platforms` and `styles` folders.
+ - Start `G4A-GUI.exe`
 
 ## Building:
 ### For Linux:
@@ -59,3 +61,4 @@ Boards flashed with IR-GUN4ALL 4.0 (*L.G.A Force*) and up *must be plugged in **
  - GUN4ALL testers and everyone that provided feedback to GUN4ALL.
  - Sleep deprivation
  - Stubbornness
+ - And Autism
