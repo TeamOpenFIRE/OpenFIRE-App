@@ -16,12 +16,14 @@
 Boards flashed with IR-GUN4ALL 4.0 (*L.G.A Force*) and up *must be plugged in **before** launching the application.* G4A GUI will notify if it can't find any compatible boards connected.
 
 ### For Linux:
+##### Requirements: Anything with QT5 support.
  - AUR PKGBUILD coming soon!
  - Make sure your user is part of the `dialout` group.
 
 ### For Windows:
+##### Requirements: Windows 7 and up (64-bit only).
  - Download the latest release zip.
- - Extract the `G4A-GUI` folder from the archive to anywhere that's most convenient on your system - `G4A-GUI.exe` should be sitting next to `QT5Core.dll` and others, as well as the `platforms` and `styles` folders.
+ - Extract the `G4A-GUI` folder from the archive to anywhere that's most convenient on your system - `G4A-GUI.exe` should be sitting next to `Qt5Core.dll` and others, as well as the `platforms` and `styles` folders.
  - Start `G4A-GUI.exe`
 
 ## Building:
@@ -46,7 +48,8 @@ Boards flashed with IR-GUN4ALL 4.0 (*L.G.A Force*) and up *must be plugged in **
    ./G4A-GUImain
    ```
 ### For Windows:
- - Should be buildable through CMake in an appropriate MinGW build env or the QT Creator IDE. TODO: verify this.
+ - Should be buildable through CMake or the QT Creator IDE.
+###### iunno man, [I don't use Windows anymore.](https://youtu.be/PAFvWdszwFA)
 
 ### TODO:
  - Implement built-in SAMCO Test program.
