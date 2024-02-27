@@ -1,197 +1,64 @@
+/*  GUN4ALL-GUI: a configuration utility for the GUN4ALL light gun system.
+    Copyright (C) 2024  That One Seong
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "guiwindow.h"
+#include "constants.h"
 #include "./ui_guiwindow.h"
 #include "./ui_about.h"
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QSvgRenderer>
 #include <QSvgWidget>
-#include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QtDebug>
 #include <QProgressBar>
 //#include <QThread>
 
-typedef struct boardInfo_t {
-    uint8_t type = nothing;
-    float versionNumber = 0.0;
-    QString versionCodename;
-    uint8_t selectedProfile;
-    uint8_t previousProfile;
-} boardInfo_s;
-
+// Currently loaded board object
 boardInfo_s board;
 
-// visible path name for comPortSelector
-QStringList usbName;
-QSerialPort serialPort;
-QList<QSerialPortInfo> serialFoundList;
-bool serialActive = false;
-
-QSvgWidget *centerPic;
-QSizePolicy comboBoxSize();
-
-QStringList valuesNameList = {
-    "Unmapped",
-    "Trigger",
-    "Button A",
-    "Button B",
-    "Button C",
-    "Start",
-    "Select",
-    "D-Pad Up",
-    "D-Pad Down",
-    "D-Pad Left",
-    "D-Pad Right",
-    "External Pedal",
-    "Home Button",
-    "Pump Action",
-    "Rumble Signal",
-    "Solenoid Signal",
-    "Temp Sensor",
-    "Rumble Switch",
-    "Solenoid Switch",
-    "Autofire Switch",
-    "RGB LED Red",
-    "RGB LED Green",
-    "RGB LED Blue",
-    "External NeoPixel",
-    "Analog Pin X",
-    "Analog Pin Y"
-};
-
-bool boolSettings[8];
-bool boolSettings_orig[8];
-
-uint16_t settingsTable[8];
-uint16_t settingsTable_orig[8];
-
-typedef struct tinyUSBtable_t {
-    QString tinyUSBid;
-    QString tinyUSBname;
-} tinyUSBtable_s;
-
+// Currently loaded board's TinyUSB identifier info
 tinyUSBtable_s tinyUSBtable;
+// TinyUSB ident, as loaded from the board
 tinyUSBtable_s tinyUSBtable_orig;
 
-typedef struct profilesTable_t {
-    uint16_t xScale;
-    uint16_t yScale;
-    uint16_t xCenter;
-    uint16_t yCenter;
-    uint8_t irSensitivity;
-    uint8_t runMode;
-} profilesTable_s;
-
+// Current calibration profiles
 QVector<profilesTable_s> profilesTable(4);
+// Calibration profiles, as loaded from the board
 QVector<profilesTable_s> profilesTable_orig(4);
-QRadioButton *selectedProfile[4];
-QLabel *xScale[4];
-QLabel *yScale[4];
-QLabel *xCenter[4];
-QLabel *yCenter[4];
-QComboBox *irSens[4];
-QComboBox *runMode[4];
-// See also pinBoxesOldIndex
-uint8_t irSensOldIndex[4];
-uint8_t runModeOldIndex[4];
 
-uint8_t settingsDiff;
-
-enum pinTypes_e {
-    pinNothing = 0,
-    pinDigital,
-    pinAnalog
-};
-
-typedef struct boardLayout_t {
-    int8_t pinAssignment;
-    uint8_t pinType;
-} boardLayout_s;
-
-// The physical layout of the board.
-// -2 = N/A, -1 = reserved, 0 = available, unused
+// Indexed array map of the current physical layout of the board.
+// Key = pin number, Value = pin function
+// Values: -2 = N/A, -1 = reserved, 0 = available, unused
 QMap<uint8_t, int8_t> currentPins;
-
-int8_t currentBoxesLayout[30];
-
-const boardLayout_t rpipicoLayout[] = {
-    {btnGunA, pinDigital}, {btnGunB, pinDigital},
-    {btnGunC, pinDigital}, {btnStart, pinDigital},
-    {btnSelect, pinDigital}, {btnHome, pinDigital},
-    {btnGunUp, pinDigital}, {btnGunDown, pinDigital},
-    {btnGunLeft, pinDigital}, {btnGunRight, pinDigital},
-    {ledR, pinDigital}, {ledG, pinDigital},
-    {ledB, pinDigital}, {btnPump, pinDigital},
-    {btnPedal, pinDigital}, {btnTrigger, pinDigital},
-    {solenoidPin, pinDigital}, {rumblePin, pinDigital},
-    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {-2, pinNothing}
-};
-
-const boardLayout_t adafruitItsyRP2040Layout[] = {
-    {btnGunUp, pinDigital}, {btnGunDown, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnGunLeft, pinDigital}, {btnGunRight, pinDigital},
-    {btnTrigger, pinDigital}, {btnGunA, pinDigital},
-    {btnGunB, pinDigital}, {btnGunC, pinDigital},
-    {btnStart, pinDigital}, {btnSelect, pinDigital},
-    {btnPedal, pinDigital}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {rumblePin, pinDigital}, {solenoidPin, pinDigital},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog}
-};
-
-const boardLayout_t arduinoNanoRP2040Layout[] = {
-    {btnTrigger, pinDigital}, {btnPedal, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnGunA, pinDigital}, {btnGunC, pinDigital},
-    {btnUnmapped, pinDigital}, {btnGunB, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog}
-};
 
 #define INPUTS_COUNT 25
 // Map of what inputs are put where,
-// array index = button/output, index value = pin number occupying, if any (<0 = none).
-// referenced to prevent duplication of things.
+// Key = button/output, Value = pin number occupying, if any.
+// Value of -1 means unmapped.
+// Key order based on boardInputs_e, minus 1
+// Map functions used in deduplication
 QMap<uint8_t, int8_t> inputsMap;
+// Inputs map, as loaded from the board
 QMap<uint8_t, int8_t> inputsMap_orig;
 
-/*int8_t inputsMap[25] = {
-    -1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,
-    -1
-};
-int8_t inputsMap_orig[25];
-*/
-
-QComboBox *pinBoxes[30];
-// because pinBoxes' "->currentIndex" gets updated AFTER calling its activation signal,
-// we need to save its last index to properly compare and prevent duplicate changes,
-// and then update it at the end of the activate signal.
-int pinBoxesOldIndex[30];
-QLabel *pinLabel[30];
-QWidget *padding[30];
+// ^^^-----Typedefs up there:----^^^
+//
+// vvv---UI Objects down here:---vvv
 
 // Guess I'll have to do the dynamic layout spawning/destroying stuff to make things work.
 // How else do I hide things lol?
@@ -199,6 +66,19 @@ QVBoxLayout *PinsCenter;
 QGridLayout *PinsCenterSub;
 QGridLayout *PinsLeft;
 QGridLayout *PinsRight;
+
+QComboBox *pinBoxes[30];
+QLabel *pinLabel[30];
+QWidget *padding[30];
+
+QRadioButton *selectedProfile[4];
+QLabel *xScale[4];
+QLabel *yScale[4];
+QLabel *xCenter[4];
+QLabel *yCenter[4];
+QComboBox *irSens[4];
+QComboBox *runMode[4];
+QSvgWidget *centerPic;
 
 //
 // ^^^-------GLOBAL VARS UP THERE----------^^^
@@ -468,7 +348,7 @@ bool guiWindow::SerialInit(int portNum)
     if(serialPort.open(QIODevice::ReadWrite)) {
         qDebug() << "Opened port successfully!";
         serialActive = true;
-        // Windows needs DTR enabled to actually read responses.
+        // windows needs DTR enabled to actually read responses.
         serialPort.setDataTerminalReady(true);
         serialPort.write("XP");
         if(serialPort.waitForBytesWritten(2000)) {
@@ -658,7 +538,7 @@ void guiWindow::DiffUpdate()
 }
 
 
-void SyncSettings()
+void guiWindow::SyncSettings()
 {
     for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
         boolSettings_orig[i] = boolSettings[i];
@@ -1628,8 +1508,8 @@ void guiWindow::on_solenoidTestBtn_clicked()
 
 void guiWindow::on_testBtn_clicked()
 {
-    // TODO: actually make.
-    // should open test window.
+    //Ui::testWindow test;
+    //test.exec();
 }
 
 

@@ -16,6 +16,7 @@ set(TS_FILES G4A-GUImain_en_US.ts)
 
 set(PROJECT_SOURCES
         main.cpp
+        constants.h
         guiwindow.cpp
         guiwindow.h
         guiwindow.ui

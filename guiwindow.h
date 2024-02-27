@@ -1,67 +1,25 @@
+/*  GUN4ALL-GUI: a configuration utility for the GUN4ALL light gun system.
+    Copyright (C) 2024  That One Seong
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifndef GUIWINDOW_H
 #define GUIWINDOW_H
 
 #include <QMainWindow>
-
-enum boardTypes_e {
-    nothing = 0,
-    rpipico,
-    adafruitItsyRP2040,
-    arduinoNanoRP2040,
-    unknown = 255
-};
-
-enum boardInputs_e {
-    btnReserved = -1,
-    btnUnmapped = 0,
-    btnTrigger,
-    btnGunA,
-    btnGunB,
-    btnGunC,
-    btnStart,
-    btnSelect,
-    btnGunUp,
-    btnGunDown,
-    btnGunLeft,
-    btnGunRight,
-    btnPedal,
-    btnHome,
-    btnPump,
-    rumblePin,
-    solenoidPin,
-    tempPin,
-    rumbleSwitch,
-    solenoidSwitch,
-    autofireSwitch,
-    ledR,
-    ledG,
-    ledB,
-    neoPixel,
-    analogX,
-    analogY
-};
-
-enum boolTypes_e {
-    customPins = 0,
-    rumble,
-    solenoid,
-    autofire,
-    simplePause,
-    holdToPause,
-    commonAnode,
-    lowButtonsMode
-};
-
-enum settingsTypes_e {
-    rumbleStrength = 0,
-    rumbleInterval,
-    solenoidNormalInterval,
-    solenoidFastInterval,
-    solenoidHoldLength,
-    customLEDcount,
-    autofireWaitFactor,
-    holdToPauseLength
-};
+#include <QSerialPort>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -76,6 +34,10 @@ class guiWindow : public QMainWindow
 public:
     guiWindow(QWidget *parent = nullptr);
     ~guiWindow();
+
+    QSerialPort serialPort;
+
+    bool serialActive = false;
 
 private slots:
     void on_comPortSelector_currentIndexChanged(int index);
@@ -153,6 +115,69 @@ private slots:
 private:
     Ui::guiWindow *ui;
 
+    // Used by pinBoxes, matching boardInputs_e
+    QStringList valuesNameList = {
+        "Unmapped",
+        "Trigger",
+        "Button A",
+        "Button B",
+        "Button C",
+        "Start",
+        "Select",
+        "D-Pad Up",
+        "D-Pad Down",
+        "D-Pad Left",
+        "D-Pad Right",
+        "External Pedal",
+        "Home Button",
+        "Pump Action",
+        "Rumble Signal",
+        "Solenoid Signal",
+        "Temp Sensor",
+        "Rumble Switch",
+        "Solenoid Switch",
+        "Autofire Switch",
+        "RGB LED Red",
+        "RGB LED Green",
+        "RGB LED Blue",
+        "External NeoPixel",
+        "Analog Pin X",
+        "Analog Pin Y"
+    };
+
+    // List of serial port objects that were found in PortsSearch()
+    QList<QSerialPortInfo> serialFoundList;
+    // Extracted COM paths, as provided from serialFoundList
+    QStringList usbName;
+
+    // Tracks the amount of differences between current config and loaded config.
+    // Resets after every call to DiffUpdate()
+    uint8_t settingsDiff;
+
+    // Current array of booleans, meant to be used as a bitmask
+    bool boolSettings[8];
+    // Array of booleans, as loaded from the gun firmware
+    bool boolSettings_orig[8];
+
+    // Current table of tunable settings
+    uint16_t settingsTable[8];
+    // Table of tunables, as loaded from gun firmware
+    uint16_t settingsTable_orig[8];
+
+    // because pinBoxes' "->currentIndex" gets updated AFTER calling its activation signal,
+    // we need to save its last index to properly compare and prevent duplicate changes,
+    // and then update it at the end of the activate signal.
+    int pinBoxesOldIndex[30];
+
+    // Uses the same logic as pinBoxesOldIndex, since the irSensor and runMode comboboxes
+    // are hooked to a single signal.
+    uint8_t irSensOldIndex[4];
+    uint8_t runModeOldIndex[4];
+
+    // ^^^---Values---^^^
+    //
+    // vvv---Methods---vvv
+
     void BoxesUpdate();
 
     void DiffUpdate();
@@ -166,5 +191,7 @@ private:
     bool SerialInit(int portNum);
 
     void SerialLoad();
+
+    void SyncSettings();
 };
 #endif // GUIWINDOW_H
