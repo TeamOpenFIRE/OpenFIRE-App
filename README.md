@@ -17,7 +17,8 @@ Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in *
 
 ### For Linux:
 ##### Requirements: Anything with QT5 support.
- - AUR PKGBUILD coming soon!
+ - Arch Linux: Install `gun4all-gui` [from the AUR.](https://aur.archlinux.org/packages/gun4all-gui)
+ - Other distros: Try the latest binary (built for Ubuntu 20.04 LTS, but should work for most distros?)
  - Make sure your user is part of the `dialout` group.
 
 ### For Windows:
