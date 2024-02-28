@@ -17,8 +17,8 @@
 
 #include "guiwindow.h"
 #include "constants.h"
-#include "./ui_guiwindow.h"
-#include "./ui_about.h"
+#include "ui_guiwindow.h"
+#include "ui_about.h"
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QSvgRenderer>
@@ -1056,6 +1056,8 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialActive = true;
             serialPort.write("XE");
             serialPort.waitForBytesWritten(2000);
+            serialPort.waitForReadyRead(2000);
+            serialPort.readAll();
             serialPort.close();
             serialActive = false;
         }
