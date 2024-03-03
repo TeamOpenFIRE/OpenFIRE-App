@@ -53,7 +53,6 @@ Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in *
 ###### iunno man, [I don't use Windows anymore.](https://youtu.be/PAFvWdszwFA)
 
 ### TODO:
- - Implement built-in SAMCO Test program.
  - Finish/fix the currently non-functional "reboot to bootloader" method (even though it's using Earle's reference code nearly verbatim, it still doesn't work--might be a limitation of QT?)
  - Add icon, logo.
  - Holy shit the board layouts code is a MESS rn.
