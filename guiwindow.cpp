@@ -783,6 +783,28 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
     if(index > 0) {
         qDebug() << "COM port set to" << ui->comPortSelector->currentIndex();
+        // Clear stale states if any, and unmount old board if mounted.
+        if(testMode) {
+            testMode = false;
+            ui->testView->setEnabled(false);
+            ui->buttonsTestArea->setEnabled(true);
+            ui->testBtn->setText("Enable IR Test Mode");
+            ui->pinsTab->setEnabled(true);
+            ui->settingsTab->setEnabled(true);
+            ui->profilesTab->setEnabled(true);
+            ui->feedbackTestsBox->setEnabled(true);
+            ui->dangerZoneBox->setEnabled(true);
+            serialActive = false;
+        }
+        if(serialPort.isOpen()) {
+            serialActive = true;
+            serialPort.write("XE");
+            serialPort.waitForBytesWritten(2000);
+            serialPort.waitForReadyRead(2000);
+            serialPort.readAll();
+            serialPort.close();
+            serialActive = false;
+        }
         if(!SerialInit(index - 1)) {
             ui->comPortSelector->setCurrentIndex(0);
         } else {
@@ -1098,6 +1120,18 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialPort.waitForReadyRead(2000);
             serialPort.readAll();
             serialPort.close();
+            if(testMode) {
+                testMode = false;
+                ui->testView->setEnabled(false);
+                ui->buttonsTestArea->setEnabled(true);
+                ui->testBtn->setText("Enable IR Test Mode");
+                ui->pinsTab->setEnabled(true);
+                ui->settingsTab->setEnabled(true);
+                ui->profilesTab->setEnabled(true);
+                ui->feedbackTestsBox->setEnabled(true);
+                ui->dangerZoneBox->setEnabled(true);
+                serialActive = false;
+            }
             serialActive = false;
         }
         qDebug() << "COM port disabled!";
@@ -1525,7 +1559,6 @@ void guiWindow::serialPort_readyRead()
         QString testBuffer = serialPort.readLine();
         if(testBuffer.contains(',')) {
             QStringList coordsList = testBuffer.remove("\r\n").split(',', Qt::SkipEmptyParts);
-            //qDebug() << coordsList;
 
             testPointTL.setRect(coordsList[0].toInt()-25, coordsList[1].toInt()-25, 50, 50);
             testPointTR.setRect(coordsList[2].toInt()-25, coordsList[3].toInt()-25, 50, 50);
@@ -1533,6 +1566,7 @@ void guiWindow::serialPort_readyRead()
             testPointBR.setRect(coordsList[6].toInt()-25, coordsList[7].toInt()-25, 50, 50);
             testPointMed.setRect(coordsList[8].toInt()-25,coordsList[9].toInt()-25, 50, 50);
             testPointD.setRect(coordsList[10].toInt()-25, coordsList[11].toInt()-25, 50, 50);
+
             QPolygonF poly;
             poly << QPointF(coordsList[0].toInt(), coordsList[1].toInt()) << QPointF(coordsList[2].toInt(), coordsList[3].toInt()) << QPointF(coordsList[6].toInt(), coordsList[7].toInt()) << QPointF(coordsList[4].toInt(), coordsList[5].toInt()) << QPointF(coordsList[0].toInt(), coordsList[1].toInt());
             testBox.setPolygon(poly);
