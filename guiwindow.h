@@ -20,6 +20,8 @@
 
 #include <QMainWindow>
 #include <QSerialPort>
+#include <QGraphicsItem>
+#include <QPen>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -173,6 +175,24 @@ private:
     // are hooked to a single signal.
     uint8_t irSensOldIndex[4];
     uint8_t runModeOldIndex[4];
+
+    bool testMode = false;
+
+    // Test Mode screen points & colors
+    QGraphicsEllipseItem testPointTL;
+    QGraphicsEllipseItem testPointTR;
+    QGraphicsEllipseItem testPointBL;
+    QGraphicsEllipseItem testPointBR;
+    QGraphicsEllipseItem testPointMed;
+    QGraphicsEllipseItem testPointD;
+    QGraphicsPolygonItem testBox;
+
+    QPen testPointTLPen;
+    QPen testPointTRPen;
+    QPen testPointBLPen;
+    QPen testPointBRPen;
+    QPen testPointMedPen;
+    QPen testPointDPen;
 
     // ^^^---Values---^^^
     //

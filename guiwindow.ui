@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>GUN4ALL-GUI</string>
+   <string>GUN4ALL-GUI v1.1 - Inuwaka</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">
@@ -1177,62 +1177,98 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
+         <widget class="QGroupBox" name="feedbackTestsBox">
+          <property name="title">
            <string>Feedback Tests</string>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QPushButton" name="rumbleTestBtn">
+               <property name="text">
+                <string>Test Rumble Motor</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="solenoidTestBtn">
+               <property name="text">
+                <string>Test Solenoid</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QPushButton" name="rumbleTestBtn">
-            <property name="text">
-             <string>Test Rumble Motor</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="solenoidTestBtn">
-            <property name="text">
-             <string>Test Solenoid</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>Test Mode</string>
+         <widget class="QGroupBox" name="testBox">
+          <property name="title">
+           <string>IR Test Area</string>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QGraphicsView" name="testView">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::Box</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Sunken</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="verticalScrollBarPolicy">
+              <enum>Qt::ScrollBarAlwaysOff</enum>
+             </property>
+             <property name="horizontalScrollBarPolicy">
+              <enum>Qt::ScrollBarAlwaysOff</enum>
+             </property>
+             <property name="sizeAdjustPolicy">
+              <enum>QAbstractScrollArea::AdjustIgnored</enum>
+             </property>
+             <property name="backgroundBrush">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>70</red>
+                <green>70</green>
+                <blue>70</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="interactive">
+              <bool>false</bool>
+             </property>
+             <property name="sceneRect">
+              <rectf>
+               <x>0.000000000000000</x>
+               <y>0.000000000000000</y>
+               <width>0.000000000000000</width>
+               <height>0.000000000000000</height>
+              </rectf>
+             </property>
+             <property name="resizeAnchor">
+              <enum>QGraphicsView::AnchorViewCenter</enum>
+             </property>
+             <property name="optimizationFlags">
+              <set>QGraphicsView::DontAdjustForAntialiasing|QGraphicsView::DontSavePainterState</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="testBtn">
+             <property name="text">
+              <string>Enable IR Test Mode</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="testBtn">
-          <property name="text">
-           <string>Open Test Window</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item>
          <widget class="Line" name="line_2">
@@ -1242,45 +1278,33 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>Clear Settings</string>
+         <widget class="QGroupBox" name="dangerZoneBox">
+          <property name="title">
+           <string>Board Actions</string>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_10">
+           <item>
+            <widget class="QPushButton" name="clearEepromBtn">
+             <property name="text">
+              <string>Clear Save Memory [!]</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="baudResetBtn">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Reset to Bootloader (WIP)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="clearEepromBtn">
-          <property name="text">
-           <string>Clear EEPROM</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Board Reset</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QPushButton" name="baudResetBtn">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Reset to Bootloader (WIP)</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
         </item>
        </layout>
       </widget>

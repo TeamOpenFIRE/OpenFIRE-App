@@ -19,6 +19,7 @@
 #include "constants.h"
 #include "ui_guiwindow.h"
 #include "ui_about.h"
+#include <QGraphicsScene>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QSvgRenderer>
@@ -79,6 +80,8 @@ QLabel *yCenter[4];
 QComboBox *irSens[4];
 QComboBox *runMode[4];
 QSvgWidget *centerPic;
+
+QGraphicsScene *testScene;
 
 //
 // ^^^-------GLOBAL VARS UP THERE----------^^^
@@ -176,6 +179,42 @@ guiWindow::guiWindow(QWidget *parent)
         ui->profilesArea->addWidget(runMode[i], i+1, 11, 1, 1);
     }
 
+    // Setup Test Mode screen colors
+    testPointTLPen.setColor(Qt::green);
+    testPointTRPen.setColor(Qt::green);
+    testPointBLPen.setColor(Qt::blue);
+    testPointBRPen.setColor(Qt::blue);
+    testPointMedPen.setColor(Qt::gray);
+    testPointDPen.setColor(Qt::red);
+    testPointTLPen.setWidth(3);
+    testPointTRPen.setWidth(3);
+    testPointBLPen.setWidth(3);
+    testPointBRPen.setWidth(3);
+    testPointMedPen.setWidth(3);
+    testPointDPen.setWidth(3);
+    testPointTL.setPen(testPointTLPen);
+    testPointTR.setPen(testPointTRPen);
+    testPointBL.setPen(testPointBLPen);
+    testPointBR.setPen(testPointBRPen);
+    testPointMed.setPen(testPointMedPen);
+    testPointD.setPen(testPointDPen);
+
+    // Actually setup the Test Mode scene
+    testScene = new QGraphicsScene();
+    testScene->setSceneRect(0, 0, 1024, 768);
+    testScene->setBackgroundBrush(Qt::darkGray);
+    ui->testView->setScene(testScene);
+    testScene->addItem(&testBox);
+    testScene->addItem(&testPointTL);
+    testScene->addItem(&testPointTR);
+    testScene->addItem(&testPointBL);
+    testScene->addItem(&testPointBR);
+    testScene->addItem(&testPointMed);
+    testScene->addItem(&testPointD);
+    // TODO: is there a way of dynamically scaling QGraphicsViews?
+    ui->testView->scale(0.5, 0.5);
+
+    // Finally get to the thing!
     statusBar()->showMessage("Welcome to GUN4ALL-GUI!", 3000);
     PortsSearch();
     usbName.prepend("[No device]");
@@ -1482,6 +1521,22 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             serialPort.readLine();
         }
+    } else if(testMode) {
+        QString testBuffer = serialPort.readLine();
+        if(testBuffer.contains(',')) {
+            QStringList coordsList = testBuffer.remove("\r\n").split(',', Qt::SkipEmptyParts);
+            //qDebug() << coordsList;
+
+            testPointTL.setRect(coordsList[0].toInt()-25, coordsList[1].toInt()-25, 50, 50);
+            testPointTR.setRect(coordsList[2].toInt()-25, coordsList[3].toInt()-25, 50, 50);
+            testPointBL.setRect(coordsList[4].toInt()-25, coordsList[5].toInt()-25, 50, 50);
+            testPointBR.setRect(coordsList[6].toInt()-25, coordsList[7].toInt()-25, 50, 50);
+            testPointMed.setRect(coordsList[8].toInt()-25,coordsList[9].toInt()-25, 50, 50);
+            testPointD.setRect(coordsList[10].toInt()-25, coordsList[11].toInt()-25, 50, 50);
+            QPolygonF poly;
+            poly << QPointF(coordsList[0].toInt(), coordsList[1].toInt()) << QPointF(coordsList[2].toInt(), coordsList[3].toInt()) << QPointF(coordsList[6].toInt(), coordsList[7].toInt()) << QPointF(coordsList[4].toInt(), coordsList[5].toInt()) << QPointF(coordsList[0].toInt(), coordsList[1].toInt());
+            testBox.setPolygon(poly);
+        }
     }
 }
 
@@ -1510,8 +1565,38 @@ void guiWindow::on_solenoidTestBtn_clicked()
 
 void guiWindow::on_testBtn_clicked()
 {
-    //Ui::testWindow test;
-    //test.exec();
+    if(serialPort.isOpen()) {
+        // Pre-emptively put a sock in the readyRead signal
+        serialActive = true;
+        serialPort.write("XT");
+        serialPort.waitForBytesWritten(1000);
+        serialPort.waitForReadyRead(1000);
+        if(serialPort.readLine().trimmed() == "Entering Test Mode...") {
+            testMode = true;
+            ui->testView->setEnabled(true);
+            ui->buttonsTestArea->setEnabled(false);
+            ui->testBtn->setText("Disable IR Test Mode");
+            ui->confirmButton->setEnabled(false);
+            ui->confirmButton->setText("[Disabled while in Test Mode]");
+            ui->pinsTab->setEnabled(false);
+            ui->settingsTab->setEnabled(false);
+            ui->profilesTab->setEnabled(false);
+            ui->feedbackTestsBox->setEnabled(false);
+            ui->dangerZoneBox->setEnabled(false);
+        } else {
+            testMode = false;
+            ui->testView->setEnabled(false);
+            ui->buttonsTestArea->setEnabled(true);
+            ui->testBtn->setText("Enable IR Test Mode");
+            ui->pinsTab->setEnabled(true);
+            ui->settingsTab->setEnabled(true);
+            ui->profilesTab->setEnabled(true);
+            ui->feedbackTestsBox->setEnabled(true);
+            ui->dangerZoneBox->setEnabled(true);
+            DiffUpdate();
+            serialActive = false;
+        }
+    }
 }
 
 
@@ -1559,8 +1644,6 @@ void guiWindow::on_baudResetBtn_clicked()
     // Seems to be a QT bug? This is nearly identical to Earle's code.
     qDebug() << "Sending reset command.";
     serialActive = true;
-    serialPort.close();
-    serialPort.open(QIODevice::ReadWrite);
     serialPort.setBaudRate(QSerialPort::Baud9600);
     serialPort.setDataTerminalReady(true);
     serialPort.write(".");
@@ -1569,7 +1652,7 @@ void guiWindow::on_baudResetBtn_clicked()
         serialPort.setBaudRate(QSerialPort::Baud1200);
         serialPort.write(".");
         if(serialPort.waitForBytesWritten(1000)) {
-            ui->statusBar->showMessage("Board reset to bootloader.");
+            ui->statusBar->showMessage("Board reset to bootloader.", 5000);
             serialPort.close();
             ui->comPortSelector->setCurrentIndex(0);
         } else {
