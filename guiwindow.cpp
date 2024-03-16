@@ -408,6 +408,8 @@ bool guiWindow::SerialInit(int portNum)
                         board.type = rpipico;
                     } else if(buffer == "adafruitItsyRP2040") {
                         board.type = adafruitItsyRP2040;
+                    } else if(buffer == "adafruitKB2040") {
+                        board.type = adafruitKB2040;
                     } else if(buffer == "arduinoNanoRP2040") {
                         board.type = arduinoNanoRP2040;
                     } else {
@@ -494,6 +496,17 @@ void guiWindow::BoxesUpdate()
         {
             for(uint8_t i = 0; i < 30; i++) {
                 currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment;
+                pinBoxes[i]->setCurrentIndex(currentPins[i]);
+                pinBoxesOldIndex[i] = currentPins[i];
+                pinBoxes[i]->setEnabled(false);
+            }
+            return;
+            break;
+        }
+        case adafruitKB2040:
+        {
+            for(uint8_t i = 0; i < 30; i++) {
+                currentPins[i] = adafruitKB2040Layout[i].pinAssignment;
                 pinBoxes[i]->setCurrentIndex(currentPins[i]);
                 pinBoxesOldIndex[i] = currentPins[i];
                 pinBoxes[i]->setEnabled(false);
@@ -618,6 +631,9 @@ QString PrettifyName()
         break;
     case adafruitItsyRP2040:
         name = name + " | Adafruit ItsyBitsy RP2040";
+        break;
+    case adafruitKB2040:
+        name = name + " | Adafruit KB2040";
         break;
     case arduinoNanoRP2040:
         name = name + " | Arduino Nano RP2040 Connect";
@@ -904,6 +920,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
                 // center
                 PinsCenter->addWidget(centerPic);
+                centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
                 break;
             }
             case adafruitItsyRP2040:
@@ -991,6 +1008,79 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     PinsCenterSub->addWidget(pinLabel[4], 0, 3);
                 PinsCenterSub->addWidget(pinBoxes[5], 1, 2),
                     PinsCenterSub->addWidget(pinLabel[5], 0, 2);
+                break;
+            }
+            case adafruitKB2040:
+            {
+                // update box types
+                for(uint8_t i = 0; i < 30; i++) {
+                    pinBoxes[i]->addItems(valuesNameList);
+                    if(adafruitKB2040Layout[i].pinType == pinDigital) {
+                        pinBoxes[i]->removeItem(25);
+                        pinBoxes[i]->removeItem(24);
+                        // replace "Temp Sensor" with a separator
+                        // then remove the presumably bumped up temp sensor index.
+                        pinBoxes[i]->insertSeparator(16);
+                        pinBoxes[i]->removeItem(17);
+                    }
+                }
+
+                BoxesUpdate();
+
+                centerPic = new QSvgWidget(":/boardPics/adafruitKB2040.svg");
+                QSvgRenderer *picRenderer = centerPic->renderer();
+                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                ui->boardLabel->setText(PrettifyName());
+
+                // left side
+                PinsLeft->addWidget(padding[0], 0, 1);        // D+
+                PinsLeft->addWidget(pinBoxes[0], 1, 0),
+                    PinsLeft->addWidget(pinLabel[0], 1, 1);
+                PinsLeft->addWidget(pinBoxes[1], 2, 0),
+                    PinsLeft->addWidget(pinLabel[1], 2, 1);
+                PinsLeft->addWidget(padding[1], 3, 1);        // gnd
+                PinsLeft->addWidget(padding[2], 4, 1);        // gnd
+                PinsLeft->addWidget(padding[3], 5, 1);        // data
+                PinsLeft->addWidget(padding[4], 6, 1);        // clock
+                PinsLeft->addWidget(pinBoxes[4], 7, 0),
+                    PinsLeft->addWidget(pinLabel[4], 7, 1);
+                PinsLeft->addWidget(pinBoxes[5], 8, 0),
+                    PinsLeft->addWidget(pinLabel[5], 8, 1);
+                PinsLeft->addWidget(pinBoxes[6], 9, 0),
+                    PinsLeft->addWidget(pinLabel[6], 9, 1);
+                PinsLeft->addWidget(pinBoxes[7], 10, 0),
+                    PinsLeft->addWidget(pinLabel[7], 10, 1);
+                PinsLeft->addWidget(pinBoxes[8], 11, 0),
+                    PinsLeft->addWidget(pinLabel[8], 11, 1);
+                PinsLeft->addWidget(pinBoxes[9], 12, 0),
+                    PinsLeft->addWidget(pinLabel[9], 12, 1);
+
+                // right side
+                PinsRight->addWidget(padding[5], 0, 0);       // D-
+                PinsRight->addWidget(padding[6], 1, 0);       // RAW
+                PinsRight->addWidget(padding[7], 2, 0);       // gnd
+                PinsRight->addWidget(padding[8], 3, 0);       // reset
+                PinsRight->addWidget(padding[9], 4, 0);       // 3.3v
+                PinsRight->addWidget(pinBoxes[29], 5, 1),
+                    PinsRight->addWidget(pinLabel[29], 5, 0);
+                PinsRight->addWidget(pinBoxes[28], 6, 1),
+                    PinsRight->addWidget(pinLabel[28], 6, 0);
+                PinsRight->addWidget(pinBoxes[27], 7, 1),
+                    PinsRight->addWidget(pinLabel[27], 7, 0);
+                PinsRight->addWidget(pinBoxes[26], 8, 1),
+                    PinsRight->addWidget(pinLabel[26], 8, 0);
+                PinsRight->addWidget(pinBoxes[18], 9, 1),
+                    PinsRight->addWidget(pinLabel[18], 9, 0);
+                PinsRight->addWidget(pinBoxes[20], 10, 1),
+                    PinsRight->addWidget(pinLabel[20], 10, 0);
+                PinsRight->addWidget(pinBoxes[19], 11, 1),
+                    PinsRight->addWidget(pinLabel[19], 11, 0);
+                PinsRight->addWidget(pinBoxes[10], 12, 1),
+                    PinsRight->addWidget(pinLabel[10], 12, 0);
+
+                // center
+                PinsCenter->addWidget(centerPic);
+                centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
                 break;
             }
             case arduinoNanoRP2040:
@@ -1151,7 +1241,6 @@ void guiWindow::pinBoxes_activated(int index)
             }
     }
 
-    // TODO: shit's still kinda fucky with "unmapped" boxes!
     if(!index) {
         inputsMap[currentPins.value(pin) - 1] = -1;
         currentPins[pin] = btnUnmapped;

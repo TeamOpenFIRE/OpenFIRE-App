@@ -4,5 +4,6 @@
         <file alias="adafruitItsy2040.svg">boardPics/adafruitItsy2040.svg</file>
         <file alias="arduinoNano2040.svg">boardPics/arduinoNano2040.svg</file>
         <file alias="unknown.svg">boardPics/unknown.svg</file>
+        <file alias="adafruitKB2040.svg">boardPics/adafruitKB2040.svg</file>
     </qresource>
 </RCC>

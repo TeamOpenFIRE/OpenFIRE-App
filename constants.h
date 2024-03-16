@@ -24,6 +24,7 @@ enum boardTypes_e {
     nothing = 0,
     rpipico,
     adafruitItsyRP2040,
+    adafruitKB2040,
     arduinoNanoRP2040,
     unknown = 255
 };
@@ -147,6 +148,30 @@ const boardLayout_t adafruitItsyRP2040Layout[] = {
     {rumblePin, pinDigital}, {solenoidPin, pinDigital},
     {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
     {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog}
+};
+
+const boardLayout_t adafruitKB2040Layout[] = {
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnGunB, pinDigital}, {rumblePin, pinDigital},
+    {btnGunC, pinDigital}, {solenoidPin, pinDigital},
+    {btnSelect, pinDigital}, {btnStart, pinDigital},
+    {btnGunRight, pinDigital},
+
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing},
+
+    {btnGunUp, pinDigital}, {btnGunLeft, pinDigital},
+    {btnGunDown, pinDigital},
+
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing},
+
+    {tempPin, pinAnalog}, {btnHome, pinAnalog},
+    {btnTrigger, pinAnalog}, {btnGunA, pinAnalog}
 };
 
 const boardLayout_t arduinoNanoRP2040Layout[] = {
