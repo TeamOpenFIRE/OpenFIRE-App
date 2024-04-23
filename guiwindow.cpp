@@ -27,7 +27,8 @@
 #include <QSerialPortInfo>
 #include <QtDebug>
 #include <QProgressBar>
-//#include <QThread>
+#include <QProcess>
+#include <QThread>
 
 // Currently loaded board object
 boardInfo_s board;
@@ -1767,23 +1768,21 @@ void guiWindow::on_baudResetBtn_clicked()
     // Seems to be a QT bug? This is nearly identical to Earle's code.
     qDebug() << "Sending reset command.";
     serialActive = true;
-    serialPort.setBaudRate(QSerialPort::Baud9600);
+    #ifdef Q_OS_UNIX
+    serialPort.close();
+    QProcess *externalProg = new QProcess;
+    QStringList args;
+    args << "-F" << QString("/dev/ttyACM%1").arg(ui->comPortSelector->currentIndex()-1) << "1200";
+    externalProg->start("/usr/bin/stty", args);
+    #else
     serialPort.setDataTerminalReady(true);
-    serialPort.write(".");
-    if(serialPort.waitForBytesWritten(1000)) {
-        serialPort.setDataTerminalReady(false);
-        serialPort.setBaudRate(QSerialPort::Baud1200);
-        serialPort.write(".");
-        if(serialPort.waitForBytesWritten(1000)) {
-            ui->statusBar->showMessage("Board reset to bootloader.", 5000);
-            serialPort.close();
-            ui->comPortSelector->setCurrentIndex(0);
-        } else {
-            qDebug() << "WHY ISN'T THIS ONE WORKING EITHER!?!?!?";
-        }
-    } else {
-        qDebug() << "WHY ISN'T THIS WORKING???";
-    }
+    QThread::msleep(100);
+    serialPort.setDataTerminalReady(false);
+    serialPort.setBaudRate(QSerialPort::Baud1200);
+    serialPort.close();
+    #endif
+    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
+    ui->comPortSelector->setCurrentIndex(0);
     serialActive = false;
 }
 
