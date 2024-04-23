@@ -57,6 +57,7 @@ Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in *
  - Implement version comparison to latest G4A GitHub release.
  - Investigate adding one-click firmware installation/updating from GUI?
  - Finish/fix the currently non-functional "reboot to bootloader" method (even though it's using Earle's reference code nearly verbatim, it still doesn't work--might be a limitation of QT?)
+ - Add radio buttons for preset TinyUSB Identifier settings (for the extra picky distros that depend on set PIDs or names...)
  - Maybe add check if camera isn't detected as running?
  - Add icon, logo.
  - Holy shit the board layouts code is a MESS rn.
