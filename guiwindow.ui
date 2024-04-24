@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>GUN4ALL-GUI v1.2 - Valov</string>
+   <string>GUN4ALL-GUI v1.2.1 - Valov</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">
@@ -1296,7 +1296,7 @@
               <bool>true</bool>
              </property>
              <property name="text">
-              <string>Reset to Bootloader (WIP)</string>
+              <string>Reboot to Bootloader</string>
              </property>
             </widget>
            </item>
