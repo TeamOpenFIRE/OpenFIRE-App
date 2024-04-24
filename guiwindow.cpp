@@ -1768,18 +1768,34 @@ void guiWindow::on_baudResetBtn_clicked()
     // Seems to be a QT bug? This is nearly identical to Earle's code.
     qDebug() << "Sending reset command.";
     serialActive = true;
-    #ifdef Q_OS_UNIX
     serialPort.close();
+    // DIRTY HACK: just directly call OS-level apps to do this for us.
+    #ifdef Q_OS_UNIX
+    // stty does this in a neat one-liner and is standard on *nixes
     QProcess *externalProg = new QProcess;
     QStringList args;
+    // FWIW, ttyACM# is the default on modern Linuxes. Do any distros don't use ACM? Does this apply to BSD? Do we care?
     args << "-F" << QString("/dev/ttyACM%1").arg(ui->comPortSelector->currentIndex()-1) << "1200";
     externalProg->start("/usr/bin/stty", args);
+    #elifdef Q_OS_WIN
+    // Ooooh, Windows has a mode command that does basically the same!
+    QProcess *externalProg = new QProcess;
+    QStringList args;
+    args << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].portName()) << "baud=12" << "parity=n" << "data=8" << "stop=1" << "dtr=off";
+    externalProg->start("C:/Windows/system32/mode", args);
     #else
-    serialPort.setDataTerminalReady(true);
-    QThread::msleep(100);
+    // The builtin method that currently does not work at all atm. Let's hope to use this soon.
     serialPort.setDataTerminalReady(false);
+    qDebug() << serialPort.isDataTerminalReady();
+    QThread::msleep(100);
     serialPort.setBaudRate(QSerialPort::Baud1200);
+    qDebug() << serialPort.baudRate();
+    QThread::msleep(100);
     serialPort.close();
+    QThread::msleep(100);
+    qDebug() << serialPort.baudRate();
+    qDebug() << serialPort.isDataTerminalReady();
+    serialPort.open(QIODevice::ReadOnly);
     #endif
     ui->statusBar->showMessage("Board reset to bootloader.", 5000);
     ui->comPortSelector->setCurrentIndex(0);
