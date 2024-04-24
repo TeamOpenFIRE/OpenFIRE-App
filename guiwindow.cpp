@@ -121,6 +121,23 @@ guiWindow::guiWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+#ifdef Q_OS_UNIX
+    if(qEnvironmentVariable("USER") != "root") {
+        QProcess *externalProg = new QProcess;
+        QStringList args;
+        // Why do I have to run this WITH args even if I don't need them...?
+        externalProg->start("/usr/bin/groups", args);
+        externalProg->waitForFinished();
+        if(!externalProg->readAllStandardOutput().contains("dialout")) {
+            PopupWindow("User doesn't have serial permissions!", QString("Currently, your user is not allowed to have access to serial devices.\n\nTo add yourself to the right group, run this command in a terminal and then re-login to your session: \n\nsudo usermod -aG dialout %1").arg(qEnvironmentVariable("USER")), "Permission error", 2);
+            exit(0);
+        }
+    } else {
+        PopupWindow("Running as root is not allowed!", "Please run GUN4ALL-GUI as a normal user.", "ERROR", 4);
+        exit(2);
+    }
+#endif
+
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
     // just to be sure, init the inputsMap hashes
