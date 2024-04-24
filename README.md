@@ -53,7 +53,6 @@ Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in *
 ###### iunno man, [I don't use Windows anymore.](https://youtu.be/PAFvWdszwFA)
 
 ### TODO:
- - Automate Linux user onboarding (check if $USER is in `dialout` group, and prompt the user if it's allowed to add them to the group - user still won't be able to access USB serial until a reboot tho)
  - Implement version comparison to latest G4A GitHub release (or latest as of the GUI version).
  - Add one-click firmware installation/updating from GUI (for both already flashed guns AND RP2040 devices in bootloader mode).
  - Add radio buttons for preset TinyUSB Identifier settings (for the extra picky distros that depend on set PIDs or names...)
