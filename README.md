@@ -54,11 +54,9 @@ Boards flashed with IR-GUN4ALL v4.0 (*L.G.A Force*) and up *must be plugged in *
 
 ### TODO:
  - Automate Linux user onboarding (check if $USER is in `dialout` group, and prompt the user if it's allowed to add them to the group - user still won't be able to access USB serial until a reboot tho)
- - Implement version comparison to latest G4A GitHub release.
- - Investigate adding one-click firmware installation/updating from GUI?
- - Finish/fix the currently non-functional "reboot to bootloader" method (even though it's using Earle's reference code nearly verbatim, it still doesn't work--might be a limitation of QT?)
+ - Implement version comparison to latest G4A GitHub release (or latest as of the GUI version).
+ - Add one-click firmware installation/updating from GUI (for both already flashed guns AND RP2040 devices in bootloader mode).
  - Add radio buttons for preset TinyUSB Identifier settings (for the extra picky distros that depend on set PIDs or names...)
- - Maybe add check if camera isn't detected as running?
  - Add icon, logo.
  - Holy shit the board layouts code is a MESS rn.
  - stop being tired all the time
