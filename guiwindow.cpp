@@ -1774,8 +1774,8 @@ void guiWindow::on_baudResetBtn_clicked()
     // stty does this in a neat one-liner and is standard on *nixes
     QProcess *externalProg = new QProcess;
     QStringList args;
-    // FWIW, ttyACM# is the default on modern Linuxes. Do any distros don't use ACM? Does this apply to BSD? Do we care?
-    args << "-F" << QString("/dev/ttyACM%1").arg(ui->comPortSelector->currentIndex()-1) << "1200";
+    // FWIW, ttyACM# is the default on modern Linuxes, but this should get the right device no matter what the naming convention.
+    args << "-F" << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].systemLocation()) << "1200";
     externalProg->start("/usr/bin/stty", args);
     #elifdef Q_OS_WIN
     // Ooooh, Windows has a mode command that does basically the same!
