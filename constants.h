@@ -26,7 +26,7 @@ enum boardTypes_e {
     adafruitItsyRP2040,
     adafruitKB2040,
     arduinoNanoRP2040,
-    unknown = 255
+    generic = 255
 };
 
 enum boardInputs_e {
@@ -115,47 +115,47 @@ typedef struct boardLayout_t {
 } boardLayout_s;
 
 const boardLayout_t rpipicoLayout[] = {
-    {btnGunA, pinDigital}, {btnGunB, pinDigital},
-    {btnGunC, pinDigital}, {btnStart, pinDigital},
-    {btnSelect, pinDigital}, {btnHome, pinDigital},
-    {btnGunUp, pinDigital}, {btnGunDown, pinDigital},
-    {btnGunLeft, pinDigital}, {btnGunRight, pinDigital},
-    {ledR, pinDigital}, {ledG, pinDigital},
-    {ledB, pinDigital}, {btnPump, pinDigital},
-    {btnPedal, pinDigital}, {btnTrigger, pinDigital},
+    {btnGunA, pinDigital},     {btnGunB, pinDigital},
+    {btnGunC, pinDigital},     {btnStart, pinDigital},
+    {btnSelect, pinDigital},   {btnHome, pinDigital},
+    {btnGunUp, pinDigital},    {btnGunDown, pinDigital},
+    {btnGunLeft, pinDigital},  {btnGunRight, pinDigital},
+    {ledR, pinDigital},        {ledG, pinDigital},
+    {ledB, pinDigital},        {btnPump, pinDigital},
+    {btnPedal, pinDigital},    {btnTrigger, pinDigital},
     {solenoidPin, pinDigital}, {rumblePin, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {-2, pinNothing}
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
+    {btnUnmapped, pinAnalog},  {-2, pinNothing}           // ADC, padding
 };
 
 const boardLayout_t adafruitItsyRP2040Layout[] = {
-    {btnGunUp, pinDigital}, {btnGunDown, pinDigital},
+    {btnGunUp, pinDigital},    {btnGunDown, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnGunLeft, pinDigital}, {btnGunRight, pinDigital},
-    {btnTrigger, pinDigital}, {btnGunA, pinDigital},
-    {btnGunB, pinDigital}, {btnGunC, pinDigital},
-    {btnStart, pinDigital}, {btnSelect, pinDigital},
-    {btnPedal, pinDigital}, {btnReserved, pinNothing},
+    {btnGunLeft, pinDigital},  {btnGunRight, pinDigital},
+    {btnTrigger, pinDigital},  {btnGunA, pinDigital},
+    {btnGunB, pinDigital},     {btnGunC, pinDigital},
+    {btnStart, pinDigital},    {btnSelect, pinDigital},
+    {btnPedal, pinDigital},    {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {rumblePin, pinDigital}, {solenoidPin, pinDigital},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog}
+    {rumblePin, pinDigital},   {solenoidPin, pinDigital},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
 };
 
 const boardLayout_t adafruitKB2040Layout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnGunB, pinDigital}, {rumblePin, pinDigital},
-    {btnGunC, pinDigital}, {solenoidPin, pinDigital},
-    {btnSelect, pinDigital}, {btnStart, pinDigital},
+    {btnGunB, pinDigital},     {rumblePin, pinDigital},
+    {btnGunC, pinDigital},     {solenoidPin, pinDigital},
+    {btnSelect, pinDigital},   {btnStart, pinDigital},
     {btnGunRight, pinDigital},
 
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
@@ -163,21 +163,21 @@ const boardLayout_t adafruitKB2040Layout[] = {
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing},
 
-    {btnGunUp, pinDigital}, {btnGunLeft, pinDigital},
+    {btnGunUp, pinDigital},    {btnGunLeft, pinDigital},
     {btnGunDown, pinDigital},
 
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing},
 
-    {tempPin, pinAnalog}, {btnHome, pinAnalog},
-    {btnTrigger, pinAnalog}, {btnGunA, pinAnalog}
+    {tempPin, pinAnalog},      {btnHome, pinAnalog},
+    {btnTrigger, pinAnalog},   {btnGunA, pinAnalog}
 };
 
 const boardLayout_t arduinoNanoRP2040Layout[] = {
-    {btnTrigger, pinDigital}, {btnPedal, pinDigital},
+    {btnTrigger, pinDigital},  {btnPedal, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnGunA, pinDigital}, {btnGunC, pinDigital},
+    {btnGunA, pinDigital},     {btnGunC, pinDigital},
     {btnUnmapped, pinDigital}, {btnGunB, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
@@ -188,8 +188,26 @@ const boardLayout_t arduinoNanoRP2040Layout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog}, {btnUnmapped, pinAnalog}
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
+};
+
+const boardLayout_t genericLayout[] = {
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
+    {btnUnmapped, pinAnalog},  {-2, pinNothing}           // ADC, padding
 };
 
 #endif // CONSTANTS_H

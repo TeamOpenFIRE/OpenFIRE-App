@@ -28,6 +28,7 @@
 #include <QtDebug>
 #include <QProgressBar>
 #include <QProcess>
+#include <QStorageInfo>
 #include <QThread>
 
 // Currently loaded board object
@@ -125,7 +126,6 @@ guiWindow::guiWindow(QWidget *parent)
     if(qEnvironmentVariable("USER") != "root") {
         QProcess *externalProg = new QProcess;
         QStringList args;
-        // Why do I have to run this WITH args even if I don't need them...?
         externalProg->start("/usr/bin/groups", args);
         externalProg->waitForFinished();
         if(!externalProg->readAllStandardOutput().contains("dialout")) {
@@ -431,7 +431,7 @@ bool guiWindow::SerialInit(int portNum)
                     } else if(buffer == "arduinoNanoRP2040") {
                         board.type = arduinoNanoRP2040;
                     } else {
-                        board.type = unknown;
+                        board.type = generic;
                     }
                     //qDebug() << "Selected profile number:" << buffer;
                     buffer = serialPort.readLine();
@@ -656,8 +656,8 @@ QString PrettifyName()
     case arduinoNanoRP2040:
         name = name + " | Arduino Nano RP2040 Connect";
         break;
-    case unknown:
-        name = name + " | Unknown Board";
+    case generic:
+        name = name + " | Generic RP2040 Board";
         break;
     }
     return name;
@@ -1183,16 +1183,101 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 PinsCenter->addWidget(centerPic);
                 break;
             }
-            /*
-            case 255: // unknowns
-                //centerPic = new QSvgWidget(":/boardPics/pico.svg");
-                //QSvgRenderer *picRenderer = centerPic->renderer();
-                //picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                //centerPic->load(path);
-                //PinsCenter->addWidget(centerPic);
+            case generic:
+                // update box types
+                for(uint8_t i = 0; i < 30; i++) {
+                    pinBoxes[i]->addItems(valuesNameList);
+                    if(genericLayout[i].pinType == pinDigital) {
+                        pinBoxes[i]->removeItem(25);
+                        pinBoxes[i]->removeItem(24);
+                        // replace "Temp Sensor" with a separator
+                        // then remove the presumably bumped up temp sensor index.
+                        pinBoxes[i]->insertSeparator(16);
+                        pinBoxes[i]->removeItem(17);
+                    }
+                }
+
+                BoxesUpdate();
+
+                centerPic = new QSvgWidget(":/boardPics/unknown.svg");
+                QSvgRenderer *picRenderer = centerPic->renderer();
+                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
                 ui->boardLabel->setText(PrettifyName());
+
+                // left side (has 1 row of top padding)
+                PinsLeft->addWidget(padding[0], 0, 1);
+                PinsLeft->addWidget(pinBoxes[0], 1, 0),
+                    PinsLeft->addWidget(pinLabel[0], 1, 1);
+                PinsLeft->addWidget(pinBoxes[1], 2, 0),
+                    PinsLeft->addWidget(pinLabel[1], 2, 1);
+                PinsLeft->addWidget(padding[1], 3, 1);
+                PinsLeft->addWidget(pinBoxes[2], 4, 0),
+                    PinsLeft->addWidget(pinLabel[2], 4, 1);
+                PinsLeft->addWidget(pinBoxes[3], 5, 0),
+                    PinsLeft->addWidget(pinLabel[3], 5, 1);
+                PinsLeft->addWidget(pinBoxes[4], 6, 0),
+                    PinsLeft->addWidget(pinLabel[4], 6, 1);
+                PinsLeft->addWidget(pinBoxes[5], 7, 0),
+                    PinsLeft->addWidget(pinLabel[5], 7, 1);
+                PinsLeft->addWidget(padding[2], 8, 1);
+                PinsLeft->addWidget(pinBoxes[6], 9, 0),
+                    PinsLeft->addWidget(pinLabel[6], 9, 1);
+                PinsLeft->addWidget(pinBoxes[7], 10, 0),
+                    PinsLeft->addWidget(pinLabel[7], 10, 1);
+                PinsLeft->addWidget(pinBoxes[8], 11, 0),
+                    PinsLeft->addWidget(pinLabel[8], 11, 1);
+                PinsLeft->addWidget(pinBoxes[9], 12, 0),
+                    PinsLeft->addWidget(pinLabel[9], 12, 1);
+                PinsLeft->addWidget(padding[3], 13, 1);
+                PinsLeft->addWidget(pinBoxes[10], 14, 0),
+                    PinsLeft->addWidget(pinLabel[10], 14, 1);
+                PinsLeft->addWidget(pinBoxes[11], 15, 0, 1, 1),
+                    PinsLeft->addWidget(pinLabel[11], 15, 1);
+                PinsLeft->addWidget(pinBoxes[12], 16, 0),
+                    PinsLeft->addWidget(pinLabel[12], 16, 1);
+                PinsLeft->addWidget(pinBoxes[13], 17, 0),
+                    PinsLeft->addWidget(pinLabel[13], 17, 1);
+                PinsLeft->addWidget(padding[4], 18, 1);
+                PinsLeft->addWidget(pinBoxes[14], 19, 0),
+                    PinsLeft->addWidget(pinLabel[14], 19, 1);
+                PinsLeft->addWidget(pinBoxes[15], 20, 0),
+                    PinsLeft->addWidget(pinLabel[15], 20, 1);
+
+                // right side (has 1 row of top padding)
+                PinsRight->addWidget(padding[5], 0, 0); // top
+                PinsRight->addWidget(padding[6], 1, 1);
+                PinsRight->addWidget(padding[7], 2, 1);
+                PinsRight->addWidget(padding[8], 3, 1); // gnd
+                PinsRight->addWidget(padding[9], 4, 1);
+                PinsRight->addWidget(padding[10], 5, 1);
+                PinsRight->addWidget(padding[11], 6, 1);
+                PinsRight->addWidget(pinBoxes[28], 7, 1),
+                    PinsRight->addWidget(pinLabel[28], 7, 0);
+                PinsRight->addWidget(padding[12], 8, 0); // gnd
+                PinsRight->addWidget(pinBoxes[27], 9, 1),
+                    PinsRight->addWidget(pinLabel[27], 9, 0);
+                PinsRight->addWidget(pinBoxes[26], 10, 1),
+                    PinsRight->addWidget(pinLabel[26], 10, 0);
+                PinsRight->addWidget(padding[13], 11, 1);
+                PinsRight->addWidget(pinBoxes[22], 12, 1),
+                    PinsRight->addWidget(pinLabel[22], 12, 0);
+                PinsRight->addWidget(padding[14], 13, 0); // gnd
+                PinsRight->addWidget(padding[15], 14, 1);     // data
+                PinsRight->addWidget(padding[16], 15, 1);     // clock
+                PinsRight->addWidget(pinBoxes[19], 16, 1),
+                    PinsRight->addWidget(pinLabel[19], 16, 0);
+                PinsRight->addWidget(pinBoxes[18], 17, 1),
+                    PinsRight->addWidget(pinLabel[18], 17, 0);
+                PinsRight->addWidget(padding[17], 18, 0); // gnd
+                PinsRight->addWidget(pinBoxes[17], 19, 1),
+                    PinsRight->addWidget(pinLabel[17], 19, 0);
+                PinsRight->addWidget(pinBoxes[16], 20, 1),
+                    PinsRight->addWidget(pinLabel[16], 20, 0);
+
+                // center
+                PinsCenter->addWidget(centerPic);
+                centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
                 break;
-            */
             }
 
 
@@ -1536,131 +1621,129 @@ void guiWindow::on_calib4Btn_clicked()
 void guiWindow::serialPort_readyRead()
 {
     if(!serialActive) {
-        QString idleBuffer = serialPort.readLine();
-        if(idleBuffer.contains("Pressed:")) {
-            idleBuffer = idleBuffer.right(4);
-            idleBuffer = idleBuffer.trimmed();
-            uint8_t button = idleBuffer.toInt();
-            switch(button) {
-            case btnTrigger:
-                ui->btnTriggerLabel->setText("<font color=#FF0000>Trigger</font>");
-                break;
-            case btnGunA:
-                ui->btnALabel->setText("<font color=#FF0000>Button A</font>");
-                break;
-            case btnGunB:
-                ui->btnBLabel->setText("<font color=#FF0000>Button B</font>");
-                break;
-            case btnGunC:
-                ui->btnCLabel->setText("<font color=#FF0000>Button C</font>");
-                break;
-            case btnStart:
-                ui->btnStartLabel->setText("<font color=#FF0000>Start</font>");
-                break;
-            case btnSelect:
-                ui->btnSelectLabel->setText("<font color=#FF0000>Select</font>");
-                break;
-            case btnGunUp:
-                ui->btnGunUpLabel->setText("<font color=#FF0000>Up</font>");
-                break;
-            case btnGunDown:
-                ui->btnGunDownLabel->setText("<font color=#FF0000>Down</font>");
-                break;
-            case btnGunLeft:
-                ui->btnGunLeftLabel->setText("<font color=#FF0000>Left</font>");
-                break;
-            case btnGunRight:
-                ui->btnGunRightLabel->setText("<font color=#FF0000>Right</font>");
-                break;
-            case btnPedal:
-                ui->btnPedalLabel->setText("<font color=#FF0000>Pedal</font>");
-                break;
-            case btnHome:
-                ui->btnHomeLabel->setText("<font color=#FF0000>Home</font>");
-                break;
-            case btnPump:
-                ui->btnPumpLabel->setText("<font color=#FF0000>Pump Action</font>");
-                break;
-            }
-        } else if(idleBuffer.contains("Released:")) {
-            idleBuffer = idleBuffer.right(4);
-            idleBuffer = idleBuffer.trimmed();
-            uint8_t button = idleBuffer.toInt();
-            switch(button) {
-            case btnTrigger:
-                ui->btnTriggerLabel->setText("Trigger");
-                break;
-            case btnGunA:
-                ui->btnALabel->setText("Button A");
-                break;
-            case btnGunB:
-                ui->btnBLabel->setText("Button B");
-                break;
-            case btnGunC:
-                ui->btnCLabel->setText("Button C");
-                break;
-            case btnStart:
-                ui->btnStartLabel->setText("Start");
-                break;
-            case btnSelect:
-                ui->btnSelectLabel->setText("Select");
-                break;
-            case btnGunUp:
-                ui->btnGunUpLabel->setText("Up");
-                break;
-            case btnGunDown:
-                ui->btnGunDownLabel->setText("Down");
-                break;
-            case btnGunLeft:
-                ui->btnGunLeftLabel->setText("Left");
-                break;
-            case btnGunRight:
-                ui->btnGunRightLabel->setText("Right");
-                break;
-            case btnPedal:
-                ui->btnPedalLabel->setText("Pedal");
-                break;
-            case btnHome:
-                ui->btnHomeLabel->setText("Home");
-                break;
-            case btnPump:
-                ui->btnPumpLabel->setText("Pump Action");
-                break;
-            }
-        } else if(idleBuffer.contains("Profile: ")) {
-            idleBuffer = idleBuffer.right(3);
-            idleBuffer = idleBuffer.trimmed();
-            uint8_t selection = idleBuffer.toInt();
-            if(selection != board.selectedProfile) {
-                board.selectedProfile = selection;
-                selectedProfile[selection]->setChecked(true);
-            }
-            DiffUpdate();
-        } else if(idleBuffer.contains("UpdatedProf: ")) {
-            idleBuffer = idleBuffer.right(3);
-            idleBuffer = idleBuffer.trimmed();
-            uint8_t selection = idleBuffer.toInt();
-            if(selection != board.selectedProfile) {
-                selectedProfile[selection]->setChecked(true);
-            }
-            board.selectedProfile = selection;
-            idleBuffer = serialPort.readLine();
-            xScale[selection]->setText(idleBuffer.trimmed());
-            profilesTable[selection].xScale = xScale[selection]->text().toInt();
-            idleBuffer = serialPort.readLine();
-            yScale[selection]->setText(idleBuffer.trimmed());
-            profilesTable[selection].yScale = yScale[selection]->text().toInt();
-            idleBuffer = serialPort.readLine();
-            xCenter[selection]->setText(idleBuffer.trimmed());
-            profilesTable[selection].xCenter = xCenter[selection]->text().toInt();
-            idleBuffer = serialPort.readLine();
-            yCenter[selection]->setText(idleBuffer.trimmed());
-            profilesTable[selection].yCenter = yCenter[selection]->text().toInt();
-            DiffUpdate();
-        }
-        // because there's probably some leftover bytes that might congest things:
         while(!serialPort.atEnd()) {
-            serialPort.readLine();
+            QString idleBuffer = serialPort.readLine();
+            if(idleBuffer.contains("Pressed:")) {
+                idleBuffer = idleBuffer.right(4);
+                idleBuffer = idleBuffer.trimmed();
+                uint8_t button = idleBuffer.toInt();
+                switch(button) {
+                case btnTrigger:
+                    ui->btnTriggerLabel->setText("<font color=#FF0000>Trigger</font>");
+                    break;
+                case btnGunA:
+                    ui->btnALabel->setText("<font color=#FF0000>Button A</font>");
+                    break;
+                case btnGunB:
+                    ui->btnBLabel->setText("<font color=#FF0000>Button B</font>");
+                    break;
+                case btnGunC:
+                    ui->btnCLabel->setText("<font color=#FF0000>Button C</font>");
+                    break;
+                case btnStart:
+                    ui->btnStartLabel->setText("<font color=#FF0000>Start</font>");
+                    break;
+                case btnSelect:
+                    ui->btnSelectLabel->setText("<font color=#FF0000>Select</font>");
+                    break;
+                case btnGunUp:
+                    ui->btnGunUpLabel->setText("<font color=#FF0000>Up</font>");
+                    break;
+                case btnGunDown:
+                    ui->btnGunDownLabel->setText("<font color=#FF0000>Down</font>");
+                    break;
+                case btnGunLeft:
+                    ui->btnGunLeftLabel->setText("<font color=#FF0000>Left</font>");
+                    break;
+                case btnGunRight:
+                    ui->btnGunRightLabel->setText("<font color=#FF0000>Right</font>");
+                    break;
+                case btnPedal:
+                    ui->btnPedalLabel->setText("<font color=#FF0000>Pedal</font>");
+                    break;
+                case btnHome:
+                    ui->btnHomeLabel->setText("<font color=#FF0000>Home</font>");
+                    break;
+                case btnPump:
+                    ui->btnPumpLabel->setText("<font color=#FF0000>Pump Action</font>");
+                    break;
+                }
+            } else if(idleBuffer.contains("Released:")) {
+                idleBuffer = idleBuffer.right(4);
+                idleBuffer = idleBuffer.trimmed();
+                uint8_t button = idleBuffer.toInt();
+                switch(button) {
+                case btnTrigger:
+                    ui->btnTriggerLabel->setText("Trigger");
+                    break;
+                case btnGunA:
+                    ui->btnALabel->setText("Button A");
+                    break;
+                case btnGunB:
+                    ui->btnBLabel->setText("Button B");
+                    break;
+                case btnGunC:
+                    ui->btnCLabel->setText("Button C");
+                    break;
+                case btnStart:
+                    ui->btnStartLabel->setText("Start");
+                    break;
+                case btnSelect:
+                    ui->btnSelectLabel->setText("Select");
+                    break;
+                case btnGunUp:
+                    ui->btnGunUpLabel->setText("Up");
+                    break;
+                case btnGunDown:
+                    ui->btnGunDownLabel->setText("Down");
+                    break;
+                case btnGunLeft:
+                    ui->btnGunLeftLabel->setText("Left");
+                    break;
+                case btnGunRight:
+                    ui->btnGunRightLabel->setText("Right");
+                    break;
+                case btnPedal:
+                    ui->btnPedalLabel->setText("Pedal");
+                    break;
+                case btnHome:
+                    ui->btnHomeLabel->setText("Home");
+                    break;
+                case btnPump:
+                    ui->btnPumpLabel->setText("Pump Action");
+                    break;
+                }
+            } else if(idleBuffer.contains("Profile: ")) {
+                idleBuffer = idleBuffer.right(3);
+                idleBuffer = idleBuffer.trimmed();
+                uint8_t selection = idleBuffer.toInt();
+                if(selection != board.selectedProfile) {
+                    board.selectedProfile = selection;
+                    selectedProfile[selection]->setChecked(true);
+                }
+                DiffUpdate();
+            } else if(idleBuffer.contains("UpdatedProf: ")) {
+                idleBuffer = idleBuffer.right(3);
+                idleBuffer = idleBuffer.trimmed();
+                uint8_t selection = idleBuffer.toInt();
+                if(selection != board.selectedProfile) {
+                    selectedProfile[selection]->setChecked(true);
+                }
+                board.selectedProfile = selection;
+                idleBuffer = serialPort.readLine();
+                xScale[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].xScale = xScale[selection]->text().toInt();
+                idleBuffer = serialPort.readLine();
+                yScale[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].yScale = yScale[selection]->text().toInt();
+                idleBuffer = serialPort.readLine();
+                xCenter[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].xCenter = xCenter[selection]->text().toInt();
+                idleBuffer = serialPort.readLine();
+                yCenter[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].yCenter = yCenter[selection]->text().toInt();
+                DiffUpdate();
+            }
         }
     } else if(testMode) {
         QString testBuffer = serialPort.readLine();
@@ -1791,15 +1874,29 @@ void guiWindow::on_baudResetBtn_clicked()
     // stty does this in a neat one-liner and is standard on *nixes
     QProcess *externalProg = new QProcess;
     QStringList args;
-    // FWIW, ttyACM# is the default on modern Linuxes, but this should get the right device no matter what the naming convention.
     args << "-F" << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].systemLocation()) << "1200";
     externalProg->start("/usr/bin/stty", args);
+    // At least on my system, the Bootloader device takes ~7s to appear
+    QThread::msleep(7000);
+    // Class-ify this function, maybe.
+    QString picoPath;
+    foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
+        if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
+            picoPath = storageDevices.device();
+            qDebug() << "Found a Pico bootloader!";
+            break;
+        } else {
+            qDebug() << "nope";
+        }
+    }
+    qDebug() << picoPath;
+    // QFile::copy("file", picoPath+"file");
     #elifdef Q_OS_WIN
-    // Ooooh, Windows has a mode command that does basically the same!
+    // Ooooh, Windows as a mode option that does basically the same!
     QProcess *externalProg = new QProcess;
     QStringList args;
     args << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].portName()) << "baud=12" << "parity=n" << "data=8" << "stop=1" << "dtr=off";
-    externalProg->start("C:/Windows/system32/mode", args);
+    externalProg->start("mode", args);
     #else
     // The builtin method that currently does not work at all atm. Let's hope to use this soon.
     serialPort.setDataTerminalReady(false);
