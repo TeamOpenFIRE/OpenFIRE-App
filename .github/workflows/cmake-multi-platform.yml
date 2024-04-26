@@ -74,7 +74,7 @@ jobs:
       uses: actions/upload-artifact@v4.3.1
       with:
         # Artifact name
-        name: G4A-GUI-${{ matrix.os }} # optional, default is artifact
+        name: OpenFIREapp-${{ matrix.os }} # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: build
 
@@ -82,7 +82,7 @@ jobs:
       uses: actions/download-artifact@v4.1.2
       with:
         # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
-        name: G4A-GUI-${{ matrix.os }} # optional
+        name: OpenFIREapp-${{ matrix.os }} # optional
         # Destination path. Supports basic tilde expansion. Defaults to $GITHUB_WORKSPACE
         # path: # optional
         # A glob pattern matching the artifacts that should be downloaded. Ignored if name is specified.
