@@ -1,5 +1,5 @@
-/*  GUN4ALL-GUI: a configuration utility for the GUN4ALL light gun system.
-    Copyright (C) 2024  That One Seong
+/*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
+    Copyright (C) 2024  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

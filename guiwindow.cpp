@@ -1,5 +1,5 @@
-/*  GUN4ALL-GUI: a configuration utility for the GUN4ALL light gun system.
-    Copyright (C) 2024  That One Seong
+/*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
+    Copyright (C) 2024  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ void guiWindow::PortsSearch()
     serialFoundList = QSerialPortInfo::availablePorts();
     if(serialFoundList.isEmpty()) {
         //statusBar()->showMessage("FATAL: No COM devices detected!");
-        PopupWindow("No devices detected!", "Is the microcontroller board currently running GUN4ALL and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nGUN4ALL GUI will now close.", "ERROR", 4);
+        PopupWindow("No devices detected!", "Is the microcontroller board currently running OpenFIRE and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nThis app will now close.", "ERROR", 4);
         exit(1);
     } else {
         // Yeah, sue me, we reading this backwards to make stack management easier.
@@ -110,7 +110,7 @@ void guiWindow::PortsSearch()
             }
         }
         if(!usbName.length()) {
-            PopupWindow("No GUN4ALL devices detected!", "Is the microcontroller board currently running GUN4ALL and is currently plugged in? Make sure it's connected and recognized by the PC.\nGUN4ALL-GUI only supports firmwares starting from v4.0 \"L.G.A Force\" and onwards.\n\nGUN4ALL-GUI will now close.", "ERROR", 4);
+            PopupWindow("No OpenFIRE devices detected!", "Is the microcontroller board currently running OpenFIRE and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nThis app will now close.", "ERROR", 4);
             exit(1);
         }
     }
@@ -133,7 +133,7 @@ guiWindow::guiWindow(QWidget *parent)
             exit(0);
         }
     } else {
-        PopupWindow("Running as root is not allowed!", "Please run GUN4ALL-GUI as a normal user.", "ERROR", 4);
+        PopupWindow("Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.", "ERROR", 4);
         exit(2);
     }
 #endif
@@ -233,7 +233,7 @@ guiWindow::guiWindow(QWidget *parent)
     ui->testView->scale(0.5, 0.5);
 
     // Finally get to the thing!
-    statusBar()->showMessage("Welcome to GUN4ALL-GUI!", 3000);
+    statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
     PortsSearch();
     usbName.prepend("[No device]");
     ui->productIdConverted->setEnabled(false);

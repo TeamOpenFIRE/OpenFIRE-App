@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>GUN4ALL-GUI v1.2.1 - Valov</string>
+   <string>OpenFIRE App - Codename Steam</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">
