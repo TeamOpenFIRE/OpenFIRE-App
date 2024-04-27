@@ -169,6 +169,9 @@
             <height>20</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Enable to use custom pins mapping, or disable to use the default mappings for the current board.</string>
+          </property>
           <property name="text">
            <string>Use Custom Pins</string>
           </property>
@@ -219,6 +222,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="rumbleToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if rumble force feedback is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Rumble Enabled</string>
                </property>
@@ -226,6 +232,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="solenoidToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if solenoid force feedback is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Solenoid Enabled</string>
                </property>
@@ -233,6 +242,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="autofireToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if solenoid full auto is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Autofire Enabled</string>
                </property>
@@ -270,6 +282,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="simplePauseToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabled: Pause Menu will use a scrolling layout - navigate by using Button A/B to select, and press Trigger to activate.&lt;/p&gt;&lt;p&gt;Disabled: Pause Menu options are activated with hotkeys.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns with less than two sub buttons, but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Simple Pause Menu</string>
                </property>
@@ -277,6 +292,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="holdToPauseToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabled: Access Pause Mode by holding Trigger and Button A while no IR points are visible.&lt;/p&gt;&lt;p&gt;Disabled: Access Pause Mode by pressing the Pause Mode hotkey (Button C + Select).&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns with less than two sub buttons. Pause Mode will always be accessible by pressing the Home Button, if available.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Hold to Pause Enabled</string>
                </property>
@@ -314,6 +332,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="commonAnodeToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set to enabled if your 4-pin RGB LED is a Common Anode type (with common connected to 5V), or disabled if it's Common Cathode (common connected to GND).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>RGB Common Anode</string>
                </property>
@@ -321,6 +342,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="lowButtonsToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabled: Buttons A &amp;amp; B will perform different functions when aiming off-screen (Start/Select, respectively).&lt;/p&gt;&lt;p&gt;Disabled: All buttons will perform the same functions regardless of aiming off-screen or not.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns with less than two sub buttons.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Low Buttons Mode</string>
                </property>
@@ -474,6 +498,9 @@
            </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="rumbleIntensityBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity of rumble force feedback events - scales from 0 (disabled) to a maximum of 255.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="frame">
               <bool>true</bool>
              </property>
@@ -490,6 +517,9 @@
            </item>
            <item row="1" column="1">
             <widget class="QSpinBox" name="rumbleLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of rumble motor activation when pulling the trigger offscreen, in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -503,6 +533,9 @@
            </item>
            <item row="2" column="1">
             <widget class="QSpinBox" name="holdToPauseLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Hold To Pause&lt;/span&gt; mode is enabled, how long should the buttons be held before Pause Mode activates?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -516,6 +549,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QSpinBox" name="neopixelStrandLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs are in the NeoPixel chain.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -532,6 +568,9 @@
            </item>
            <item row="0" column="3">
             <widget class="QSpinBox" name="solenoidNormalIntervalBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -542,6 +581,9 @@
            </item>
            <item row="1" column="3">
             <widget class="QSpinBox" name="solenoidFastIntervalBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -552,6 +594,9 @@
            </item>
            <item row="2" column="3">
             <widget class="QSpinBox" name="solenoidHoldLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -565,6 +610,9 @@
            </item>
            <item row="3" column="3">
             <widget class="QSpinBox" name="autofireWaitFactorBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The multiplier to be applied for the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::PlusMinus</enum>
              </property>
@@ -605,6 +653,9 @@
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="1" column="2">
             <widget class="QLineEdit" name="productNameInput">
+             <property name="toolTip">
+              <string>The Product Name that the gun reports to the PC.</string>
+             </property>
              <property name="inputMask">
               <string notr="true"/>
              </property>
@@ -670,6 +721,9 @@
            </item>
            <item row="0" column="2">
             <widget class="QLineEdit" name="productIdInput">
+             <property name="toolTip">
+              <string>The Product ID that the gun reports when connected to the PC, in decimal (with its hexadecimal equivalent).</string>
+             </property>
              <property name="inputMethodHints">
               <set>Qt::ImhDigitsOnly</set>
              </property>
