@@ -411,8 +411,8 @@ bool guiWindow::SerialInit(int portNum)
         if(serialPort.waitForBytesWritten(2000)) {
             if(serialPort.waitForReadyRead(2000)) {
                 QString buffer = serialPort.readLine();
-                if(buffer.contains("GUN4ALL")) {
-                    qDebug() << "GUN4ALL detected!";
+                if(buffer.contains("OpenFIRE")) {
+                    qDebug() << "OpenFIRE gun detected!";
                     buffer = serialPort.readLine();
                     buffer = buffer.trimmed();
                     board.versionNumber = buffer.toFloat();
