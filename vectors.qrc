@@ -6,4 +6,7 @@
         <file alias="unknown.svg">boardPics/unknown.svg</file>
         <file alias="adafruitKB2040.svg">boardPics/adafruitKB2040.svg</file>
     </qresource>
+    <qresource prefix="/icon">
+        <file alias="icon.png">ico/openfire.png</file>
+    </qresource>
 </RCC>

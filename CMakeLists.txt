@@ -28,6 +28,7 @@ set(PROJECT_SOURCES
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(OpenFIREapp
         MANUAL_FINALIZATION
+        ${CMAKE_CURRENT_SOURCE_DIR}/ico/icon.rc
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
@@ -45,6 +46,7 @@ else()
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(OpenFIREapp
+            ${CMAKE_CURRENT_SOURCE_DIR}/ico/icon.rc
             ${PROJECT_SOURCES}
         )
     endif()

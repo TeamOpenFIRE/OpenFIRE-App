@@ -112,7 +112,7 @@ private slots:
 
     void on_calib4Btn_clicked();
 
-    void on_actionAbout_IR_GUN4ALL_triggered();
+    void on_actionAbout_UI_triggered();
 
 private:
     Ui::guiWindow *ui;

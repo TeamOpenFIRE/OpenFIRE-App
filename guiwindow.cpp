@@ -122,7 +122,7 @@ guiWindow::guiWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
+#ifdef Q_OS_UNIX
     if(qEnvironmentVariable("USER") != "root") {
         QProcess *externalProg = new QProcess;
         QStringList args;
@@ -1916,7 +1916,7 @@ void guiWindow::on_baudResetBtn_clicked()
     serialActive = false;
 }
 
-void guiWindow::on_actionAbout_IR_GUN4ALL_triggered()
+void guiWindow::on_actionAbout_UI_triggered()
 {
     QDialog *about = new QDialog;
     Ui::aboutDialog aboutDialog;
