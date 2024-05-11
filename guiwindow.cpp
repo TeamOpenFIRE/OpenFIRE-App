@@ -122,7 +122,7 @@ guiWindow::guiWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-#ifdef Q_OS_UNIX
+#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
     if(qEnvironmentVariable("USER") != "root") {
         QProcess *externalProg = new QProcess;
         QStringList args;
