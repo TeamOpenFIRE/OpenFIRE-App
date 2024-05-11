@@ -4,9 +4,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "OpenFIRE-dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "OpenFIRE-dev" ]
 
 jobs:
   build:
