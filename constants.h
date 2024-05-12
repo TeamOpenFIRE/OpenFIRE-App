@@ -26,6 +26,7 @@ enum boardTypes_e {
     adafruitItsyRP2040,
     adafruitKB2040,
     arduinoNanoRP2040,
+    waveshareZero,
     generic = 255
 };
 
@@ -130,7 +131,7 @@ const boardLayout_t rpipicoLayout[] = {
     {btnPedal, pinDigital},    {btnTrigger, pinDigital},
     {solenoidPin, pinDigital}, {rumblePin, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {camSCL, pinDigital},      {camSDA, pinDigital},      // SCL/SDA
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
     {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
@@ -197,6 +198,24 @@ const boardLayout_t arduinoNanoRP2040Layout[] = {
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
 };
 
+const boardLayout_t waveshareZeroLayout[] = {
+    {btnTrigger, pinDigital},  {btnPedal, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnGunA, pinDigital},     {btnGunC, pinDigital},
+    {btnUnmapped, pinDigital}, {btnGunB, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
+    {btnUnmapped, pinAnalog},  {-2, pinNothing}
+};
+
 const boardLayout_t genericLayout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
@@ -208,11 +227,11 @@ const boardLayout_t genericLayout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital}, // SCL/SDA
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are (usually) unused/unexposed
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
-    {btnUnmapped, pinAnalog},  {-2, pinNothing}           // ADC, padding
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
 };
 
 #endif // CONSTANTS_H

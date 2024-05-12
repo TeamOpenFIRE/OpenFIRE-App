@@ -202,6 +202,8 @@ private:
     //
     // vvv---Methods---vvv
 
+    void BoxesFill();
+
     void BoxesUpdate();
 
     void DiffUpdate();
