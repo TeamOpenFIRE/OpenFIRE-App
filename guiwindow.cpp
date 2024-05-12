@@ -635,6 +635,9 @@ QString PrettifyName()
     case arduinoNanoRP2040:
         name = name + " | Arduino Nano RP2040 Connect";
         break;
+    case waveshareZero:
+        name = name + " | Waveshare RP2040 Zero";
+        break;
     case generic:
         name = name + " | Generic RP2040 Board";
         break;
@@ -830,77 +833,51 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
                     ui->boardLabel->setText(PrettifyName());
 
-                    // left side (has 1 row of top padding)
-                            PinsLeft->addWidget(padding[0], 0, 1);
-                    PinsLeft->addWidget(pinBoxes[0], 1, 0),
-                        PinsLeft->addWidget(pinLabel[0], 1, 1);
-                    PinsLeft->addWidget(pinBoxes[1], 2, 0),
-                        PinsLeft->addWidget(pinLabel[1], 2, 1);
-                            PinsLeft->addWidget(padding[1], 3, 1);
-                    PinsLeft->addWidget(pinBoxes[2], 4, 0),
-                        PinsLeft->addWidget(pinLabel[2], 4, 1);
-                    PinsLeft->addWidget(pinBoxes[3], 5, 0),
-                        PinsLeft->addWidget(pinLabel[3], 5, 1);
-                    PinsLeft->addWidget(pinBoxes[4], 6, 0),
-                        PinsLeft->addWidget(pinLabel[4], 6, 1);
-                    PinsLeft->addWidget(pinBoxes[5], 7, 0),
-                        PinsLeft->addWidget(pinLabel[5], 7, 1);
-                            PinsLeft->addWidget(padding[2], 8, 1);
-                    PinsLeft->addWidget(pinBoxes[6], 9, 0),
-                        PinsLeft->addWidget(pinLabel[6], 9, 1);
-                    PinsLeft->addWidget(pinBoxes[7], 10, 0),
-                        PinsLeft->addWidget(pinLabel[7], 10, 1);
-                    PinsLeft->addWidget(pinBoxes[8], 11, 0),
-                        PinsLeft->addWidget(pinLabel[8], 11, 1);
-                    PinsLeft->addWidget(pinBoxes[9], 12, 0),
-                        PinsLeft->addWidget(pinLabel[9], 12, 1);
-                            PinsLeft->addWidget(padding[3], 13, 1);
-                    PinsLeft->addWidget(pinBoxes[10], 14, 0),
-                        PinsLeft->addWidget(pinLabel[10], 14, 1);
-                    PinsLeft->addWidget(pinBoxes[11], 15, 0, 1, 1),
-                        PinsLeft->addWidget(pinLabel[11], 15, 1);
-                    PinsLeft->addWidget(pinBoxes[12], 16, 0),
-                        PinsLeft->addWidget(pinLabel[12], 16, 1);
-                    PinsLeft->addWidget(pinBoxes[13], 17, 0),
-                        PinsLeft->addWidget(pinLabel[13], 17, 1);
-                            PinsLeft->addWidget(padding[4], 18, 1);
-                    PinsLeft->addWidget(pinBoxes[14], 19, 0),
-                        PinsLeft->addWidget(pinLabel[14], 19, 1);
-                    PinsLeft->addWidget(pinBoxes[15], 20, 0),
-                        PinsLeft->addWidget(pinLabel[15], 20, 1);
+                    // left side
+                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
+                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
+                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
+                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
+                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
+                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
+                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
+                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
+                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
+                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
+                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
+                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
+                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
+                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
+                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
+                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
+                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
 
-                    // right side (has 1 row of top padding)
-                            PinsRight->addWidget(padding[5], 0, 0); // top
-                        PinsRight->addWidget(padding[6], 1, 1);
-                        PinsRight->addWidget(padding[7], 2, 1);
-                            PinsRight->addWidget(padding[8], 3, 1); // gnd
-                        PinsRight->addWidget(padding[9], 4, 1);
-                        PinsRight->addWidget(padding[10], 5, 1);
-                        PinsRight->addWidget(padding[11], 6, 1);
-                    PinsRight->addWidget(pinBoxes[28], 7, 1),
-                        PinsRight->addWidget(pinLabel[28], 7, 0);
-                            PinsRight->addWidget(padding[12], 8, 0); // gnd
-                    PinsRight->addWidget(pinBoxes[27], 9, 1),
-                        PinsRight->addWidget(pinLabel[27], 9, 0);
-                    PinsRight->addWidget(pinBoxes[26], 10, 1),
-                        PinsRight->addWidget(pinLabel[26], 10, 0);
-                        PinsRight->addWidget(padding[13], 11, 1);
-                    PinsRight->addWidget(pinBoxes[22], 12, 1),
-                        PinsRight->addWidget(pinLabel[22], 12, 0);
-                            PinsRight->addWidget(padding[14], 13, 0); // gnd
-                    PinsRight->addWidget(pinBoxes[21], 14, 1);        // default cam data
-                        PinsRight->addWidget(pinLabel[21], 14, 0);
-                    PinsRight->addWidget(pinBoxes[20], 15, 1);        // default cam data
-                        PinsRight->addWidget(pinLabel[20], 15, 0);
-                    PinsRight->addWidget(pinBoxes[19], 16, 1),
-                        PinsRight->addWidget(pinLabel[19], 16, 0);
-                    PinsRight->addWidget(pinBoxes[18], 17, 1),
-                        PinsRight->addWidget(pinLabel[18], 17, 0);
-                            PinsRight->addWidget(padding[17], 18, 0); // gnd
-                    PinsRight->addWidget(pinBoxes[17], 19, 1),
-                        PinsRight->addWidget(pinLabel[17], 19, 0);
-                    PinsRight->addWidget(pinBoxes[16], 20, 1),
-                        PinsRight->addWidget(pinLabel[16], 20, 0);
+                    // right side
+                    PinsRight->addWidget(padding[5],   0,  1);   // padding
+                    PinsRight->addWidget(padding[6],   1,  1);   // VBUS
+                    PinsRight->addWidget(padding[7],   2,  1);   // VSYS
+                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
+                    PinsRight->addWidget(padding[9],   4,  1);   // 3V3 EN
+                    PinsRight->addWidget(padding[10],  5,  1);   // 3V3 OUT
+                    PinsRight->addWidget(padding[11],  6,  1);   // ADC VREF
+                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
+                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
+                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
+                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
+                    PinsRight->addWidget(padding[13],  11, 1);   // RUN
+                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
+                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
+                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
+                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
+                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
+                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
+                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
 
                     // center
                     PinsCenter->addWidget(centerPic);
@@ -915,68 +892,47 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     ui->boardLabel->setText(PrettifyName());
 
                     // left side
-                            PinsLeft->addWidget(padding[0], 0, 1);
-                            PinsLeft->addWidget(padding[1], 1, 1);
-                            PinsLeft->addWidget(padding[3], 2, 1);
-                            PinsLeft->addWidget(padding[4], 3, 1);
-                    PinsLeft->addWidget(pinBoxes[26], 4, 0),
-                        PinsLeft->addWidget(pinLabel[26], 4, 1);
-                    PinsLeft->addWidget(pinBoxes[27], 5, 0),
-                        PinsLeft->addWidget(pinLabel[27], 5, 1);
-                    PinsLeft->addWidget(pinBoxes[28], 6, 0),
-                        PinsLeft->addWidget(pinLabel[28], 6, 1);
-                    PinsLeft->addWidget(pinBoxes[29], 7, 0),
-                        PinsLeft->addWidget(pinLabel[29], 7, 1);
-                    PinsLeft->addWidget(pinBoxes[24], 8, 0),
-                        PinsLeft->addWidget(pinLabel[24], 8, 1);
-                    PinsLeft->addWidget(pinBoxes[25], 9, 0),
-                        PinsLeft->addWidget(pinLabel[25], 9, 1);
-                    PinsLeft->addWidget(pinBoxes[18], 10, 0),
-                        PinsLeft->addWidget(pinLabel[18], 10, 1);
-                    PinsLeft->addWidget(pinBoxes[19], 11, 0),
-                        PinsLeft->addWidget(pinLabel[19], 11, 1);
-                    PinsLeft->addWidget(pinBoxes[20], 12, 0),
-                        PinsLeft->addWidget(pinLabel[20], 12, 1);
-                    PinsLeft->addWidget(pinBoxes[12], 13, 0),
-                        PinsLeft->addWidget(pinLabel[12], 13, 1);
-                            PinsLeft->addWidget(padding[5], 14, 0),
-                            PinsLeft->addWidget(padding[6], 14, 1);
-                            PinsLeft->addWidget(padding[7], 15, 1);
+                    PinsLeft->addWidget(padding[0],    0,  0);   // reset
+                    PinsLeft->addWidget(padding[1],    1,  0);   // 3v3_1
+                    PinsLeft->addWidget(padding[3],    2,  0);   // 3v3_2
+                    PinsLeft->addWidget(padding[4],    3,  0);   // VHi
+                    PinsLeft->addWidget(pinBoxes[26],  4,  0), PinsLeft->addWidget(pinLabel[26], 4,  1);
+                    PinsLeft->addWidget(pinBoxes[27],  5,  0), PinsLeft->addWidget(pinLabel[27], 5,  1);
+                    PinsLeft->addWidget(pinBoxes[28],  6,  0), PinsLeft->addWidget(pinLabel[28], 6,  1);
+                    PinsLeft->addWidget(pinBoxes[29],  7,  0), PinsLeft->addWidget(pinLabel[29], 7,  1);
+                    PinsLeft->addWidget(pinBoxes[24],  8,  0), PinsLeft->addWidget(pinLabel[24], 8,  1);
+                    PinsLeft->addWidget(pinBoxes[25],  9,  0), PinsLeft->addWidget(pinLabel[25], 9,  1);
+                    PinsLeft->addWidget(pinBoxes[18],  10, 0), PinsLeft->addWidget(pinLabel[18], 10, 1);
+                    PinsLeft->addWidget(pinBoxes[19],  11, 0), PinsLeft->addWidget(pinLabel[19], 11, 1);
+                    PinsLeft->addWidget(pinBoxes[20],  12, 0), PinsLeft->addWidget(pinLabel[20], 12, 1);
+                    PinsLeft->addWidget(pinBoxes[12],  13, 0), PinsLeft->addWidget(pinLabel[12], 13, 1);
+                    PinsLeft->addWidget(padding[5],    14, 0);   // bottom padding
+                    PinsLeft->addWidget(padding[6],    14, 0);
 
                     // right side
-                            PinsRight->addWidget(padding[8], 0, 1);
-                            PinsRight->addWidget(padding[9], 1, 0),
-                            PinsRight->addWidget(padding[10], 2, 1);
-                    PinsRight->addWidget(pinBoxes[11], 3, 1),
-                        PinsRight->addWidget(pinLabel[11], 3, 0);
-                    PinsRight->addWidget(pinBoxes[10], 4, 1),
-                        PinsRight->addWidget(pinLabel[10], 4, 0);
-                    PinsRight->addWidget(pinBoxes[9], 5, 1),
-                        PinsRight->addWidget(pinLabel[9], 5, 0);
-                    PinsRight->addWidget(pinBoxes[8], 6, 1),
-                        PinsRight->addWidget(pinLabel[8], 6, 0);
-                    PinsRight->addWidget(pinBoxes[7], 7, 1),
-                        PinsRight->addWidget(pinLabel[7], 7, 0);
-                    PinsRight->addWidget(pinBoxes[6], 8, 1),
-                        PinsRight->addWidget(pinLabel[6], 8, 0);
-                        PinsRight->addWidget(padding[11], 9, 1);      // 5!
-                        PinsRight->addWidget(padding[12], 10, 1);     // data
-                        PinsRight->addWidget(padding[13], 11, 1);     // clock
-                    PinsRight->addWidget(pinBoxes[0], 12, 1),
-                        PinsRight->addWidget(pinLabel[0], 12, 0);
-                    PinsRight->addWidget(pinBoxes[1], 13, 1),
-                        PinsRight->addWidget(pinLabel[1], 13, 0);
-                            PinsRight->addWidget(padding[14], 14, 1);
-                            PinsRight->addWidget(padding[15], 15, 1);
+                    PinsRight->addWidget(padding[8],   0,  1);   // battery
+                    PinsRight->addWidget(padding[9],   1,  1);   // gnd
+                    PinsRight->addWidget(padding[10],  2,  1);   // USB power in
+                    PinsRight->addWidget(pinBoxes[11], 3,  1), PinsRight->addWidget(pinLabel[11], 3,  0);
+                    PinsRight->addWidget(pinBoxes[10], 4,  1), PinsRight->addWidget(pinLabel[10], 4,  0);
+                    PinsRight->addWidget(pinBoxes[9],  5,  1), PinsRight->addWidget(pinLabel[9],  5,  0);
+                    PinsRight->addWidget(pinBoxes[8],  6,  1), PinsRight->addWidget(pinLabel[8],  6,  0);
+                    PinsRight->addWidget(pinBoxes[7],  7,  1), PinsRight->addWidget(pinLabel[7],  7,  0);
+                    PinsRight->addWidget(pinBoxes[6],  8,  1), PinsRight->addWidget(pinLabel[6],  8,  0);
+                    PinsRight->addWidget(padding[11],  9,  1);   // 5!
+                    PinsRight->addWidget(pinBoxes[2],  10, 1), PinsRight->addWidget(pinLabel[2],  10, 0);
+                    PinsRight->addWidget(pinBoxes[3],  11, 1), PinsRight->addWidget(pinLabel[3],  11, 0);
+                    PinsRight->addWidget(pinBoxes[0],  12, 1), PinsRight->addWidget(pinLabel[0],  12, 0);
+                    PinsRight->addWidget(pinBoxes[1],  13, 1), PinsRight->addWidget(pinLabel[1],  13, 0);
+                    PinsRight->addWidget(padding[12],  14, 1);   // bottom padding
+                    PinsRight->addWidget(padding[13],  15, 1);
 
                     // center
                     PinsCenter->addWidget(centerPic);
                     PinsCenter->addLayout(PinsCenterSub);
                     centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    PinsCenterSub->addWidget(pinBoxes[4], 1, 3),
-                        PinsCenterSub->addWidget(pinLabel[4], 0, 3);
-                    PinsCenterSub->addWidget(pinBoxes[5], 1, 2),
-                        PinsCenterSub->addWidget(pinLabel[5], 0, 2);
+                    PinsCenterSub->addWidget(pinBoxes[4], 1, 3), PinsCenterSub->addWidget(pinLabel[4], 0, 3);
+                    PinsCenterSub->addWidget(pinBoxes[5], 1, 2), PinsCenterSub->addWidget(pinLabel[5], 0, 2);
                     break;
                 }
                 case adafruitKB2040:
@@ -987,50 +943,36 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     ui->boardLabel->setText(PrettifyName());
 
                     // left side
-                    PinsLeft->addWidget(padding[0], 0, 1);        // D+
-                    PinsLeft->addWidget(pinBoxes[0], 1, 0),
-                        PinsLeft->addWidget(pinLabel[0], 1, 1);
-                    PinsLeft->addWidget(pinBoxes[1], 2, 0),
-                        PinsLeft->addWidget(pinLabel[1], 2, 1);
-                    PinsLeft->addWidget(padding[1], 3, 1);        // gnd
-                    PinsLeft->addWidget(padding[2], 4, 1);        // gnd
-                    PinsLeft->addWidget(padding[3], 5, 1);        // data
-                    PinsLeft->addWidget(padding[4], 6, 1);        // clock
-                    PinsLeft->addWidget(pinBoxes[4], 7, 0),
-                        PinsLeft->addWidget(pinLabel[4], 7, 1);
-                    PinsLeft->addWidget(pinBoxes[5], 8, 0),
-                        PinsLeft->addWidget(pinLabel[5], 8, 1);
-                    PinsLeft->addWidget(pinBoxes[6], 9, 0),
-                        PinsLeft->addWidget(pinLabel[6], 9, 1);
-                    PinsLeft->addWidget(pinBoxes[7], 10, 0),
-                        PinsLeft->addWidget(pinLabel[7], 10, 1);
-                    PinsLeft->addWidget(pinBoxes[8], 11, 0),
-                        PinsLeft->addWidget(pinLabel[8], 11, 1);
-                    PinsLeft->addWidget(pinBoxes[9], 12, 0),
-                        PinsLeft->addWidget(pinLabel[9], 12, 1);
+                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
+                    PinsLeft->addWidget(padding[1],    1,  0);   // D+
+                    PinsLeft->addWidget(pinBoxes[0],   2,  0), PinsLeft->addWidget(pinLabel[0],   2,  1);
+                    PinsLeft->addWidget(pinBoxes[1],   3,  0), PinsLeft->addWidget(pinLabel[1],   3,  1);
+                    PinsLeft->addWidget(padding[2],    4,  0);   // gnd
+                    PinsLeft->addWidget(padding[3],    5,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[2],   6,  0), PinsLeft->addWidget(pinLabel[2],   6,  1);
+                    PinsLeft->addWidget(pinBoxes[3],   7,  0), PinsLeft->addWidget(pinLabel[3],   7,  1);
+                    PinsLeft->addWidget(pinBoxes[4],   8,  0), PinsLeft->addWidget(pinLabel[4],   8,  1);
+                    PinsLeft->addWidget(pinBoxes[5],   9,  0), PinsLeft->addWidget(pinLabel[5],   9,  1);
+                    PinsLeft->addWidget(pinBoxes[6],   10, 0), PinsLeft->addWidget(pinLabel[6],   10, 1);
+                    PinsLeft->addWidget(pinBoxes[7],   11, 0), PinsLeft->addWidget(pinLabel[7],   11, 1);
+                    PinsLeft->addWidget(pinBoxes[8],   12, 0), PinsLeft->addWidget(pinLabel[8],   12, 1);
+                    PinsLeft->addWidget(pinBoxes[9],   13, 0), PinsLeft->addWidget(pinLabel[9],   13, 1);
 
                     // right side
-                    PinsRight->addWidget(padding[5], 0, 0);       // D-
-                    PinsRight->addWidget(padding[6], 1, 0);       // RAW
-                    PinsRight->addWidget(padding[7], 2, 0);       // gnd
-                    PinsRight->addWidget(padding[8], 3, 0);       // reset
-                    PinsRight->addWidget(padding[9], 4, 0);       // 3.3v
-                    PinsRight->addWidget(pinBoxes[29], 5, 1),
-                        PinsRight->addWidget(pinLabel[29], 5, 0);
-                    PinsRight->addWidget(pinBoxes[28], 6, 1),
-                        PinsRight->addWidget(pinLabel[28], 6, 0);
-                    PinsRight->addWidget(pinBoxes[27], 7, 1),
-                        PinsRight->addWidget(pinLabel[27], 7, 0);
-                    PinsRight->addWidget(pinBoxes[26], 8, 1),
-                        PinsRight->addWidget(pinLabel[26], 8, 0);
-                    PinsRight->addWidget(pinBoxes[18], 9, 1),
-                        PinsRight->addWidget(pinLabel[18], 9, 0);
-                    PinsRight->addWidget(pinBoxes[20], 10, 1),
-                        PinsRight->addWidget(pinLabel[20], 10, 0);
-                    PinsRight->addWidget(pinBoxes[19], 11, 1),
-                        PinsRight->addWidget(pinLabel[19], 11, 0);
-                    PinsRight->addWidget(pinBoxes[10], 12, 1),
-                        PinsRight->addWidget(pinLabel[10], 12, 0);
+                    PinsRight->addWidget(padding[4],   0,  1);   // padding
+                    PinsRight->addWidget(padding[5],   1,  1);   // D-
+                    PinsRight->addWidget(padding[6],   2,  1);   // RAW
+                    PinsRight->addWidget(padding[7],   3,  1);   // gnd
+                    PinsRight->addWidget(padding[8],   4,  1);   // reset
+                    PinsRight->addWidget(padding[9],   5,  1);   // 3.3v
+                    PinsRight->addWidget(pinBoxes[29], 6,  1), PinsRight->addWidget(pinLabel[29], 6,  0);
+                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
+                    PinsRight->addWidget(pinBoxes[27], 8,  1), PinsRight->addWidget(pinLabel[27], 8,  0);
+                    PinsRight->addWidget(pinBoxes[26], 9,  1), PinsRight->addWidget(pinLabel[26], 9,  0);
+                    PinsRight->addWidget(pinBoxes[18], 10, 1), PinsRight->addWidget(pinLabel[18], 10, 0);
+                    PinsRight->addWidget(pinBoxes[20], 11, 1), PinsRight->addWidget(pinLabel[20], 11, 0);
+                    PinsRight->addWidget(pinBoxes[19], 12, 1), PinsRight->addWidget(pinLabel[19], 12, 0);
+                    PinsRight->addWidget(pinBoxes[10], 13, 1), PinsRight->addWidget(pinLabel[10], 13, 0);
 
                     // center
                     PinsCenter->addWidget(centerPic);
@@ -1046,63 +988,93 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     ui->boardLabel->setText(PrettifyName());
 
                     // left side
-                            PinsLeft->addWidget(padding[0], 0, 0); // top bumpdown
-                    PinsLeft->addWidget(pinBoxes[6], 1, 0);
-                        PinsLeft->addWidget(pinLabel[6], 1, 1);
-                            PinsLeft->addWidget(padding[1], 2, 0);
-                            PinsLeft->addWidget(padding[2], 3, 0);
-                    PinsLeft->addWidget(pinBoxes[26], 4, 0);
-                        PinsLeft->addWidget(pinLabel[26], 4, 1);
-                    PinsLeft->addWidget(pinBoxes[27], 5, 0);
-                        PinsLeft->addWidget(pinLabel[27], 5, 1);
-                    PinsLeft->addWidget(pinBoxes[28], 6, 0);
-                        PinsLeft->addWidget(pinLabel[28], 6, 1);
-                    PinsLeft->addWidget(pinBoxes[29], 7, 0);
-                        PinsLeft->addWidget(pinLabel[29], 7, 1);
-                            PinsLeft->addWidget(padding[3], 8, 0); // data
-                            PinsLeft->addWidget(padding[4], 9, 0); // clock
-                            PinsLeft->addWidget(padding[5], 10, 0); // A6 - unused
-                            PinsLeft->addWidget(padding[6], 11, 0);// A7 - unused
-                            PinsLeft->addWidget(padding[7], 12, 0);// 5V
-                            PinsLeft->addWidget(padding[8], 13, 0);// REC?
-                            PinsLeft->addWidget(padding[9], 14, 0);// gnd
-                            PinsLeft->addWidget(padding[10], 15, 0);// 5v input
-                            PinsLeft->addWidget(padding[11], 16, 0);// bottom bumpup
+                    PinsLeft->addWidget(padding[0],    0,  0);   // top padding
+                    PinsLeft->addWidget(padding[1],    1,  0);
+                    PinsLeft->addWidget(padding[2],    2,  0);
+                    PinsLeft->addWidget(pinBoxes[6],   3,  0), PinsLeft->addWidget(pinLabel[6],   3,  1);
+                    PinsLeft->addWidget(padding[3],    4,  0);   // 3V3 Out
+                    PinsLeft->addWidget(padding[4],    5,  0);   // AREF
+                    PinsLeft->addWidget(pinBoxes[26],  6,  0), PinsLeft->addWidget(pinLabel[26],  6,  1);
+                    PinsLeft->addWidget(pinBoxes[27],  7,  0), PinsLeft->addWidget(pinLabel[27],  7,  1);
+                    PinsLeft->addWidget(pinBoxes[28],  8,  0), PinsLeft->addWidget(pinLabel[28],  8,  1);
+                    PinsLeft->addWidget(pinBoxes[29],  9,  0), PinsLeft->addWidget(pinLabel[29],  9,  1);
+                    PinsLeft->addWidget(pinBoxes[12],  10, 0), PinsLeft->addWidget(pinLabel[12],  10, 1);
+                    PinsLeft->addWidget(pinBoxes[13],  11, 0), PinsLeft->addWidget(pinLabel[13],  11, 1);
+                    PinsLeft->addWidget(padding[5],    12, 0);   // A6 - unused
+                    PinsLeft->addWidget(padding[6],    13, 0);   // A7 - unused
+                    PinsLeft->addWidget(padding[7],    14, 0);   // 5V OUT
+                    PinsLeft->addWidget(padding[8],    15, 0);   // REC?
+                    PinsLeft->addWidget(padding[9],    16, 0);   // gnd
+                    PinsLeft->addWidget(padding[10],   17, 0);   // 5V IN
+                    PinsLeft->addWidget(padding[11],   18, 0);   // bottom padding
+                    PinsLeft->addWidget(padding[12],   19, 0);
 
                     // right side
-                            PinsRight->addWidget(padding[12], 0, 0);
-                    PinsRight->addWidget(pinBoxes[4], 1, 1);
-                        PinsRight->addWidget(pinLabel[4], 1, 0);
-                    PinsRight->addWidget(pinBoxes[7], 2, 1);
-                        PinsRight->addWidget(pinLabel[7], 2, 0);
-                    PinsRight->addWidget(pinBoxes[5], 3, 1);
-                        PinsRight->addWidget(pinLabel[5], 3, 0);
-                    PinsRight->addWidget(pinBoxes[21], 4, 1);
-                        PinsRight->addWidget(pinLabel[21], 4, 0);
-                    PinsRight->addWidget(pinBoxes[20], 5, 1);
-                        PinsRight->addWidget(pinLabel[20], 5, 0);
-                    PinsRight->addWidget(pinBoxes[19], 6, 1);
-                        PinsRight->addWidget(pinLabel[19], 6, 0);
-                    PinsRight->addWidget(pinBoxes[18], 7, 1);
-                        PinsRight->addWidget(pinLabel[18], 7, 0);
-                    PinsRight->addWidget(pinBoxes[17], 8, 1);
-                        PinsRight->addWidget(pinLabel[17], 8, 0);
-                    PinsRight->addWidget(pinBoxes[16], 9, 1);
-                        PinsRight->addWidget(pinLabel[16], 9, 0);
-                    PinsRight->addWidget(pinBoxes[15], 10, 1);
-                        PinsRight->addWidget(pinLabel[15], 10, 0);
-                    PinsRight->addWidget(pinBoxes[25], 11, 1);
-                        PinsRight->addWidget(pinLabel[25], 11, 0);
-                            PinsRight->addWidget(padding[13], 12, 0);
-                            PinsRight->addWidget(padding[14], 13, 0);
-                    PinsRight->addWidget(pinBoxes[1], 14, 1);
-                        PinsRight->addWidget(pinLabel[1], 14, 0);
-                    PinsRight->addWidget(pinBoxes[0], 15, 1);
-                        PinsRight->addWidget(pinLabel[0], 15, 0);
-                            PinsRight->addWidget(padding[15], 16, 0);
+                    PinsRight->addWidget(padding[13],  0,  1);   // top padding
+                    PinsRight->addWidget(padding[14],  1,  1);   // top padding
+                    PinsRight->addWidget(padding[15],  2,  1);   // top padding
+                    PinsRight->addWidget(pinBoxes[4],  3,  1), PinsRight->addWidget(pinLabel[4],  3,  0);
+                    PinsRight->addWidget(pinBoxes[7],  4,  1), PinsRight->addWidget(pinLabel[7],  4,  0);
+                    PinsRight->addWidget(pinBoxes[5],  5,  1), PinsRight->addWidget(pinLabel[5],  5,  0);
+                    PinsRight->addWidget(pinBoxes[21], 6,  1), PinsRight->addWidget(pinLabel[21], 6,  0);
+                    PinsRight->addWidget(pinBoxes[20], 7,  1), PinsRight->addWidget(pinLabel[20], 7,  0);
+                    PinsRight->addWidget(pinBoxes[19], 8,  1), PinsRight->addWidget(pinLabel[19], 8,  0);
+                    PinsRight->addWidget(pinBoxes[18], 9,  1), PinsRight->addWidget(pinLabel[18], 9,  0);
+                    PinsRight->addWidget(pinBoxes[17], 10, 1), PinsRight->addWidget(pinLabel[17], 10, 0);
+                    PinsRight->addWidget(pinBoxes[16], 11, 1), PinsRight->addWidget(pinLabel[16], 11, 0);
+                    PinsRight->addWidget(pinBoxes[15], 12, 1), PinsRight->addWidget(pinLabel[15], 12, 0);
+                    PinsRight->addWidget(pinBoxes[25], 13, 1), PinsRight->addWidget(pinLabel[25], 13, 0);
+                    PinsRight->addWidget(padding[16],  14, 1);   // gnd
+                    PinsRight->addWidget(padding[17],  15, 1);   // RESET
+                    PinsRight->addWidget(pinBoxes[1],  16, 1), PinsRight->addWidget(pinLabel[1],  16, 0);
+                    PinsRight->addWidget(pinBoxes[0],  17, 1), PinsRight->addWidget(pinLabel[0],  17, 0);
+                    PinsRight->addWidget(padding[18],  18, 1);   // bottom padding
+                    PinsRight->addWidget(padding[19],  19, 1);
 
                     // center
                     PinsCenter->addWidget(centerPic);
+                    break;
+                }
+                case waveshareZero:
+                {
+                    centerPic = new QSvgWidget(":/boardPics/waveshareZero.svg");
+                    QSvgRenderer *picRenderer = centerPic->renderer();
+                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                    ui->boardLabel->setText(PrettifyName());
+
+                    // left side
+                    PinsLeft->addWidget(padding[0],   0,  0);    // padding
+                    PinsLeft->addWidget(padding[1],   1,  0);    // 5V OUT
+                    PinsLeft->addWidget(padding[3],   2,  0);    // gnd
+                    PinsLeft->addWidget(padding[4],   3,  0);    // 3V3 OUT
+                    PinsLeft->addWidget(pinBoxes[29], 4,  0),  PinsLeft->addWidget(pinLabel[29], 4,  1);
+                    PinsLeft->addWidget(pinBoxes[28], 5,  0),  PinsLeft->addWidget(pinLabel[28], 5,  1);
+                    PinsLeft->addWidget(pinBoxes[27], 6,  0),  PinsLeft->addWidget(pinLabel[27], 6,  1);
+                    PinsLeft->addWidget(pinBoxes[26], 7,  0),  PinsLeft->addWidget(pinLabel[26], 7,  1);
+                    PinsLeft->addWidget(pinBoxes[15], 8,  0),  PinsLeft->addWidget(pinLabel[15], 8,  1);
+                    PinsLeft->addWidget(pinBoxes[14], 9,  0),  PinsLeft->addWidget(pinLabel[14], 9,  1);
+                    PinsLeft->addWidget(pinBoxes[13], 10, 0),  PinsLeft->addWidget(pinLabel[13], 10, 1);
+
+                    // right side
+                    PinsRight->addWidget(padding[5],  0,  1);    // padding
+                    PinsRight->addWidget(pinBoxes[0], 1,  1),  PinsRight->addWidget(pinLabel[0], 1,  0);
+                    PinsRight->addWidget(pinBoxes[1], 2,  1),  PinsRight->addWidget(pinLabel[1], 2,  0);
+                    PinsRight->addWidget(pinBoxes[2], 3,  1),  PinsRight->addWidget(pinLabel[2], 3,  0);
+                    PinsRight->addWidget(pinBoxes[3], 4,  1),  PinsRight->addWidget(pinLabel[3], 4,  0);
+                    PinsRight->addWidget(pinBoxes[4], 5,  1),  PinsRight->addWidget(pinLabel[4], 5,  0);
+                    PinsRight->addWidget(pinBoxes[5], 6,  1),  PinsRight->addWidget(pinLabel[5], 6,  0);
+                    PinsRight->addWidget(pinBoxes[6], 7,  1),  PinsRight->addWidget(pinLabel[6], 7,  0);
+                    PinsRight->addWidget(pinBoxes[7], 8,  1),  PinsRight->addWidget(pinLabel[7], 8,  0);
+                    PinsRight->addWidget(pinBoxes[8], 9,  1),  PinsRight->addWidget(pinLabel[8], 9,  0);
+                    PinsRight->addWidget(pinBoxes[9], 10, 1),  PinsRight->addWidget(pinLabel[9], 10, 0);
+
+                    // center
+                    PinsCenter->addWidget(centerPic);
+                    PinsCenter->addLayout(PinsCenterSub);
+                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+                    PinsCenterSub->addWidget(pinBoxes[10], 1, 3), PinsCenterSub->addWidget(pinLabel[10], 0, 3);
+                    PinsCenterSub->addWidget(pinBoxes[11], 1, 2), PinsCenterSub->addWidget(pinLabel[11], 0, 2);
+                    PinsCenterSub->addWidget(pinBoxes[12], 1, 1), PinsCenterSub->addWidget(pinLabel[12], 0, 1);
                     break;
                 }
                 case generic:
@@ -1112,75 +1084,51 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
                     ui->boardLabel->setText(PrettifyName());
 
-                    // left side (has 1 row of top padding)
-                    PinsLeft->addWidget(padding[0], 0, 1);
-                    PinsLeft->addWidget(pinBoxes[0], 1, 0),
-                        PinsLeft->addWidget(pinLabel[0], 1, 1);
-                    PinsLeft->addWidget(pinBoxes[1], 2, 0),
-                        PinsLeft->addWidget(pinLabel[1], 2, 1);
-                    PinsLeft->addWidget(padding[1], 3, 1);
-                    PinsLeft->addWidget(pinBoxes[2], 4, 0),
-                        PinsLeft->addWidget(pinLabel[2], 4, 1);
-                    PinsLeft->addWidget(pinBoxes[3], 5, 0),
-                        PinsLeft->addWidget(pinLabel[3], 5, 1);
-                    PinsLeft->addWidget(pinBoxes[4], 6, 0),
-                        PinsLeft->addWidget(pinLabel[4], 6, 1);
-                    PinsLeft->addWidget(pinBoxes[5], 7, 0),
-                        PinsLeft->addWidget(pinLabel[5], 7, 1);
-                    PinsLeft->addWidget(padding[2], 8, 1);
-                    PinsLeft->addWidget(pinBoxes[6], 9, 0),
-                        PinsLeft->addWidget(pinLabel[6], 9, 1);
-                    PinsLeft->addWidget(pinBoxes[7], 10, 0),
-                        PinsLeft->addWidget(pinLabel[7], 10, 1);
-                    PinsLeft->addWidget(pinBoxes[8], 11, 0),
-                        PinsLeft->addWidget(pinLabel[8], 11, 1);
-                    PinsLeft->addWidget(pinBoxes[9], 12, 0),
-                        PinsLeft->addWidget(pinLabel[9], 12, 1);
-                    PinsLeft->addWidget(padding[3], 13, 1);
-                    PinsLeft->addWidget(pinBoxes[10], 14, 0),
-                        PinsLeft->addWidget(pinLabel[10], 14, 1);
-                    PinsLeft->addWidget(pinBoxes[11], 15, 0, 1, 1),
-                        PinsLeft->addWidget(pinLabel[11], 15, 1);
-                    PinsLeft->addWidget(pinBoxes[12], 16, 0),
-                        PinsLeft->addWidget(pinLabel[12], 16, 1);
-                    PinsLeft->addWidget(pinBoxes[13], 17, 0),
-                        PinsLeft->addWidget(pinLabel[13], 17, 1);
-                    PinsLeft->addWidget(padding[4], 18, 1);
-                    PinsLeft->addWidget(pinBoxes[14], 19, 0),
-                        PinsLeft->addWidget(pinLabel[14], 19, 1);
-                    PinsLeft->addWidget(pinBoxes[15], 20, 0),
-                        PinsLeft->addWidget(pinLabel[15], 20, 1);
+                    // left side
+                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
+                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
+                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
+                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
+                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
+                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
+                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
+                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
+                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
+                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
+                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
+                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
+                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
+                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
+                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
+                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
+                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
 
-                    // right side (has 1 row of top padding)
-                    PinsRight->addWidget(padding[5], 0, 0); // top
-                    PinsRight->addWidget(padding[6], 1, 1);
-                    PinsRight->addWidget(padding[7], 2, 1);
-                    PinsRight->addWidget(padding[8], 3, 1); // gnd
-                    PinsRight->addWidget(padding[9], 4, 1);
-                    PinsRight->addWidget(padding[10], 5, 1);
-                    PinsRight->addWidget(padding[11], 6, 1);
-                    PinsRight->addWidget(pinBoxes[28], 7, 1),
-                        PinsRight->addWidget(pinLabel[28], 7, 0);
-                    PinsRight->addWidget(padding[12], 8, 0); // gnd
-                    PinsRight->addWidget(pinBoxes[27], 9, 1),
-                        PinsRight->addWidget(pinLabel[27], 9, 0);
-                    PinsRight->addWidget(pinBoxes[26], 10, 1),
-                        PinsRight->addWidget(pinLabel[26], 10, 0);
-                    PinsRight->addWidget(padding[13], 11, 1);
-                    PinsRight->addWidget(pinBoxes[22], 12, 1),
-                        PinsRight->addWidget(pinLabel[22], 12, 0);
-                    PinsRight->addWidget(padding[14], 13, 0); // gnd
-                    PinsRight->addWidget(padding[15], 14, 1);     // data
-                    PinsRight->addWidget(padding[16], 15, 1);     // clock
-                    PinsRight->addWidget(pinBoxes[19], 16, 1),
-                        PinsRight->addWidget(pinLabel[19], 16, 0);
-                    PinsRight->addWidget(pinBoxes[18], 17, 1),
-                        PinsRight->addWidget(pinLabel[18], 17, 0);
-                    PinsRight->addWidget(padding[17], 18, 0); // gnd
-                    PinsRight->addWidget(pinBoxes[17], 19, 1),
-                        PinsRight->addWidget(pinLabel[17], 19, 0);
-                    PinsRight->addWidget(pinBoxes[16], 20, 1),
-                        PinsRight->addWidget(pinLabel[16], 20, 0);
+                    // right side
+                    PinsRight->addWidget(padding[5],   0,  1);   // padding
+                    PinsRight->addWidget(padding[6],   1,  1);
+                    PinsRight->addWidget(padding[7],   2,  1);
+                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
+                    PinsRight->addWidget(padding[9],   4,  1);
+                    PinsRight->addWidget(padding[10],  5,  1);
+                    PinsRight->addWidget(padding[11],  6,  1);
+                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
+                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
+                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
+                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
+                    PinsRight->addWidget(padding[13],  11, 1);
+                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
+                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
+                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
+                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
+                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
+                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
+                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
 
                     // center
                     PinsCenter->addWidget(centerPic);
