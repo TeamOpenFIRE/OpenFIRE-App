@@ -47,7 +47,6 @@ enum boardInputs_e {
     btnPump,
     rumblePin,
     solenoidPin,
-    tempPin,
     rumbleSwitch,
     solenoidSwitch,
     autofireSwitch,
@@ -55,8 +54,13 @@ enum boardInputs_e {
     ledG,
     ledB,
     neoPixel,
+    camSDA,
+    camSCL,
+    periphSDA,
+    periphSCL,
     analogX,
-    analogY
+    analogY,
+    tempPin
 };
 
 enum boolTypes_e {
@@ -67,7 +71,8 @@ enum boolTypes_e {
     simplePause,
     holdToPause,
     commonAnode,
-    lowButtonsMode
+    lowButtonsMode,
+    rumbleFF
 };
 
 enum settingsTypes_e {

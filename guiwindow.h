@@ -135,7 +135,6 @@ private:
         "Pump Action",
         "Rumble Signal",
         "Solenoid Signal",
-        "Temp Sensor",
         "Rumble Switch",
         "Solenoid Switch",
         "Autofire Switch",
@@ -143,8 +142,13 @@ private:
         "RGB LED Green",
         "RGB LED Blue",
         "External NeoPixel",
+        "Camera SDA",
+        "Camera SCL",
+        "Peripherals SDA",
+        "Peripherals SCL",
         "Analog Pin X",
-        "Analog Pin Y"
+        "Analog Pin Y",
+        "Temp Sensor"
     };
 
     // List of serial port objects that were found in PortsSearch()
@@ -157,9 +161,9 @@ private:
     uint8_t settingsDiff;
 
     // Current array of booleans, meant to be used as a bitmask
-    bool boolSettings[8];
+    bool boolSettings[9];
     // Array of booleans, as loaded from the gun firmware
-    bool boolSettings_orig[8];
+    bool boolSettings_orig[9];
 
     // Current table of tunable settings
     uint16_t settingsTable[8];

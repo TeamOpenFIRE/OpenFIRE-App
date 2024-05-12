@@ -49,7 +49,7 @@ QVector<profilesTable_s> profilesTable_orig(4);
 // Values: -2 = N/A, -1 = reserved, 0 = available, unused
 QMap<uint8_t, int8_t> currentPins;
 
-#define INPUTS_COUNT 25
+#define INPUTS_COUNT 29
 // Map of what inputs are put where,
 // Key = button/output, Value = pin number occupying, if any.
 // Value of -1 means unmapped.
@@ -122,7 +122,7 @@ guiWindow::guiWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
+#ifdef Q_OS_UNIX
     if(qEnvironmentVariable("USER") != "root") {
         QProcess *externalProg = new QProcess;
         QStringList args;
@@ -294,20 +294,16 @@ void guiWindow::SerialLoad()
         if(serialPort.waitForReadyRead(2000)) {
             // booleans
             QString buffer;
-            for(uint8_t i = 1; i < sizeof(boolSettings); i++) {
+            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
                 buffer = serialPort.readLine();
                 buffer = buffer.trimmed();
                 boolSettings[i] = buffer.toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
             // pins
-            serialPort.write("Xlp");
-            serialPort.waitForReadyRead(1000);
-            buffer = serialPort.readLine();
-            buffer = buffer.trimmed();
-            boolSettings[customPins] = buffer.toInt(); // remember to change this BACK, teehee
-            boolSettings_orig[customPins] = boolSettings[customPins];
             if(boolSettings[customPins]) {
+                serialPort.write("Xlp");
+                serialPort.waitForReadyRead(1000);
                 for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
                     buffer = serialPort.readLine();
                     inputsMap_orig[i] = buffer.toInt();
@@ -319,23 +315,6 @@ void guiWindow::SerialLoad()
                     }
                 }
                 inputsMap = inputsMap_orig;
-            } else {
-                // TODO: fix this in the firmware.
-                for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    buffer = serialPort.readLine(); // nomfing
-                    inputsMap[i] = -1;
-                    inputsMap_orig[i] = -1;
-                    if(i == 14) {
-                        serialPort.write(".");
-                        serialPort.waitForReadyRead(1000);
-                    }
-                }
-            }
-            buffer = serialPort.readLine();
-            buffer = buffer.trimmed();
-            if(buffer != "-127") {
-                qDebug() << "Padding bit not detected!";
-                return;
             }
             // settings
             serialPort.write("Xls");
@@ -688,19 +667,17 @@ void guiWindow::on_confirmButton_clicked()
             ui->confirmButton->setEnabled(false);
 
             QStringList serialQueue;
-            for(uint8_t i = 1; i < sizeof(boolSettings); i++) {
-                QString genString = QString("Xm.0.%1.%2").arg(i-1).arg(boolSettings[i]);
+            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+                QString genString = QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]);
                 serialQueue.append(genString);
             }
 
             if(boolSettings[customPins]) {
                 serialQueue.append("Xm.1.0.1");
                 for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    QString genString = QString("Xm.1.%1.%2").arg(i+1).arg(inputsMap.value(i));
+                    QString genString = QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i));
                     serialQueue.append(genString);
                 }
-            } else {
-                serialQueue.append("Xm.1.0.0");
             }
 
             for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
@@ -850,12 +827,9 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(uint8_t i = 0; i < 30; i++) {
                     pinBoxes[i]->addItems(valuesNameList);
                     if(rpipicoLayout[i].pinType == pinDigital) {
-                        pinBoxes[i]->removeItem(25);
-                        pinBoxes[i]->removeItem(24);
-                        // replace "Temp Sensor" with a separator
-                        // then remove the presumably bumped up temp sensor index.
-                        pinBoxes[i]->insertSeparator(16);
-                        pinBoxes[i]->removeItem(17);
+                        pinBoxes[i]->removeItem(tempPin);
+                        pinBoxes[i]->removeItem(analogY);
+                        pinBoxes[i]->removeItem(analogX);
                     }
                 }
 
@@ -947,12 +921,9 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(uint8_t i = 0; i < 30; i++) {
                     pinBoxes[i]->addItems(valuesNameList);
                     if(adafruitItsyRP2040Layout[i].pinType == pinDigital) {
-                        pinBoxes[i]->removeItem(25);
-                        pinBoxes[i]->removeItem(24);
-                        // replace "Temp Sensor" with a separator
-                        // then remove the presumably bumped up temp sensor index.
-                        pinBoxes[i]->insertSeparator(16);
-                        pinBoxes[i]->removeItem(17);
+                        pinBoxes[i]->removeItem(tempPin);
+                        pinBoxes[i]->removeItem(analogY);
+                        pinBoxes[i]->removeItem(analogX);
                     }
                 }
 
@@ -1034,12 +1005,9 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(uint8_t i = 0; i < 30; i++) {
                     pinBoxes[i]->addItems(valuesNameList);
                     if(adafruitKB2040Layout[i].pinType == pinDigital) {
-                        pinBoxes[i]->removeItem(25);
-                        pinBoxes[i]->removeItem(24);
-                        // replace "Temp Sensor" with a separator
-                        // then remove the presumably bumped up temp sensor index.
-                        pinBoxes[i]->insertSeparator(16);
-                        pinBoxes[i]->removeItem(17);
+                        pinBoxes[i]->removeItem(tempPin);
+                        pinBoxes[i]->removeItem(analogY);
+                        pinBoxes[i]->removeItem(analogX);
                     }
                 }
 
@@ -1106,12 +1074,9 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(uint8_t i = 0; i < 30; i++) {
                     pinBoxes[i]->addItems(valuesNameList);
                     if(arduinoNanoRP2040Layout[i].pinType == pinDigital) {
-                        pinBoxes[i]->removeItem(25);
-                        pinBoxes[i]->removeItem(24);
-                        // replace "Temp Sensor" with a separator
-                        // then remove the presumably bumped up temp sensor index.
-                        pinBoxes[i]->insertSeparator(16);
-                        pinBoxes[i]->removeItem(17);
+                        pinBoxes[i]->removeItem(tempPin);
+                        pinBoxes[i]->removeItem(analogY);
+                        pinBoxes[i]->removeItem(analogX);
                     }
                 }
 
@@ -1188,12 +1153,9 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(uint8_t i = 0; i < 30; i++) {
                     pinBoxes[i]->addItems(valuesNameList);
                     if(genericLayout[i].pinType == pinDigital) {
-                        pinBoxes[i]->removeItem(25);
-                        pinBoxes[i]->removeItem(24);
-                        // replace "Temp Sensor" with a separator
-                        // then remove the presumably bumped up temp sensor index.
-                        pinBoxes[i]->insertSeparator(16);
-                        pinBoxes[i]->removeItem(17);
+                        pinBoxes[i]->removeItem(tempPin);
+                        pinBoxes[i]->removeItem(analogY);
+                        pinBoxes[i]->removeItem(analogX);
                     }
                 }
 
