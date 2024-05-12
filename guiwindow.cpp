@@ -1043,20 +1043,20 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     ui->boardLabel->setText(PrettifyName());
 
                     // left side
-                    PinsLeft->addWidget(padding[0],   0,  0);    // padding
-                    PinsLeft->addWidget(padding[1],   1,  0);    // 5V OUT
-                    PinsLeft->addWidget(padding[3],   2,  0);    // gnd
-                    PinsLeft->addWidget(padding[4],   3,  0);    // 3V3 OUT
-                    PinsLeft->addWidget(pinBoxes[29], 4,  0),  PinsLeft->addWidget(pinLabel[29], 4,  1);
-                    PinsLeft->addWidget(pinBoxes[28], 5,  0),  PinsLeft->addWidget(pinLabel[28], 5,  1);
-                    PinsLeft->addWidget(pinBoxes[27], 6,  0),  PinsLeft->addWidget(pinLabel[27], 6,  1);
-                    PinsLeft->addWidget(pinBoxes[26], 7,  0),  PinsLeft->addWidget(pinLabel[26], 7,  1);
-                    PinsLeft->addWidget(pinBoxes[15], 8,  0),  PinsLeft->addWidget(pinLabel[15], 8,  1);
-                    PinsLeft->addWidget(pinBoxes[14], 9,  0),  PinsLeft->addWidget(pinLabel[14], 9,  1);
-                    PinsLeft->addWidget(pinBoxes[13], 10, 0),  PinsLeft->addWidget(pinLabel[13], 10, 1);
+                    PinsLeft->addWidget(padding[0],   0,  0);    // 5V OUT
+                    PinsLeft->addWidget(padding[1],   1,  0);    // gnd
+                    PinsLeft->addWidget(padding[2],   2,  0);    // 3V3 OUT
+                    PinsLeft->addWidget(pinBoxes[29], 3,  0),  PinsLeft->addWidget(pinLabel[29], 3,  1);
+                    PinsLeft->addWidget(pinBoxes[28], 4,  0),  PinsLeft->addWidget(pinLabel[28], 4,  1);
+                    PinsLeft->addWidget(pinBoxes[27], 5,  0),  PinsLeft->addWidget(pinLabel[27], 5,  1);
+                    PinsLeft->addWidget(pinBoxes[26], 6,  0),  PinsLeft->addWidget(pinLabel[26], 6,  1);
+                    PinsLeft->addWidget(pinBoxes[15], 7,  0),  PinsLeft->addWidget(pinLabel[15], 7,  1);
+                    PinsLeft->addWidget(pinBoxes[14], 8,  0),  PinsLeft->addWidget(pinLabel[14], 8,  1);
+                    PinsLeft->addWidget(pinBoxes[13], 9,  0),  PinsLeft->addWidget(pinLabel[13], 9,  1);
+                    PinsLeft->addWidget(pinBoxes[12], 10, 0),  PinsLeft->addWidget(pinLabel[12], 10, 1);
 
                     // right side
-                    PinsRight->addWidget(padding[5],  0,  1);    // padding
+                    PinsRight->addWidget(padding[3],  0,  1);    // padding
                     PinsRight->addWidget(pinBoxes[0], 1,  1),  PinsRight->addWidget(pinLabel[0], 1,  0);
                     PinsRight->addWidget(pinBoxes[1], 2,  1),  PinsRight->addWidget(pinLabel[1], 2,  0);
                     PinsRight->addWidget(pinBoxes[2], 3,  1),  PinsRight->addWidget(pinLabel[2], 3,  0);
@@ -1074,7 +1074,6 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
                     PinsCenterSub->addWidget(pinBoxes[10], 1, 3), PinsCenterSub->addWidget(pinLabel[10], 0, 3);
                     PinsCenterSub->addWidget(pinBoxes[11], 1, 2), PinsCenterSub->addWidget(pinLabel[11], 0, 2);
-                    PinsCenterSub->addWidget(pinBoxes[12], 1, 1), PinsCenterSub->addWidget(pinLabel[12], 0, 1);
                     break;
                 }
                 case generic:
