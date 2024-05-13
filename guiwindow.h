@@ -50,6 +50,12 @@ private slots:
 
     void pinBoxes_activated(int index);
 
+    void renameBoxes_clicked();
+
+    void colorBoxes_clicked();
+
+    void layoutToggles_stateChanged(int arg1);
+
     void irBoxes_activated(int index);
 
     void runModeBoxes_activated(int index);
@@ -75,6 +81,8 @@ private slots:
     void on_commonAnodeToggle_stateChanged(int arg1);
 
     void on_lowButtonsToggle_stateChanged(int arg1);
+
+    void on_rumbleFFToggle_stateChanged(int arg1);
 
     void on_rumbleIntensityBox_valueChanged(int arg1);
 
@@ -135,7 +143,6 @@ private:
         "Pump Action",
         "Rumble Signal",
         "Solenoid Signal",
-        "Temp Sensor",
         "Rumble Switch",
         "Solenoid Switch",
         "Autofire Switch",
@@ -143,8 +150,13 @@ private:
         "RGB LED Green",
         "RGB LED Blue",
         "External NeoPixel",
+        "Camera SDA",
+        "Camera SCL",
+        "Peripherals SDA",
+        "Peripherals SCL",
         "Analog Pin X",
-        "Analog Pin Y"
+        "Analog Pin Y",
+        "Temp Sensor"
     };
 
     // List of serial port objects that were found in PortsSearch()
@@ -157,9 +169,9 @@ private:
     uint8_t settingsDiff;
 
     // Current array of booleans, meant to be used as a bitmask
-    bool boolSettings[8];
+    bool boolSettings[9];
     // Array of booleans, as loaded from the gun firmware
-    bool boolSettings_orig[8];
+    bool boolSettings_orig[9];
 
     // Current table of tunable settings
     uint16_t settingsTable[8];
@@ -197,6 +209,8 @@ private:
     // ^^^---Values---^^^
     //
     // vvv---Methods---vvv
+
+    void BoxesFill();
 
     void BoxesUpdate();
 

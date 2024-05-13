@@ -26,6 +26,7 @@ enum boardTypes_e {
     adafruitItsyRP2040,
     adafruitKB2040,
     arduinoNanoRP2040,
+    waveshareZero,
     generic = 255
 };
 
@@ -47,7 +48,6 @@ enum boardInputs_e {
     btnPump,
     rumblePin,
     solenoidPin,
-    tempPin,
     rumbleSwitch,
     solenoidSwitch,
     autofireSwitch,
@@ -55,8 +55,13 @@ enum boardInputs_e {
     ledG,
     ledB,
     neoPixel,
+    camSDA,
+    camSCL,
+    periphSDA,
+    periphSCL,
     analogX,
-    analogY
+    analogY,
+    tempPin
 };
 
 enum boolTypes_e {
@@ -67,7 +72,8 @@ enum boolTypes_e {
     simplePause,
     holdToPause,
     commonAnode,
-    lowButtonsMode
+    lowButtonsMode,
+    rumbleFF
 };
 
 enum settingsTypes_e {
@@ -85,6 +91,11 @@ enum pinTypes_e {
     pinNothing = 0,
     pinDigital,
     pinAnalog
+};
+
+enum layoutTypes_e {
+    layoutSquare = 0,
+    layoutDiamond
 };
 
 typedef struct boardInfo_t {
@@ -107,6 +118,9 @@ typedef struct profilesTable_t {
     uint16_t yCenter;
     uint8_t irSensitivity;
     uint8_t runMode;
+    bool layoutType;
+    uint32_t color;
+    QString profName;
 } profilesTable_s;
 
 typedef struct boardLayout_t {
@@ -125,7 +139,7 @@ const boardLayout_t rpipicoLayout[] = {
     {btnPedal, pinDigital},    {btnTrigger, pinDigital},
     {solenoidPin, pinDigital}, {rumblePin, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {camSCL, pinDigital},      {camSDA, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
     {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
@@ -134,7 +148,7 @@ const boardLayout_t rpipicoLayout[] = {
 
 const boardLayout_t adafruitItsyRP2040Layout[] = {
     {btnGunUp, pinDigital},    {btnGunDown, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
     {btnGunLeft, pinDigital},  {btnGunRight, pinDigital},
     {btnTrigger, pinDigital},  {btnGunA, pinDigital},
     {btnGunB, pinDigital},     {btnGunC, pinDigital},
@@ -152,7 +166,7 @@ const boardLayout_t adafruitItsyRP2040Layout[] = {
 
 const boardLayout_t adafruitKB2040Layout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
     {btnGunB, pinDigital},     {rumblePin, pinDigital},
     {btnGunC, pinDigital},     {solenoidPin, pinDigital},
     {btnSelect, pinDigital},   {btnStart, pinDigital},
@@ -181,7 +195,7 @@ const boardLayout_t arduinoNanoRP2040Layout[] = {
     {btnUnmapped, pinDigital}, {btnGunB, pinDigital},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
     {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
@@ -190,6 +204,24 @@ const boardLayout_t arduinoNanoRP2040Layout[] = {
     {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
+};
+
+const boardLayout_t waveshareZeroLayout[] = {
+    {btnTrigger, pinDigital},  {btnGunA, pinDigital},
+    {btnGunB, pinDigital},     {btnGunC, pinDigital},
+    {btnStart, pinDigital},    {btnSelect, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
+    {solenoidPin, pinDigital}, {rumblePin, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
+    {btnReserved, pinNothing}, {btnReserved, pinNothing},
+    {btnReserved, pinNothing}, {btnUnmapped, pinDigital},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
+    {btnUnmapped, pinAnalog},  {tempPin, pinAnalog}
 };
 
 const boardLayout_t genericLayout[] = {
@@ -203,11 +235,11 @@ const boardLayout_t genericLayout[] = {
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // SCL/SDA
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
-    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
-    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
-    {btnUnmapped, pinAnalog},  {-2, pinNothing}           // ADC, padding
+    {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are (usually) unused/unexposed
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
+    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
 };
 
 #endif // CONSTANTS_H
