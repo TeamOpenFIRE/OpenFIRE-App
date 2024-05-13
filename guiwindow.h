@@ -50,6 +50,12 @@ private slots:
 
     void pinBoxes_activated(int index);
 
+    void renameBoxes_clicked();
+
+    void colorBoxes_clicked();
+
+    void layoutToggles_stateChanged(int arg1);
+
     void irBoxes_activated(int index);
 
     void runModeBoxes_activated(int index);
@@ -75,6 +81,8 @@ private slots:
     void on_commonAnodeToggle_stateChanged(int arg1);
 
     void on_lowButtonsToggle_stateChanged(int arg1);
+
+    void on_rumbleFFToggle_stateChanged(int arg1);
 
     void on_rumbleIntensityBox_valueChanged(int arg1);
 

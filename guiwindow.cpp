@@ -30,6 +30,8 @@
 #include <QProcess>
 #include <QStorageInfo>
 #include <QThread>
+#include <QColorDialog>
+#include <QInputDialog>
 
 // Currently loaded board object
 boardInfo_s board;
@@ -39,10 +41,11 @@ tinyUSBtable_s tinyUSBtable;
 // TinyUSB ident, as loaded from the board
 tinyUSBtable_s tinyUSBtable_orig;
 
+#define PROFILES_COUNT 4
 // Current calibration profiles
-QVector<profilesTable_s> profilesTable(4);
+QVector<profilesTable_s> profilesTable(PROFILES_COUNT);
 // Calibration profiles, as loaded from the board
-QVector<profilesTable_s> profilesTable_orig(4);
+QVector<profilesTable_s> profilesTable_orig(PROFILES_COUNT);
 
 // Indexed array map of the current physical layout of the board.
 // Key = pin number, Value = pin function
@@ -74,15 +77,18 @@ QComboBox *pinBoxes[30];
 QLabel *pinLabel[30];
 QWidget *padding[30];
 
-QRadioButton *selectedProfile[4];
-QLabel *xScale[4];
-QLabel *yScale[4];
-QLabel *xCenter[4];
-QLabel *yCenter[4];
-QComboBox *irSens[4];
-QComboBox *runMode[4];
-QSvgWidget *centerPic;
+QRadioButton *selectedProfile[PROFILES_COUNT];
+QLabel *xScale[PROFILES_COUNT];
+QLabel *yScale[PROFILES_COUNT];
+QLabel *xCenter[PROFILES_COUNT];
+QLabel *yCenter[PROFILES_COUNT];
+QComboBox *irSens[PROFILES_COUNT];
+QComboBox *runMode[PROFILES_COUNT];
+QCheckBox *layoutMode[PROFILES_COUNT];
+QPushButton *color[PROFILES_COUNT];
+QPushButton *renameBtn[PROFILES_COUNT];
 
+QSvgWidget *centerPic;
 QGraphicsScene *testScene;
 
 //
@@ -167,7 +173,10 @@ guiWindow::guiWindow(QWidget *parent)
     }
 
     // These can actually stay, tho.
-    for(uint8_t i = 0; i < 4; i++) {
+    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+        renameBtn[i] = new QPushButton();
+        renameBtn[i]->setFlat(true);
+        connect(renameBtn[i], SIGNAL(clicked()), this, SLOT(renameBoxes_clicked()));
         selectedProfile[i] = new QRadioButton(QString("%1.").arg(i+1));
         connect(selectedProfile[i], SIGNAL(toggled(bool)), this, SLOT(selectedProfile_isChecked(bool)));
         xScale[i] = new QLabel("0");
@@ -176,6 +185,8 @@ guiWindow::guiWindow(QWidget *parent)
         yCenter[i] = new QLabel("0");
         irSens[i] = new QComboBox();
         runMode[i] = new QComboBox();
+        layoutMode[i] = new QCheckBox();
+        color[i] = new QPushButton();
         xScale[i]->setAlignment(Qt::AlignHCenter);
         yScale[i]->setAlignment(Qt::AlignHCenter);
         xCenter[i]->setAlignment(Qt::AlignHCenter);
@@ -187,14 +198,20 @@ guiWindow::guiWindow(QWidget *parent)
         runMode[i]->addItem("Normal");
         runMode[i]->addItem("1-Frame Avg");
         runMode[i]->addItem("2-Frame Avg");
+        layoutMode[i]->setToolTip("Unticked is for the default double lightbar 'square' IR arrangement.\nTicked is for the GUN4IR-compatible 'diamond' IR arrangement.");
+        connect(layoutMode[i], SIGNAL(stateChanged(int)), this, SLOT(layoutToggles_stateChanged(int)));
         connect(runMode[i], SIGNAL(activated(int)), this, SLOT(runModeBoxes_activated(int)));
-        ui->profilesArea->addWidget(selectedProfile[i], i+1, 0, 1, 1);
-        ui->profilesArea->addWidget(xScale[i], i+1, 1, 1, 1);
-        ui->profilesArea->addWidget(yScale[i], i+1, 3, 1, 1);
-        ui->profilesArea->addWidget(xCenter[i], i+1, 5, 1, 1);
-        ui->profilesArea->addWidget(yCenter[i], i+1, 7, 1, 1);
-        ui->profilesArea->addWidget(irSens[i], i+1, 9, 1, 1);
-        ui->profilesArea->addWidget(runMode[i], i+1, 11, 1, 1);
+        connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
+        ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
+        ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
+        ui->profilesArea->addWidget(xScale[i], i+1, 2, 1, 1);
+        ui->profilesArea->addWidget(yScale[i], i+1, 4, 1, 1);
+        ui->profilesArea->addWidget(xCenter[i], i+1, 6, 1, 1);
+        ui->profilesArea->addWidget(yCenter[i], i+1, 8, 1, 1);
+        ui->profilesArea->addWidget(irSens[i], i+1, 10, 1, 1);
+        ui->profilesArea->addWidget(runMode[i], i+1, 12, 1, 1);
+        ui->profilesArea->addWidget(layoutMode[i], i+1, 14, 1, 1);
+        ui->profilesArea->addWidget(color[i], i+1, 16, 1, 1);
     }
 
     // Setup Test Mode screen colors
@@ -320,50 +337,56 @@ void guiWindow::SerialLoad()
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
-            for(uint8_t i = 0; i < 8; i++) {
+            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
                 buffer = serialPort.readLine();
                 buffer = buffer.trimmed();
                 settingsTable[i] = buffer.toInt();
                 settingsTable_orig[i] = settingsTable[i];
             }
             // profiles
-            for(uint8_t i = 0; i < 4; i++) {
+            for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
                 QString genString = QString("XlP%1").arg(i);
                 serialPort.write(genString.toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 xScale[i]->setText(buffer);
                 profilesTable[i].xScale = buffer.toInt();
                 profilesTable_orig[i].xScale = profilesTable[i].xScale;
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 yScale[i]->setText(buffer);
                 profilesTable[i].yScale = buffer.toInt();
                 profilesTable_orig[i].yScale = profilesTable[i].yScale;
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 xCenter[i]->setText(buffer);
                 profilesTable[i].xCenter = buffer.toInt();
                 profilesTable_orig[i].xCenter = profilesTable[i].xCenter;
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 yCenter[i]->setText(buffer);
                 profilesTable[i].yCenter = buffer.toInt();
                 profilesTable_orig[i].yCenter = profilesTable[i].yCenter;
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 profilesTable[i].irSensitivity = buffer.toInt();
                 profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
                 irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity);
                 irSensOldIndex[i] = profilesTable[i].irSensitivity;
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 profilesTable[i].runMode = buffer.toInt();
                 profilesTable_orig[i].runMode = profilesTable[i].runMode;
                 runMode[i]->setCurrentIndex(profilesTable[i].runMode);
                 runModeOldIndex[i] = profilesTable[i].runMode;
+                buffer = serialPort.readLine().trimmed();
+                layoutMode[i]->setChecked(buffer.toInt());
+                profilesTable[i].layoutType = buffer.toInt();
+                profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                buffer = serialPort.readLine().trimmed();
+                color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0')));
+                profilesTable[i].color = buffer.toLong();
+                profilesTable_orig[i].color = profilesTable[i].color;
+                buffer = serialPort.readLine().trimmed();
+                selectedProfile[i]->setText(buffer);
+                profilesTable[i].profName = buffer;
+                profilesTable_orig[i].profName = profilesTable[i].profName;
             }
             serialActive = false;
         } else {
@@ -557,7 +580,10 @@ void guiWindow::DiffUpdate()
     if(board.selectedProfile != board.previousProfile) {
         settingsDiff++;
     }
-    for(uint8_t i = 0; i < 4; i++) {
+    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+        if(profilesTable_orig[i].profName != profilesTable[i].profName) {
+            settingsDiff++;
+        }
         if(profilesTable_orig[i].xScale != profilesTable[i].xScale) {
             settingsDiff++;
         }
@@ -574,6 +600,12 @@ void guiWindow::DiffUpdate()
             settingsDiff++;
         }
         if(profilesTable_orig[i].runMode != profilesTable[i].runMode) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].layoutType != profilesTable[i].layoutType) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].color != profilesTable[i].color) {
             settingsDiff++;
         }
     }
@@ -607,6 +639,9 @@ void guiWindow::SyncSettings()
     for(uint8_t i = 0; i < 4; i++) {
         profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
         profilesTable_orig[i].runMode = profilesTable[i].runMode;
+        profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+        profilesTable_orig[i].color = profilesTable[i].color;
+        profilesTable_orig[i].profName = profilesTable[i].profName;
     }
 }
 
@@ -671,21 +706,17 @@ void guiWindow::on_confirmButton_clicked()
 
             QStringList serialQueue;
             for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
-                QString genString = QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]);
-                serialQueue.append(genString);
+                serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]));
             }
 
             if(boolSettings[customPins]) {
-                serialQueue.append("Xm.1.0.1");
                 for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    QString genString = QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i));
-                    serialQueue.append(genString);
+                    serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i)));
                 }
             }
 
             for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
-                QString genString = QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]);
-                serialQueue.append(genString);
+                serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
             }
 
             serialQueue.append(QString("Xm.3.0.%1").arg(tinyUSBtable.tinyUSBid));
@@ -695,6 +726,9 @@ void guiWindow::on_confirmButton_clicked()
             for(uint8_t i = 0; i < 4; i++) {
                 serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(profilesTable[i].irSensitivity));
                 serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(profilesTable[i].runMode));
+                serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(profilesTable[i].layoutType));
+                serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(profilesTable[i].color));
+                serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(profilesTable[i].profName));
             }
             serialQueue.append("XS");
 
@@ -1294,6 +1328,72 @@ void guiWindow::runModeBoxes_activated(int index)
 }
 
 
+void guiWindow::renameBoxes_clicked()
+{
+    // Demultiplexing to figure out which box we're using.
+    uint8_t slot;
+    QObject* obj = sender();
+    for(uint8_t i = 0;;i++) {
+        if(obj == renameBtn[i]) {
+            slot = i;
+            break;
+        }
+    }
+
+    QString newLabel = QInputDialog::getText(this, "Input Name", QString("Set name for profile %1").arg(slot+1));
+    if(!newLabel.isEmpty()) {
+        selectedProfile[slot]->setText(newLabel);
+        profilesTable[slot].profName = newLabel;
+    }
+    DiffUpdate();
+}
+
+
+void guiWindow::colorBoxes_clicked()
+{
+    // Demultiplexing to figure out which box we're using.
+    uint8_t slot;
+    QObject* obj = sender();
+    for(uint8_t i = 0;;i++) {
+        if(obj == color[i]) {
+            slot = i;
+            break;
+        }
+    }
+
+    QColorDialog colorDiag;
+    int *red = new int;
+    int *green = new int;
+    int *blue = new int;
+    colorDiag.getColor().getRgb(red, green, blue);
+    qDebug() << *red << *green << *blue;
+    uint32_t packedColor = 0;
+    packedColor |= *red << 16;
+    packedColor |= *green << 8;
+    packedColor |= *blue;
+    profilesTable[slot].color = packedColor;
+    color[slot]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+    DiffUpdate();
+}
+
+
+void guiWindow::layoutToggles_stateChanged(int arg1)
+{
+    // Demultiplexing to figure out which tick we're using.
+    uint8_t slot;
+    QObject* obj = sender();
+    for(uint8_t i = 0;;i++) {
+        if(obj == layoutMode[i]) {
+            slot = i;
+            break;
+        }
+    }
+
+    profilesTable[slot].layoutType = arg1;
+    DiffUpdate();
+}
+
+
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
     boolSettings[customPins] = arg1;
@@ -1347,6 +1447,13 @@ void guiWindow::on_commonAnodeToggle_stateChanged(int arg1)
 void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 {
     boolSettings[lowButtonsMode] = arg1;
+    DiffUpdate();
+}
+
+
+void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
+{
+    boolSettings[rumbleFF] = arg1;
     DiffUpdate();
 }
 
@@ -1746,7 +1853,7 @@ void guiWindow::on_clearEepromBtn_clicked()
 
 void guiWindow::on_baudResetBtn_clicked()
 {
-    // TODO: Does not work for now, for some reason.
+    // TODO: Native version does not work for now, for some reason.
     // Seems to be a QT bug? This is nearly identical to Earle's code.
     qDebug() << "Sending reset command.";
     serialActive = true;
@@ -1758,6 +1865,8 @@ void guiWindow::on_baudResetBtn_clicked()
     QStringList args;
     args << "-F" << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].systemLocation()) << "1200";
     externalProg->start("/usr/bin/stty", args);
+
+/* test stuff for potential app FW update functionality
     // At least on my system, the Bootloader device takes ~7s to appear
     QThread::msleep(7000);
     // Class-ify this function, maybe.
@@ -1773,8 +1882,9 @@ void guiWindow::on_baudResetBtn_clicked()
     }
     qDebug() << picoPath;
     // QFile::copy("file", picoPath+"file");
+*/
     #elifdef Q_OS_WIN
-    // Ooooh, Windows as a mode option that does basically the same!
+    // Ooooh, Windows has a mode option that does basically the same!
     QProcess *externalProg = new QProcess;
     QStringList args;
     args << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].portName()) << "baud=12" << "parity=n" << "data=8" << "stop=1" << "dtr=off";
@@ -1805,4 +1915,3 @@ void guiWindow::on_actionAbout_UI_triggered()
     aboutDialog.setupUi(about);
     about->show();
 }
-

@@ -93,6 +93,11 @@ enum pinTypes_e {
     pinAnalog
 };
 
+enum layoutTypes_e {
+    layoutSquare = 0,
+    layoutDiamond
+};
+
 typedef struct boardInfo_t {
     uint8_t type = nothing;
     float versionNumber = 0.0;
@@ -113,6 +118,9 @@ typedef struct profilesTable_t {
     uint16_t yCenter;
     uint8_t irSensitivity;
     uint8_t runMode;
+    bool layoutType;
+    uint32_t color;
+    QString profName;
 } profilesTable_s;
 
 typedef struct boardLayout_t {
