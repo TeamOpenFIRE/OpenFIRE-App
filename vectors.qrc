@@ -9,5 +9,6 @@
     </qresource>
     <qresource prefix="/icon">
         <file alias="icon.png">ico/openfire.png</file>
+        <file alias="edit.png">ico/edit.png</file>
     </qresource>
 </RCC>

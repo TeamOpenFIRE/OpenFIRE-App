@@ -176,6 +176,8 @@ guiWindow::guiWindow(QWidget *parent)
     for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
         renameBtn[i] = new QPushButton();
         renameBtn[i]->setFlat(true);
+        renameBtn[i]->setFixedWidth(20);
+        renameBtn[i]->setIcon(QIcon(":/icon/edit.png"));
         connect(renameBtn[i], SIGNAL(clicked()), this, SLOT(renameBoxes_clicked()));
         selectedProfile[i] = new QRadioButton(QString("%1.").arg(i+1));
         connect(selectedProfile[i], SIGNAL(toggled(bool)), this, SLOT(selectedProfile_isChecked(bool)));
@@ -201,6 +203,7 @@ guiWindow::guiWindow(QWidget *parent)
         layoutMode[i]->setToolTip("Unticked is for the default double lightbar 'square' IR arrangement.\nTicked is for the GUN4IR-compatible 'diamond' IR arrangement.");
         connect(layoutMode[i], SIGNAL(stateChanged(int)), this, SLOT(layoutToggles_stateChanged(int)));
         connect(runMode[i], SIGNAL(activated(int)), this, SLOT(runModeBoxes_activated(int)));
+        color[i]->setFixedWidth(32);
         connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
         ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
         ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
@@ -1340,10 +1343,11 @@ void guiWindow::renameBoxes_clicked()
         }
     }
 
+    // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
     QString newLabel = QInputDialog::getText(this, "Input Name", QString("Set name for profile %1").arg(slot+1));
     if(!newLabel.isEmpty()) {
-        selectedProfile[slot]->setText(newLabel);
-        profilesTable[slot].profName = newLabel;
+        selectedProfile[slot]->setText(newLabel.left(15));
+        profilesTable[slot].profName = newLabel.left(15);
     }
     DiffUpdate();
 }
@@ -1361,19 +1365,20 @@ void guiWindow::colorBoxes_clicked()
         }
     }
 
-    QColorDialog colorDiag;
-    int *red = new int;
-    int *green = new int;
-    int *blue = new int;
-    colorDiag.getColor().getRgb(red, green, blue);
-    qDebug() << *red << *green << *blue;
-    uint32_t packedColor = 0;
-    packedColor |= *red << 16;
-    packedColor |= *green << 8;
-    packedColor |= *blue;
-    profilesTable[slot].color = packedColor;
-    color[slot]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
-    DiffUpdate();
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        profilesTable[slot].color = packedColor;
+        color[slot]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
 }
 
 
