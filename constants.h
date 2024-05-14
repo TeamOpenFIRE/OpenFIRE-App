@@ -112,10 +112,12 @@ typedef struct tinyUSBtable_t {
 } tinyUSBtable_s;
 
 typedef struct profilesTable_t {
-    uint16_t xScale;
-    uint16_t yScale;
-    uint16_t xCenter;
-    uint16_t yCenter;
+    uint16_t topOffset;
+    uint16_t bottomOffset;
+    uint16_t leftOffset;
+    uint16_t rightOffset;
+    uint16_t TLled;
+    uint16_t TRled;
     uint8_t irSensitivity;
     uint8_t runMode;
     bool layoutType;

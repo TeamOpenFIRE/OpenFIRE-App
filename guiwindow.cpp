@@ -78,10 +78,12 @@ QLabel *pinLabel[30];
 QWidget *padding[30];
 
 QRadioButton *selectedProfile[PROFILES_COUNT];
-QLabel *xScale[PROFILES_COUNT];
-QLabel *yScale[PROFILES_COUNT];
-QLabel *xCenter[PROFILES_COUNT];
-QLabel *yCenter[PROFILES_COUNT];
+QLabel *topOffset[PROFILES_COUNT];
+QLabel *bottomOffset[PROFILES_COUNT];
+QLabel *leftOffset[PROFILES_COUNT];
+QLabel *rightOffset[PROFILES_COUNT];
+QLabel *TLled[PROFILES_COUNT];
+QLabel *TRled[PROFILES_COUNT];
 QComboBox *irSens[PROFILES_COUNT];
 QComboBox *runMode[PROFILES_COUNT];
 QCheckBox *layoutMode[PROFILES_COUNT];
@@ -181,18 +183,22 @@ guiWindow::guiWindow(QWidget *parent)
         connect(renameBtn[i], SIGNAL(clicked()), this, SLOT(renameBoxes_clicked()));
         selectedProfile[i] = new QRadioButton(QString("%1.").arg(i+1));
         connect(selectedProfile[i], SIGNAL(toggled(bool)), this, SLOT(selectedProfile_isChecked(bool)));
-        xScale[i] = new QLabel("0");
-        yScale[i] = new QLabel("0");
-        xCenter[i] = new QLabel("0");
-        yCenter[i] = new QLabel("0");
+        topOffset[i] = new QLabel("0");
+        bottomOffset[i] = new QLabel("0");
+        leftOffset[i] = new QLabel("0");
+        rightOffset[i] = new QLabel("0");
+        TLled[i] = new QLabel("0");
+        TRled[i] = new QLabel("0");
         irSens[i] = new QComboBox();
         runMode[i] = new QComboBox();
         layoutMode[i] = new QCheckBox();
         color[i] = new QPushButton();
-        xScale[i]->setAlignment(Qt::AlignHCenter);
-        yScale[i]->setAlignment(Qt::AlignHCenter);
-        xCenter[i]->setAlignment(Qt::AlignHCenter);
-        yCenter[i]->setAlignment(Qt::AlignHCenter);
+        topOffset[i]->setAlignment(Qt::AlignHCenter);
+        bottomOffset[i]->setAlignment(Qt::AlignHCenter);
+        leftOffset[i]->setAlignment(Qt::AlignHCenter);
+        rightOffset[i]->setAlignment(Qt::AlignHCenter);
+        TLled[i]->setAlignment(Qt::AlignHCenter);
+        TRled[i]->setAlignment(Qt::AlignHCenter);
         irSens[i]->addItem("Default");
         irSens[i]->addItem("Higher");
         irSens[i]->addItem("Highest");
@@ -207,14 +213,16 @@ guiWindow::guiWindow(QWidget *parent)
         connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
         ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
         ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
-        ui->profilesArea->addWidget(xScale[i], i+1, 2, 1, 1);
-        ui->profilesArea->addWidget(yScale[i], i+1, 4, 1, 1);
-        ui->profilesArea->addWidget(xCenter[i], i+1, 6, 1, 1);
-        ui->profilesArea->addWidget(yCenter[i], i+1, 8, 1, 1);
-        ui->profilesArea->addWidget(irSens[i], i+1, 10, 1, 1);
-        ui->profilesArea->addWidget(runMode[i], i+1, 12, 1, 1);
-        ui->profilesArea->addWidget(layoutMode[i], i+1, 14, 1, 1);
-        ui->profilesArea->addWidget(color[i], i+1, 16, 1, 1);
+        ui->profilesArea->addWidget(topOffset[i], i+1, 2, 1, 1);
+        ui->profilesArea->addWidget(bottomOffset[i], i+1, 4, 1, 1);
+        ui->profilesArea->addWidget(leftOffset[i], i+1, 6, 1, 1);
+        ui->profilesArea->addWidget(rightOffset[i], i+1, 8, 1, 1);
+        ui->profilesArea->addWidget(TLled[i], i+1, 10, 1, 1);
+        ui->profilesArea->addWidget(TRled[i], i+1, 12, 1, 1);
+        ui->profilesArea->addWidget(irSens[i], i+1, 14, 1, 1);
+        ui->profilesArea->addWidget(runMode[i], i+1, 16, 1, 1);
+        ui->profilesArea->addWidget(layoutMode[i], i+1, 18, 1, 1);
+        ui->profilesArea->addWidget(color[i], i+1, 20, 1, 1);
     }
 
     // Setup Test Mode screen colors
@@ -353,21 +361,29 @@ void guiWindow::SerialLoad()
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
                 buffer = serialPort.readLine().trimmed();
-                xScale[i]->setText(buffer);
-                profilesTable[i].xScale = buffer.toInt();
-                profilesTable_orig[i].xScale = profilesTable[i].xScale;
+                topOffset[i]->setText(buffer);
+                profilesTable[i].topOffset = buffer.toInt();
+                profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
                 buffer = serialPort.readLine().trimmed();
-                yScale[i]->setText(buffer);
-                profilesTable[i].yScale = buffer.toInt();
-                profilesTable_orig[i].yScale = profilesTable[i].yScale;
+                bottomOffset[i]->setText(buffer);
+                profilesTable[i].bottomOffset = buffer.toInt();
+                profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
                 buffer = serialPort.readLine().trimmed();
-                xCenter[i]->setText(buffer);
-                profilesTable[i].xCenter = buffer.toInt();
-                profilesTable_orig[i].xCenter = profilesTable[i].xCenter;
+                leftOffset[i]->setText(buffer);
+                profilesTable[i].leftOffset = buffer.toInt();
+                profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
                 buffer = serialPort.readLine().trimmed();
-                yCenter[i]->setText(buffer);
-                profilesTable[i].yCenter = buffer.toInt();
-                profilesTable_orig[i].yCenter = profilesTable[i].yCenter;
+                rightOffset[i]->setText(buffer);
+                profilesTable[i].rightOffset = buffer.toInt();
+                profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
+                buffer = serialPort.readLine().trimmed();
+                TLled[i]->setText(buffer);
+                profilesTable[i].TLled = buffer.toFloat();
+                profilesTable_orig[i].TLled = profilesTable[i].TLled;
+                buffer = serialPort.readLine().trimmed();
+                TRled[i]->setText(buffer);
+                profilesTable[i].TRled = buffer.toFloat();
+                profilesTable_orig[i].TRled = profilesTable[i].TRled;
                 buffer = serialPort.readLine().trimmed();
                 profilesTable[i].irSensitivity = buffer.toInt();
                 profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
@@ -587,16 +603,22 @@ void guiWindow::DiffUpdate()
         if(profilesTable_orig[i].profName != profilesTable[i].profName) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].xScale != profilesTable[i].xScale) {
+        if(profilesTable_orig[i].topOffset != profilesTable[i].topOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].yScale != profilesTable[i].yScale) {
+        if(profilesTable_orig[i].bottomOffset != profilesTable[i].bottomOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].xCenter != profilesTable[i].xCenter) {
+        if(profilesTable_orig[i].leftOffset != profilesTable[i].leftOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].yCenter != profilesTable[i].yCenter) {
+        if(profilesTable_orig[i].rightOffset != profilesTable[i].rightOffset) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].TLled != profilesTable[i].TLled) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].TRled != profilesTable[i].TRled) {
             settingsDiff++;
         }
         if(profilesTable_orig[i].irSensitivity != profilesTable[i].irSensitivity) {
@@ -1725,17 +1747,23 @@ void guiWindow::serialPort_readyRead()
                 }
                 board.selectedProfile = selection;
                 idleBuffer = serialPort.readLine();
-                xScale[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].xScale = xScale[selection]->text().toInt();
+                topOffset[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
                 idleBuffer = serialPort.readLine();
-                yScale[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].yScale = yScale[selection]->text().toInt();
+                bottomOffset[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
                 idleBuffer = serialPort.readLine();
-                xCenter[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].xCenter = xCenter[selection]->text().toInt();
+                leftOffset[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
                 idleBuffer = serialPort.readLine();
-                yCenter[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].yCenter = yCenter[selection]->text().toInt();
+                rightOffset[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
+                idleBuffer = serialPort.readLine();
+                TLled[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].TLled = TLled[selection]->text().toInt();
+                idleBuffer = serialPort.readLine();
+                TRled[selection]->setText(idleBuffer.trimmed());
+                profilesTable[selection].TRled = TRled[selection]->text().toInt();
                 DiffUpdate();
             }
         }
