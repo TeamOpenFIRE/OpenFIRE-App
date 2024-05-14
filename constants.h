@@ -141,7 +141,7 @@ const boardLayout_t rpipicoLayout[] = {
     {btnPedal, pinDigital},    {btnTrigger, pinDigital},
     {solenoidPin, pinDigital}, {rumblePin, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {camSCL, pinDigital},      {camSDA, pinDigital},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
     {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
