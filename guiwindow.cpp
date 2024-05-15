@@ -979,8 +979,8 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     PinsRight->addWidget(pinBoxes[7],  7,  1), PinsRight->addWidget(pinLabel[7],  7,  0);
                     PinsRight->addWidget(pinBoxes[6],  8,  1), PinsRight->addWidget(pinLabel[6],  8,  0);
                     PinsRight->addWidget(padding[11],  9,  1);   // 5!
-                    PinsRight->addWidget(pinBoxes[2],  10, 1), PinsRight->addWidget(pinLabel[2],  10, 0);
-                    PinsRight->addWidget(pinBoxes[3],  11, 1), PinsRight->addWidget(pinLabel[3],  11, 0);
+                    PinsRight->addWidget(pinBoxes[3],  10, 1), PinsRight->addWidget(pinLabel[3],  10, 0);
+                    PinsRight->addWidget(pinBoxes[2],  11, 1), PinsRight->addWidget(pinLabel[2],  11, 0);
                     PinsRight->addWidget(pinBoxes[0],  12, 1), PinsRight->addWidget(pinLabel[0],  12, 0);
                     PinsRight->addWidget(pinBoxes[1],  13, 1), PinsRight->addWidget(pinLabel[1],  13, 0);
                     PinsRight->addWidget(padding[12],  14, 1);   // bottom padding
