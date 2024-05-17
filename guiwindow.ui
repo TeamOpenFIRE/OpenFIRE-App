@@ -510,7 +510,7 @@
            <item row="0" column="1">
             <widget class="QSpinBox" name="rumbleIntensityBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity of rumble force feedback events - scales from 0 (disabled) to a maximum of 255.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity of rumble force feedback events - scales from 0 (disabled) to a maximum of 255.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 255 (100%)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="frame">
               <bool>true</bool>
@@ -529,7 +529,7 @@
            <item row="1" column="1">
             <widget class="QSpinBox" name="rumbleLengthBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of rumble motor activation when pulling the trigger offscreen, in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of rumble motor activation when pulling the trigger offscreen, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 150 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -545,7 +545,7 @@
            <item row="2" column="1">
             <widget class="QSpinBox" name="holdToPauseLengthBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Hold To Pause&lt;/span&gt; mode is enabled, how long should the buttons be held before Pause Mode activates?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Hold To Pause&lt;/span&gt; mode is enabled, how long (in milliseconds) should the buttons be held before Pause Mode activates?&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 2500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -561,7 +561,7 @@
            <item row="3" column="1">
             <widget class="QSpinBox" name="neopixelStrandLengthBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs are in the NeoPixel chain.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs are in the NeoPixel chain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -580,7 +580,7 @@
            <item row="0" column="3">
             <widget class="QSpinBox" name="solenoidNormalIntervalBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -593,7 +593,7 @@
            <item row="1" column="3">
             <widget class="QSpinBox" name="solenoidFastIntervalBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 30 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -606,7 +606,7 @@
            <item row="2" column="3">
             <widget class="QSpinBox" name="solenoidHoldLengthBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -622,7 +622,7 @@
            <item row="3" column="3">
             <widget class="QSpinBox" name="autofireWaitFactorBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The multiplier to be applied for the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The multiplier to be applied for the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 3(x)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
