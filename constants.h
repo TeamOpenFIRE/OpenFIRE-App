@@ -149,21 +149,21 @@ const boardLayout_t rpipicoLayout[] = {
 };
 
 const boardLayout_t adafruitItsyRP2040Layout[] = {
-    {btnGunUp, pinDigital},    {btnGunDown, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {camSDA, pinDigital},      {camSCL, pinDigital},
-    {btnGunLeft, pinDigital},  {btnGunRight, pinDigital},
-    {btnTrigger, pinDigital},  {btnGunA, pinDigital},
-    {btnGunB, pinDigital},     {btnGunC, pinDigital},
-    {btnStart, pinDigital},    {btnSelect, pinDigital},
-    {btnPedal, pinDigital},    {btnReserved, pinNothing},
+    {btnPedal, pinDigital},    {btnUnmapped, pinDigital},
+    {btnTrigger, pinDigital},  {btnGunDown, pinDigital},
+    {btnGunLeft, pinDigital},  {btnGunUp, pinDigital},
+    {btnGunRight, pinDigital}, {btnGunC, pinDigital},
+    {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {rumblePin, pinDigital},   {solenoidPin, pinDigital},
-    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
+    {btnGunB, pinAnalog},      {btnGunA, pinAnalog},
+    {btnStart, pinAnalog},     {btnSelect, pinAnalog}
 };
 
 const boardLayout_t adafruitKB2040Layout[] = {
