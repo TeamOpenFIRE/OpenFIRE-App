@@ -1734,8 +1734,7 @@ void guiWindow::serialPort_readyRead()
                     break;
                 }
             } else if(idleBuffer.contains("Profile: ")) {
-                idleBuffer = idleBuffer.right(3);
-                idleBuffer = idleBuffer.trimmed();
+                idleBuffer = idleBuffer.trimmed().right(1);
                 uint8_t selection = idleBuffer.toInt();
                 if(selection != board.selectedProfile) {
                     board.selectedProfile = selection;
@@ -1743,28 +1742,33 @@ void guiWindow::serialPort_readyRead()
                 }
                 DiffUpdate();
             } else if(idleBuffer.contains("UpdatedProf: ")) {
-                idleBuffer = idleBuffer.right(3);
-                idleBuffer = idleBuffer.trimmed();
+                idleBuffer = idleBuffer.trimmed().right(1);
                 uint8_t selection = idleBuffer.toInt();
                 if(selection != board.selectedProfile) {
                     selectedProfile[selection]->setChecked(true);
                 }
                 board.selectedProfile = selection;
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 topOffset[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 bottomOffset[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 leftOffset[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 rightOffset[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 TLled[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].TLled = TLled[selection]->text().toFloat();
+                serialPort.waitForReadyRead(2000);
                 idleBuffer = serialPort.readLine();
                 TRled[selection]->setText(idleBuffer.trimmed());
                 profilesTable[selection].TRled = TRled[selection]->text().toFloat();
