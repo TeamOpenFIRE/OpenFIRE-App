@@ -499,17 +499,29 @@ bool guiWindow::SerialInit(int portNum)
 
 void guiWindow::BoxesUpdate()
 {
-    for(uint8_t i = 0; i < 30; i++) {
-        pinBoxes[i]->setCurrentIndex(btnUnmapped);
-        pinBoxesOldIndex[i] = btnUnmapped;
-    }
     if(boolSettings[customPins]) {
-        currentPins.clear();
+        // if the custom pins setting grabbed from the gun has been set
+        if(boolSettings_orig[customPins]) {
+            // clear map
+            currentPins.clear();
+            // set or clear the local pins mapping
+            for(uint8_t i = 0; i < 30; i++) {
+                currentPins[i] = btnUnmapped;
+            }
+            // (re)-copy pins settings grabbed from the gun to the app catalog
+            inputsMap = inputsMap_orig;
+        // else, if the board was using default maps before switching to custom
+        } else {
+            for(uint8_t i = 0; i < 30; i++) {
+                if(currentPins[i] > btnUnmapped) {
+                    inputsMap[currentPins[i]-1] = i;
+                }
+            }
+        }
+        // enable pinboxes
         for(uint8_t i = 0; i < 30; i++) {
             pinBoxes[i]->setEnabled(true);
-            currentPins[i] = btnUnmapped;
         }
-        inputsMap = inputsMap_orig;
         for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
             if(inputsMap.value(i) >= 0) {
                 currentPins[inputsMap.value(i)] = i+1;
@@ -573,7 +585,7 @@ void guiWindow::DiffUpdate()
 {
     settingsDiff = 0;
     if(boolSettings_orig[customPins] != boolSettings[customPins]) {
-        //settingsDiff++;
+        settingsDiff++;
     }
     if(boolSettings[customPins]) {
         if(inputsMap_orig != inputsMap) {
