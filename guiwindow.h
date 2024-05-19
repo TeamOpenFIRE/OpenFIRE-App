@@ -138,7 +138,8 @@ private:
         "D-Pad Down",
         "D-Pad Left",
         "D-Pad Right",
-        "External Pedal",
+        "External Pedal 1",
+        "External Pedal 2",
         "Home Button",
         "Pump Action",
         "Rumble Signal",
@@ -154,6 +155,7 @@ private:
         "Camera SCL",
         "Peripherals SDA",
         "Peripherals SCL",
+        "Battery Sensor",
         "Analog Pin X",
         "Analog Pin Y",
         "Temp Sensor"

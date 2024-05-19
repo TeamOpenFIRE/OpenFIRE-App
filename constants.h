@@ -44,6 +44,7 @@ enum boardInputs_e {
     btnGunLeft,
     btnGunRight,
     btnPedal,
+    btnPedal2,
     btnHome,
     btnPump,
     rumblePin,
@@ -59,6 +60,7 @@ enum boardInputs_e {
     camSCL,
     periphSDA,
     periphSCL,
+    battery,
     analogX,
     analogY,
     tempPin
@@ -82,9 +84,9 @@ enum settingsTypes_e {
     solenoidNormalInterval,
     solenoidFastInterval,
     solenoidHoldLength,
-    customLEDcount,
     autofireWaitFactor,
-    holdToPauseLength
+    holdToPauseLength,
+    customLEDcount
 };
 
 enum pinTypes_e {

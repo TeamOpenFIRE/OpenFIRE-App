@@ -52,7 +52,7 @@ QVector<profilesTable_s> profilesTable_orig(PROFILES_COUNT);
 // Values: -2 = N/A, -1 = reserved, 0 = available, unused
 QMap<uint8_t, int8_t> currentPins;
 
-#define INPUTS_COUNT 29
+#define INPUTS_COUNT 31
 // Map of what inputs are put where,
 // Key = button/output, Value = pin number occupying, if any.
 // Value of -1 means unmapped.
@@ -323,8 +323,7 @@ void guiWindow::SerialLoad()
             // booleans
             QString buffer;
             for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+                buffer = serialPort.readLine().trimmed();
                 boolSettings[i] = buffer.toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
@@ -333,7 +332,7 @@ void guiWindow::SerialLoad()
                 serialPort.write("Xlp");
                 serialPort.waitForReadyRead(1000);
                 for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    buffer = serialPort.readLine();
+                    buffer = serialPort.readLine().trimmed();
                     inputsMap_orig[i] = buffer.toInt();
                     // For some reason, QTSerial drops output shortly after this.
                     // So we send a ping to refill the buffer.
@@ -348,11 +347,15 @@ void guiWindow::SerialLoad()
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
+            for(uint8_t i = 0; i < sizeof(settingsTable) / 2 + 4; i++) {
+                buffer = serialPort.readLine().trimmed();
                 settingsTable[i] = buffer.toInt();
                 settingsTable_orig[i] = settingsTable[i];
+            }
+            // TODO: this is for customLEDstatic and customLEDcolors1-3
+            for(uint8_t i = 0; i < 4; i++) {
+                // nomf'd for now
+                buffer = serialPort.readLine().trimmed();
             }
             // profiles
             for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
