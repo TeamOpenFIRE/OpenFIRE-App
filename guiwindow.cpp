@@ -773,15 +773,19 @@ void guiWindow::on_confirmButton_clicked()
                     if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
                         statusProgressBar->setValue(statusProgressBar->value() + 1);
                     } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                        buffer = serialPort.readLine();
-                        if(buffer.contains("Settings saved to")) {
-                            success = true;
-                            // because there's probably some leftover bytes that might congest things:
-                            while(!serialPort.atEnd()) {
-                                serialPort.readLine();
+                        if(serialPort.waitForReadyRead(2000)) {
+                            buffer = serialPort.readLine();
+                            if(buffer.contains("Settings saved to")) {
+                                success = true;
+                                // because there's probably some leftover bytes that might congest things:
+                                while(!serialPort.atEnd()) {
+                                    serialPort.readLine();
+                                }
+                            } else {
+                                qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
                             }
                         } else {
-                            qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
+                            qDebug() << "Sent save command, but didn't receive a response!?!? What the heck Seong?";
                         }
                     } else {
                         success = false;
@@ -1760,10 +1764,10 @@ void guiWindow::serialPort_readyRead()
                 profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
                 idleBuffer = serialPort.readLine();
                 TLled[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].TLled = TLled[selection]->text().toInt();
+                profilesTable[selection].TLled = TLled[selection]->text().toFloat();
                 idleBuffer = serialPort.readLine();
                 TRled[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].TRled = TRled[selection]->text().toInt();
+                profilesTable[selection].TRled = TRled[selection]->text().toFloat();
                 DiffUpdate();
             }
         }
