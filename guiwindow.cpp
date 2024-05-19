@@ -773,23 +773,19 @@ void guiWindow::on_confirmButton_clicked()
                     if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
                         statusProgressBar->setValue(statusProgressBar->value() + 1);
                     } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                        if(serialPort.waitForReadyRead(2000)) {
+                        for(uint8_t t = 0; t < 3; t++) {
+                            if(serialPort.atEnd()) { serialPort.waitForReadyRead(2000); }
                             buffer = serialPort.readLine();
                             if(buffer.contains("Settings saved to")) {
                                 success = true;
-                                // because there's probably some leftover bytes that might congest things:
-                                while(!serialPort.atEnd()) {
-                                    serialPort.readLine();
-                                }
-                            } else {
-                                qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
+                                t = 3;
                             }
-                        } else {
-                            qDebug() << "Sent save command, but didn't receive a response!?!? What the heck Seong?";
                         }
-                    } else {
-                        success = false;
-                        break;
+                        if(success) {
+                            while(!serialPort.atEnd()) {
+                                serialPort.readLine();
+                            }
+                        }
                     }
                 }
             }
