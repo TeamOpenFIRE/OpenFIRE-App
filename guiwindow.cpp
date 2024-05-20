@@ -327,8 +327,7 @@ void guiWindow::SerialLoad()
             // booleans
             QString buffer;
             for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
-                buffer = serialPort.readLine().trimmed();
-                boolSettings[i] = buffer.toInt();
+                boolSettings[i] = serialPort.readLine().trimmed().toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
             // pins
@@ -336,8 +335,7 @@ void guiWindow::SerialLoad()
                 serialPort.write("Xlp");
                 serialPort.waitForReadyRead(1000);
                 for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    buffer = serialPort.readLine().trimmed();
-                    inputsMap_orig[i] = buffer.toInt();
+                    inputsMap_orig[i] = serialPort.readLine().trimmed().toInt();
                     // For some reason, QTSerial drops output shortly after this.
                     // So we send a ping to refill the buffer.
                     if(i == 14) {
@@ -352,8 +350,7 @@ void guiWindow::SerialLoad()
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
             for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
-                buffer = serialPort.readLine().trimmed();
-                settingsTable[i] = buffer.toInt();
+                settingsTable[i] = serialPort.readLine().trimmed().toInt();
                 settingsTable_orig[i] = settingsTable[i];
             }
             // TODO: this is for customLEDstatic and customLEDcolors1-3
@@ -367,52 +364,17 @@ void guiWindow::SerialLoad()
                 serialPort.write(genString.toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
-                buffer = serialPort.readLine().trimmed();
-                topOffset[i]->setText(buffer);
-                profilesTable[i].topOffset = buffer.toInt();
-                profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
-                buffer = serialPort.readLine().trimmed();
-                bottomOffset[i]->setText(buffer);
-                profilesTable[i].bottomOffset = buffer.toInt();
-                profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
-                buffer = serialPort.readLine().trimmed();
-                leftOffset[i]->setText(buffer);
-                profilesTable[i].leftOffset = buffer.toInt();
-                profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
-                buffer = serialPort.readLine().trimmed();
-                rightOffset[i]->setText(buffer);
-                profilesTable[i].rightOffset = buffer.toInt();
-                profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
-                buffer = serialPort.readLine().trimmed();
-                TLled[i]->setText(buffer);
-                profilesTable[i].TLled = buffer.toFloat();
-                profilesTable_orig[i].TLled = profilesTable[i].TLled;
-                buffer = serialPort.readLine().trimmed();
-                TRled[i]->setText(buffer);
-                profilesTable[i].TRled = buffer.toFloat();
-                profilesTable_orig[i].TRled = profilesTable[i].TRled;
-                buffer = serialPort.readLine().trimmed();
-                profilesTable[i].irSensitivity = buffer.toInt();
-                profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
-                irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity);
-                irSensOldIndex[i] = profilesTable[i].irSensitivity;
-                buffer = serialPort.readLine().trimmed();
-                profilesTable[i].runMode = buffer.toInt();
-                profilesTable_orig[i].runMode = profilesTable[i].runMode;
-                runMode[i]->setCurrentIndex(profilesTable[i].runMode);
-                runModeOldIndex[i] = profilesTable[i].runMode;
-                buffer = serialPort.readLine().trimmed();
-                layoutMode[i]->setChecked(buffer.toInt());
-                profilesTable[i].layoutType = buffer.toInt();
-                profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
-                buffer = serialPort.readLine().trimmed();
-                color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0')));
-                profilesTable[i].color = buffer.toLong();
-                profilesTable_orig[i].color = profilesTable[i].color;
-                buffer = serialPort.readLine().trimmed();
-                selectedProfile[i]->setText(buffer);
-                profilesTable[i].profName = buffer;
-                profilesTable_orig[i].profName = profilesTable[i].profName;
+                buffer = serialPort.readLine().trimmed(), topOffset[i]->setText(buffer), profilesTable[i].topOffset = buffer.toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
+                buffer = serialPort.readLine().trimmed(), bottomOffset[i]->setText(buffer), profilesTable[i].bottomOffset = buffer.toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
+                buffer = serialPort.readLine().trimmed(), leftOffset[i]->setText(buffer), profilesTable[i].leftOffset = buffer.toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
+                buffer = serialPort.readLine().trimmed(), rightOffset[i]->setText(buffer), profilesTable[i].rightOffset = buffer.toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
+                buffer = serialPort.readLine().trimmed(), TLled[i]->setText(buffer), profilesTable[i].TLled = buffer.toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
+                buffer = serialPort.readLine().trimmed(), TRled[i]->setText(buffer), profilesTable[i].TRled = buffer.toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
+                buffer = serialPort.readLine().trimmed(), profilesTable[i].irSensitivity = buffer.toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity), irSensOldIndex[i] = profilesTable[i].irSensitivity;
+                buffer = serialPort.readLine().trimmed(), profilesTable[i].runMode = buffer.toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode), runModeOldIndex[i] = profilesTable[i].runMode;
+                buffer = serialPort.readLine().trimmed(), layoutMode[i]->setChecked(buffer.toInt()), profilesTable[i].layoutType = buffer.toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                buffer = serialPort.readLine().trimmed(), color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer.toLong(), profilesTable_orig[i].color = profilesTable[i].color;
+                buffer = serialPort.readLine().trimmed(), selectedProfile[i]->setText(buffer), profilesTable[i].profName = buffer, profilesTable_orig[i].profName = profilesTable[i].profName;
             }
             serialActive = false;
         } else {
@@ -441,15 +403,11 @@ bool guiWindow::SerialInit(int portNum)
                 QString buffer = serialPort.readLine();
                 if(buffer.contains("OpenFIRE")) {
                     qDebug() << "OpenFIRE gun detected!";
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
-                    board.versionNumber = buffer.toFloat();
+                    board.versionNumber = serialPort.readLine().trimmed().toFloat();
                     qDebug() << "Version number:" << board.versionNumber;
-                    buffer = serialPort.readLine();
-                    board.versionCodename = buffer.trimmed();
+                    board.versionCodename = serialPort.readLine().trimmed();
                     qDebug() << "Version codename:" << board.versionCodename;
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
+                    buffer = serialPort.readLine().trimmed();
                     if(buffer == "rpipico") {
                         board.type = rpipico;
                     } else if(buffer == "adafruitItsyRP2040") {
@@ -462,25 +420,22 @@ bool guiWindow::SerialInit(int portNum)
                         board.type = generic;
                     }
                     //qDebug() << "Selected profile number:" << buffer;
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
-                    board.selectedProfile = buffer.toInt();
+                    board.selectedProfile = serialPort.readLine().trimmed().toInt();
                     board.previousProfile = board.selectedProfile;
                     selectedProfile[board.selectedProfile]->setChecked(true);
                     //qDebug() << "Board type:" << buffer;
                     serialPort.write("Xln");
                     serialPort.waitForReadyRead(1000);
-                    buffer = serialPort.readLine();
-                    if(buffer.trimmed() == "SERIALREADERR01") {
+                    buffer = serialPort.readLine().trimmed();
+                    if(buffer == "SERIALREADERR01") {
                         tinyUSBtable.tinyUSBname = "";
                     } else {
-                        tinyUSBtable.tinyUSBname = buffer.trimmed();
+                        tinyUSBtable.tinyUSBname = buffer;
                     }
                     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
                     serialPort.write("Xli");
                     serialPort.waitForReadyRead(1000);
-                    buffer = serialPort.readLine();
-                    tinyUSBtable.tinyUSBid = buffer.trimmed();
+                    tinyUSBtable.tinyUSBid = serialPort.readLine().trimmed();
                     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
                     SerialLoad();
                     return true;
@@ -660,7 +615,6 @@ void guiWindow::DiffUpdate()
         ui->confirmButton->setText("[Nothing To Save]");
         ui->confirmButton->setEnabled(false);
     }
-    qDebug() << settingsDiff;
 }
 
 
@@ -1681,8 +1635,7 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
-                idleBuffer = idleBuffer.right(2).trimmed();
-                uint8_t button = idleBuffer.toInt();
+                uint8_t button = idleBuffer.trimmed().right(2).toInt();
                 switch(button) {
                 case btnTrigger:
                     ui->btnTriggerLabel->setText("<font color=#FF0000>Trigger</font>");
@@ -1728,8 +1681,7 @@ void guiWindow::serialPort_readyRead()
                     break;
                 }
             } else if(idleBuffer.contains("Released:")) {
-                idleBuffer = idleBuffer.right(2).trimmed();
-                uint8_t button = idleBuffer.toInt();
+                uint8_t button = idleBuffer.trimmed().right(2).toInt();
                 switch(button) {
                 case btnTrigger:
                     ui->btnTriggerLabel->setText("Trigger");
@@ -1775,43 +1727,35 @@ void guiWindow::serialPort_readyRead()
                     break;
                 }
             } else if(idleBuffer.contains("Profile: ")) {
-                idleBuffer = idleBuffer.trimmed().right(1);
-                uint8_t selection = idleBuffer.toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
                 if(selection != board.selectedProfile) {
                     board.selectedProfile = selection;
                     selectedProfile[selection]->setChecked(true);
                 }
                 DiffUpdate();
             } else if(idleBuffer.contains("UpdatedProf: ")) {
-                idleBuffer = idleBuffer.trimmed().right(1);
-                uint8_t selection = idleBuffer.toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
                 if(selection != board.selectedProfile) {
                     selectedProfile[selection]->setChecked(true);
                 }
                 board.selectedProfile = selection;
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                topOffset[selection]->setText(idleBuffer.trimmed());
+                topOffset[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                bottomOffset[selection]->setText(idleBuffer.trimmed());
+                bottomOffset[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                leftOffset[selection]->setText(idleBuffer.trimmed());
+                leftOffset[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                rightOffset[selection]->setText(idleBuffer.trimmed());
+                rightOffset[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                TLled[selection]->setText(idleBuffer.trimmed());
+                TLled[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].TLled = TLled[selection]->text().toFloat();
                 serialPort.waitForReadyRead(2000);
-                idleBuffer = serialPort.readLine();
-                TRled[selection]->setText(idleBuffer.trimmed());
+                TRled[selection]->setText(serialPort.readLine().trimmed());
                 profilesTable[selection].TRled = TRled[selection]->text().toFloat();
                 DiffUpdate();
             }
