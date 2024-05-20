@@ -1671,7 +1671,7 @@ void guiWindow::serialPort_readyRead()
                     ui->btnPedalLabel->setText("<font color=#FF0000>Pedal</font>");
                     break;
                 case btnPedal2:
-                    ui->btnPedalLabel->setText("<font color=#FF0000>Alt Pedal</font>");
+                    ui->btnPedal2Label->setText("<font color=#FF0000>Alt Pedal</font>");
                     break;
                 case btnHome:
                     ui->btnHomeLabel->setText("<font color=#FF0000>Home</font>");
@@ -1717,7 +1717,7 @@ void guiWindow::serialPort_readyRead()
                     ui->btnPedalLabel->setText("Pedal");
                     break;
                 case btnPedal2:
-                    ui->btnPedalLabel->setText("Alt Pedal");
+                    ui->btnPedal2Label->setText("Alt Pedal");
                     break;
                 case btnHome:
                     ui->btnHomeLabel->setText("Home");
