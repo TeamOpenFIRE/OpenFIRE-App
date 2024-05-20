@@ -32,6 +32,7 @@
 #include <QThread>
 #include <QColorDialog>
 #include <QInputDialog>
+#include <QTimer>
 
 // Currently loaded board object
 boardInfo_s board;
@@ -92,6 +93,7 @@ QPushButton *renameBtn[PROFILES_COUNT];
 
 QSvgWidget *centerPic;
 QGraphicsScene *testScene;
+#define ALIVE_TIMER 5000
 
 //
 // ^^^-------GLOBAL VARS UP THERE----------^^^
@@ -261,6 +263,8 @@ guiWindow::guiWindow(QWidget *parent)
     ui->testView->scale(0.5, 0.5);
 
     // Finally get to the thing!
+    aliveTimer = new QTimer();
+    connect(aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
     PortsSearch();
     usbName.prepend("[No device]");
@@ -347,7 +351,7 @@ void guiWindow::SerialLoad()
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2 + 4; i++) {
+            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
                 buffer = serialPort.readLine().trimmed();
                 settingsTable[i] = buffer.toInt();
                 settingsTable_orig[i] = settingsTable[i];
@@ -656,6 +660,7 @@ void guiWindow::DiffUpdate()
         ui->confirmButton->setText("[Nothing To Save]");
         ui->confirmButton->setEnabled(false);
     }
+    qDebug() << settingsDiff;
 }
 
 
@@ -734,6 +739,7 @@ void guiWindow::on_confirmButton_clicked()
     if(value == QMessageBox::Yes) {
         if(serialPort.isOpen()) {
             serialActive = true;
+            aliveTimer->stop();
             // send a signal so the gun pauses its test outputs for the save op.
             serialPort.write("Xm");
             serialPort.waitForBytesWritten(1000);
@@ -817,6 +823,7 @@ void guiWindow::on_confirmButton_clicked()
                 ui->boardLabel->setText(PrettifyName());
             }
             serialActive = false;
+            aliveTimer->start(ALIVE_TIMER);
             serialQueue.clear();
             if(!serialPort.atEnd()) {
                 serialPort.readAll();
@@ -826,6 +833,19 @@ void guiWindow::on_confirmButton_clicked()
         }
     } else {
         statusBar()->showMessage("Save operation canceled.", 3000);
+    }
+}
+
+
+void guiWindow::aliveTimer_timeout()
+{
+    if(serialPort.isOpen()) {
+        serialPort.write(".");
+        if(!serialPort.waitForBytesWritten(1)) {
+            statusBar()->showMessage("Board hasn't responded to pulse; assuming it's been disconnected.");
+            serialPort.close();
+            ui->comPortSelector->setCurrentIndex(0);
+        }
     }
 }
 
@@ -893,9 +913,14 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialPort.close();
             serialActive = false;
         }
+        // try to init serial port
+        // if returns false, it failed, so just turn the index back to initial.
         if(!SerialInit(index - 1)) {
             ui->comPortSelector->setCurrentIndex(0);
+            aliveTimer->stop();
+        // else, serial port is online! What do we got?
         } else {
+            aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(board.versionNumber).arg(board.versionCodename));
             BoxesFill();
 
@@ -1257,6 +1282,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialActive = false;
         }
         qDebug() << "COM port disabled!";
+        aliveTimer->stop();
         ui->tabWidget->setEnabled(false);
     }
 }
@@ -1655,8 +1681,7 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
-                idleBuffer = idleBuffer.right(4);
-                idleBuffer = idleBuffer.trimmed();
+                idleBuffer = idleBuffer.right(2).trimmed();
                 uint8_t button = idleBuffer.toInt();
                 switch(button) {
                 case btnTrigger:
@@ -1703,8 +1728,7 @@ void guiWindow::serialPort_readyRead()
                     break;
                 }
             } else if(idleBuffer.contains("Released:")) {
-                idleBuffer = idleBuffer.right(4);
-                idleBuffer = idleBuffer.trimmed();
+                idleBuffer = idleBuffer.right(2).trimmed();
                 uint8_t button = idleBuffer.toInt();
                 switch(button) {
                 case btnTrigger:
@@ -1839,6 +1863,7 @@ void guiWindow::on_testBtn_clicked()
     if(serialPort.isOpen()) {
         // Pre-emptively put a sock in the readyRead signal
         serialActive = true;
+        aliveTimer->stop();
         serialPort.write("XT");
         serialPort.waitForBytesWritten(1000);
         serialPort.waitForReadyRead(1000);
@@ -1866,6 +1891,7 @@ void guiWindow::on_testBtn_clicked()
             ui->dangerZoneBox->setEnabled(true);
             DiffUpdate();
             serialActive = false;
+            aliveTimer->start(ALIVE_TIMER);
         }
     }
 }

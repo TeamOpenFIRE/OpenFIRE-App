@@ -22,6 +22,7 @@
 #include <QSerialPort>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -42,6 +43,8 @@ public:
     bool serialActive = false;
 
 private slots:
+    void aliveTimer_timeout();
+
     void on_comPortSelector_currentIndexChanged(int index);
 
     void on_confirmButton_clicked();
@@ -191,6 +194,11 @@ private:
     uint8_t runModeOldIndex[4];
 
     bool testMode = false;
+
+    // for timer
+    bool boardIsAlive = false;
+
+    QTimer *aliveTimer;
 
     // Test Mode screen points & colors
     QGraphicsEllipseItem testPointTL;
