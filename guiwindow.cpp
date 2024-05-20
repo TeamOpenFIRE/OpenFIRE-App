@@ -78,6 +78,9 @@ QComboBox *pinBoxes[30];
 QLabel *pinLabel[30];
 QWidget *padding[30];
 
+// buttons in the test screen
+QLabel *testLabel[16];
+
 QRadioButton *selectedProfile[PROFILES_COUNT];
 QLabel *topOffset[PROFILES_COUNT];
 QLabel *bottomOffset[PROFILES_COUNT];
@@ -226,6 +229,36 @@ guiWindow::guiWindow(QWidget *parent)
         ui->profilesArea->addWidget(layoutMode[i], i+1, 18, 1, 1);
         ui->profilesArea->addWidget(color[i], i+1, 20, 1, 1);
     }
+
+    // Setup test screen buttons
+    for(uint8_t i = 0; i < 16; i++) {
+        testLabel[i] = new QLabel;
+        if(i == 14) {
+            testLabel[i]->setText(valuesNameList[tempPin]);
+        } else if(i == 15) {
+            testLabel[i]->setText("Analog Stick");
+        } else {
+            testLabel[i]->setText(valuesNameList[i+1]);
+        }
+        testLabel[i]->setEnabled(false);
+        testLabel[i]->setAlignment(Qt::AlignCenter);
+        testLabel[i]->setFrameStyle(QFrame::Box | QFrame::Raised);
+        if(i == 15) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3, 1, 1);
+        } else if(i == 14) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1, 1, 1);
+        } else if(i > 9) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10, 1, 1);
+        } else if(i > 4) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5, 1, 1);
+        } else {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 0, i, 1, 1);
+        }
+    }
+    ui->buttonsTestLayout->setRowMinimumHeight(0, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(1, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(2, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(3, 32);
 
     // Setup Test Mode screen colors
     testPointTLPen.setColor(Qt::green);
@@ -502,7 +535,6 @@ void guiWindow::BoxesUpdate()
                 pinBoxesOldIndex[i] = currentPins[i];
                 pinBoxes[i]->setEnabled(false);
             }
-            return;
             break;
         }
         case adafruitItsyRP2040:
@@ -513,7 +545,6 @@ void guiWindow::BoxesUpdate()
                 pinBoxesOldIndex[i] = currentPins[i];
                 pinBoxes[i]->setEnabled(false);
             }
-            return;
             break;
         }
         case adafruitKB2040:
@@ -524,7 +555,6 @@ void guiWindow::BoxesUpdate()
                 pinBoxesOldIndex[i] = currentPins[i];
                 pinBoxes[i]->setEnabled(false);
             }
-            return;
             break;
         }
         case arduinoNanoRP2040:
@@ -535,8 +565,12 @@ void guiWindow::BoxesUpdate()
                 pinBoxesOldIndex[i] = currentPins[i];
                 pinBoxes[i]->setEnabled(false);
             }
-            return;
             break;
+        }
+        for(uint8_t i = 0; i < 30; i++) {
+            if(currentPins[i] > btnUnmapped) {
+                inputsMap[currentPins[i]-1] = i;
+            }
         }
         }
     }
@@ -642,6 +676,7 @@ void guiWindow::SyncSettings()
         profilesTable_orig[i].color = profilesTable[i].color;
         profilesTable_orig[i].profName = profilesTable[i].profName;
     }
+    LabelsUpdate();
 }
 
 
@@ -877,6 +912,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(board.versionNumber).arg(board.versionCodename));
             BoxesFill();
+            LabelsUpdate();
 
             switch(board.type) {
                 case rpipico:
@@ -1268,6 +1304,40 @@ void guiWindow::BoxesFill()
     BoxesUpdate();
 }
 
+// Only runs either on initial load or save
+void guiWindow::LabelsUpdate()
+{
+    // because inputsMap uses pin no. starting from 0
+    for(uint8_t i = 0; i < 16; i++) {
+        if(i < 14) {
+            if(inputsMap[i] >= 0) {
+                testLabel[i]->setText(valuesNameList[i+1]);
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText(valuesNameList[i+1] + " (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        } else if(i == 14) {
+            if(inputsMap[tempPin-1] >= 0) {
+                testLabel[i]->setText("Temp:");
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText("Temp (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        } else if(i == 15) {
+            if(inputsMap[analogX-1] >=0 && inputsMap[analogY-1] >= 0) {
+                testLabel[i]->setText("Analog");
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText("Analog (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        }
+
+    }
+}
+
 void guiWindow::pinBoxes_activated(int index)
 {
     // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
@@ -1636,96 +1706,36 @@ void guiWindow::serialPort_readyRead()
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
                 uint8_t button = idleBuffer.trimmed().right(2).toInt();
-                switch(button) {
-                case btnTrigger:
-                    ui->btnTriggerLabel->setText("<font color=#FF0000>Trigger</font>");
-                    break;
-                case btnGunA:
-                    ui->btnALabel->setText("<font color=#FF0000>Button A</font>");
-                    break;
-                case btnGunB:
-                    ui->btnBLabel->setText("<font color=#FF0000>Button B</font>");
-                    break;
-                case btnGunC:
-                    ui->btnCLabel->setText("<font color=#FF0000>Button C</font>");
-                    break;
-                case btnStart:
-                    ui->btnStartLabel->setText("<font color=#FF0000>Start</font>");
-                    break;
-                case btnSelect:
-                    ui->btnSelectLabel->setText("<font color=#FF0000>Select</font>");
-                    break;
-                case btnGunUp:
-                    ui->btnGunUpLabel->setText("<font color=#FF0000>Up</font>");
-                    break;
-                case btnGunDown:
-                    ui->btnGunDownLabel->setText("<font color=#FF0000>Down</font>");
-                    break;
-                case btnGunLeft:
-                    ui->btnGunLeftLabel->setText("<font color=#FF0000>Left</font>");
-                    break;
-                case btnGunRight:
-                    ui->btnGunRightLabel->setText("<font color=#FF0000>Right</font>");
-                    break;
-                case btnPedal:
-                    ui->btnPedalLabel->setText("<font color=#FF0000>Pedal</font>");
-                    break;
-                case btnPedal2:
-                    ui->btnPedal2Label->setText("<font color=#FF0000>Alt Pedal</font>");
-                    break;
-                case btnHome:
-                    ui->btnHomeLabel->setText("<font color=#FF0000>Home</font>");
-                    break;
-                case btnPump:
-                    ui->btnPumpLabel->setText("<font color=#FF0000>Pump Action</font>");
-                    break;
-                }
+                testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
             } else if(idleBuffer.contains("Released:")) {
                 uint8_t button = idleBuffer.trimmed().right(2).toInt();
-                switch(button) {
-                case btnTrigger:
-                    ui->btnTriggerLabel->setText("Trigger");
-                    break;
-                case btnGunA:
-                    ui->btnALabel->setText("Button A");
-                    break;
-                case btnGunB:
-                    ui->btnBLabel->setText("Button B");
-                    break;
-                case btnGunC:
-                    ui->btnCLabel->setText("Button C");
-                    break;
-                case btnStart:
-                    ui->btnStartLabel->setText("Start");
-                    break;
-                case btnSelect:
-                    ui->btnSelectLabel->setText("Select");
-                    break;
-                case btnGunUp:
-                    ui->btnGunUpLabel->setText("Up");
-                    break;
-                case btnGunDown:
-                    ui->btnGunDownLabel->setText("Down");
-                    break;
-                case btnGunLeft:
-                    ui->btnGunLeftLabel->setText("Left");
-                    break;
-                case btnGunRight:
-                    ui->btnGunRightLabel->setText("Right");
-                    break;
-                case btnPedal:
-                    ui->btnPedalLabel->setText("Pedal");
-                    break;
-                case btnPedal2:
-                    ui->btnPedal2Label->setText("Alt Pedal");
-                    break;
-                case btnHome:
-                    ui->btnHomeLabel->setText("Home");
-                    break;
-                case btnPump:
-                    ui->btnPumpLabel->setText("Pump Action");
-                    break;
+                testLabel[button-1]->setText(valuesNameList[button]);
+            } else if(idleBuffer.contains("Temperature:")) {
+                uint8_t temp = idleBuffer.trimmed().right(2).toInt();
+                if(temp > 70) {
+                    testLabel[14]->setText(QString("<font color=#FF0000>Temp: %1</font>").arg(temp));
+                } else if(temp > 60) {
+                    testLabel[14]->setText(QString("<font color=#EABD2B>Temp: %1</font>").arg(temp));
+                } else {
+                    testLabel[14]->setText(QString("<font color=#8EEA2C>Temp: %1</font>").arg(temp));
                 }
+            } else if(idleBuffer.contains("Analog:")) {
+                uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();
+                if(analogDir) {
+                    switch(analogDir) {
+                    case 1: testLabel[15]->setText("<font color=#FF0000>Analog 🡹</font>"); break;
+                    case 2: testLabel[15]->setText("<font color=#FF0000>Analog 🡼</font>"); break;
+                    case 3: testLabel[15]->setText("<font color=#FF0000>Analog 🡸</font>"); break;
+                    case 4: testLabel[15]->setText("<font color=#FF0000>Analog 🡿</font>"); break;
+                    case 5: testLabel[15]->setText("<font color=#FF0000>Analog 🡻</font>"); break;
+                    case 6: testLabel[15]->setText("<font color=#FF0000>Analog 🡾</font>"); break;
+                    case 7: testLabel[15]->setText("<font color=#FF0000>Analog 🡺</font>"); break;
+                    case 8: testLabel[15]->setText("<font color=#FF0000>Analog 🡽</font>"); break;
+                    }
+                } else {
+                    testLabel[15]->setText("Analog");
+                }
+                // no idea here lol
             } else if(idleBuffer.contains("Profile: ")) {
                 uint8_t selection = idleBuffer.trimmed().right(1).toInt();
                 if(selection != board.selectedProfile) {

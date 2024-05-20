@@ -150,10 +150,10 @@ private:
         "Rumble Switch",
         "Solenoid Switch",
         "Autofire Switch",
+        "External NeoPixel",
         "RGB LED Red",
         "RGB LED Green",
         "RGB LED Blue",
-        "External NeoPixel",
         "Camera SDA",
         "Camera SCL",
         "Peripherals SDA",
@@ -223,6 +223,8 @@ private:
     void BoxesFill();
 
     void BoxesUpdate();
+
+    void LabelsUpdate();
 
     void DiffUpdate();
 
