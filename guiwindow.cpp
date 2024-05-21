@@ -567,11 +567,11 @@ void guiWindow::BoxesUpdate()
             }
             break;
         }
+        }
         for(uint8_t i = 0; i < 30; i++) {
             if(currentPins[i] > btnUnmapped) {
                 inputsMap[currentPins[i]-1] = i;
             }
-        }
         }
     }
 }
