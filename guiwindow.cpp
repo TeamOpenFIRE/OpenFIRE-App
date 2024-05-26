@@ -443,12 +443,16 @@ bool guiWindow::SerialInit(int portNum)
                     buffer = serialPort.readLine().trimmed();
                     if(buffer == "rpipico") {
                         board.type = rpipico;
+                    } else if(buffer == "rpipicow") {
+                        board.type = rpipicow;
                     } else if(buffer == "adafruitItsyRP2040") {
                         board.type = adafruitItsyRP2040;
                     } else if(buffer == "adafruitKB2040") {
                         board.type = adafruitKB2040;
                     } else if(buffer == "arduinoNanoRP2040") {
                         board.type = arduinoNanoRP2040;
+                    } else if(buffer == "waveshareZero") {
+                        board.type = waveshareZero;
                     } else {
                         board.type = generic;
                     }
@@ -527,46 +531,39 @@ void guiWindow::BoxesUpdate()
         return;
     } else {
         switch(board.type) {
+        // pico and w are the same physical board, so why need a new layout for it?
         case rpipico:
+        case rpipicow:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = rpipicoLayout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = rpipicoLayout[i].pinAssignment; }
             break;
         }
         case adafruitItsyRP2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment; }
             break;
         }
         case adafruitKB2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = adafruitKB2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitKB2040Layout[i].pinAssignment; }
             break;
         }
         case arduinoNanoRP2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = arduinoNanoRP2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = arduinoNanoRP2040Layout[i].pinAssignment; }
             break;
         }
+        case waveshareZero:
+        {
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = waveshareZeroLayout[i].pinAssignment; }
+            break;
+        }
+        }
+
+        for(uint8_t i = 0; i < 30; i++) {
+            pinBoxes[i]->setCurrentIndex(currentPins[i]);
+            pinBoxesOldIndex[i] = currentPins[i];
+            pinBoxes[i]->setEnabled(false);
         }
         for(uint8_t i = 0; i < 30; i++) {
             if(currentPins[i] > btnUnmapped) {
@@ -694,6 +691,9 @@ QString PrettifyName()
         break;
     case rpipico:
         name = name + " | Raspberry Pi Pico";
+        break;
+    case rpipicow:
+        name = name + " | Raspberry Pi Pico W";
         break;
     case adafruitItsyRP2040:
         name = name + " | Adafruit ItsyBitsy RP2040";
@@ -918,6 +918,64 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 case rpipico:
                 {
                     centerPic = new QSvgWidget(":/boardPics/pico.svg");
+                    QSvgRenderer *picRenderer = centerPic->renderer();
+                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                    ui->boardLabel->setText(PrettifyName());
+
+                    // left side
+                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
+                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
+                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
+                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
+                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
+                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
+                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
+                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
+                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
+                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
+                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
+                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
+                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
+                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
+                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
+                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
+                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
+
+                    // right side
+                    PinsRight->addWidget(padding[5],   0,  1);   // padding
+                    PinsRight->addWidget(padding[6],   1,  1);   // VBUS
+                    PinsRight->addWidget(padding[7],   2,  1);   // VSYS
+                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
+                    PinsRight->addWidget(padding[9],   4,  1);   // 3V3 EN
+                    PinsRight->addWidget(padding[10],  5,  1);   // 3V3 OUT
+                    PinsRight->addWidget(padding[11],  6,  1);   // ADC VREF
+                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
+                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
+                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
+                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
+                    PinsRight->addWidget(padding[13],  11, 1);   // RUN
+                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
+                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
+                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
+                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
+                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
+                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
+                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
+
+                    // center
+                    PinsCenter->addWidget(centerPic);
+                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+                    break;
+                }
+                case rpipicow:
+                {
+                    centerPic = new QSvgWidget(":/boardPics/picow.svg");
                     QSvgRenderer *picRenderer = centerPic->renderer();
                     picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
                     ui->boardLabel->setText(PrettifyName());

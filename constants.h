@@ -23,6 +23,7 @@
 enum boardTypes_e {
     nothing = 0,
     rpipico,
+    rpipicow,
     adafruitItsyRP2040,
     adafruitKB2040,
     arduinoNanoRP2040,
