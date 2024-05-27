@@ -411,7 +411,7 @@ void guiWindow::SerialLoad()
             }
             serialActive = false;
         } else {
-            PopupWindow("Data hasn't arrived!", "Device was detected, but settings request wasn't received in time!\nThis can happen if the app was closed in the middle of an operation.\n\nTry selecting the device again.", "Oops!", 4);
+            PopupWindow("Data hasn't arrived!", "Device was detected, but settings request wasn't received in time!\nThis can happen if the app was closed in the middle of an operation.\n\nTry selecting the device again.", "Sync Error!", 4);
             //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
         }
     } else {
@@ -481,7 +481,7 @@ bool guiWindow::SerialInit(int portNum)
                     return false;
                 }
             } else {
-                PopupWindow("Data hasn't arrived!", "Device was detected, but initial settings request wasn't received in time!\nThis can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\nTry selecting the device again.", "Oops!", 3);
+                PopupWindow("Data hasn't arrived! (Stale state?)", "Device was detected, but initial settings request wasn't received in time!\nThis can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\nTry selecting the device again.", "Sync Error!", 3);
                 qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
                 return false;
             }
@@ -490,7 +490,7 @@ bool guiWindow::SerialInit(int portNum)
             return false;
         }
     } else {
-        PopupWindow("Couldn't open port!", "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\nPlease close the offending application and try selecting this port again.", "Oops!", 3);
+        PopupWindow("Serial port is blocked!", "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\nPlease close the offending application and try selecting this port again.", "Port In Use!", 3);
         return false;
     }
 }
