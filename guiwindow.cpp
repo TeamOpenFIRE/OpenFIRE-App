@@ -1775,7 +1775,7 @@ void guiWindow::serialPort_readyRead()
                 } else if(temp > 60) {
                     testLabel[14]->setText(QString("<font color=#EABD2B>Temp: %1</font>").arg(temp));
                 } else {
-                    testLabel[14]->setText(QString("<font color=#8EEA2C>Temp: %1</font>").arg(temp));
+                    testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1</font>").arg(temp));
                 }
             } else if(idleBuffer.contains("Analog:")) {
                 uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();
