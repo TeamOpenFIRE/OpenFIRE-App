@@ -57,6 +57,6 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
  - Add radio buttons for preset TinyUSB Identifier settings (for the extra picky distros that depend on set PIDs or names...)
 
 ### Special Thanks:
- - Samuel Ballentyne, Prow7, and co. for their work on the SAMCO system that lead to the creation of GUN4ALL & OpenFIRE.
- - ArcadeForums posters that voiced their thoughts and suggestions for the GUN4ALL project.
- - GUN4ALL testers and everyone that provided feedback to GUN4ALL.
+ * Samuel Ballentyne, Mike Lynch/Prow7, and co. for their work on the SAMCO system & derivatives, and supporting work and conception of OpenFIRE.
+ * Odwalla-J, mykylegp, SawdustMaker & lemmingDev for prerelease consultation, bug testing and feedback.
+ * All early IR-GUN4ALL testers and ArcadeForums users whom provided early testing and feedback.
