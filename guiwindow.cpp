@@ -113,7 +113,7 @@ void guiWindow::PortsSearch()
     } else {
         // Yeah, sue me, we reading this backwards to make stack management easier.
         for(int i = serialFoundList.length() - 1; i >= 0; --i) {
-            if(serialFoundList[i].vendorIdentifier() == 2336) {
+            if(serialFoundList[i].vendorIdentifier() == 0xF143) {
                 usbName.prepend(serialFoundList[i].systemLocation());
                 qDebug() << "Found device @" << serialFoundList[i].systemLocation();
             } else {
