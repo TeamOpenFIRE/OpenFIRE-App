@@ -53,7 +53,6 @@ QVector<profilesTable_s> profilesTable_orig(PROFILES_COUNT);
 // Values: -2 = N/A, -1 = reserved, 0 = available, unused
 QMap<uint8_t, int8_t> currentPins;
 
-#define INPUTS_COUNT 31
 // Map of what inputs are put where,
 // Key = button/output, Value = pin number occupying, if any.
 // Value of -1 means unmapped.
@@ -154,7 +153,7 @@ guiWindow::guiWindow(QWidget *parent)
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
     // just to be sure, init the inputsMap hashes
-    for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+    for(uint8_t i = 0; i < boardInputsCount-1; i++) {
         inputsMap[i] = -1;
         inputsMap_orig[i] = -1;
     }
@@ -295,6 +294,9 @@ guiWindow::guiWindow(QWidget *parent)
     // TODO: is there a way of dynamically scaling QGraphicsViews?
     ui->testView->scale(0.5, 0.5);
 
+    // hiding tUSB elements by default since this can't be done from default
+    ui->tUSBLayoutAdvanced->setVisible(false);
+
     // Finally get to the thing!
     aliveTimer = new QTimer();
     connect(aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
@@ -359,15 +361,16 @@ void guiWindow::SerialLoad()
         if(serialPort.waitForReadyRead(2000)) {
             // booleans
             QString buffer;
-            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+            for(uint8_t i = 0; i < boolTypesCount; i++) {
                 boolSettings[i] = serialPort.readLine().trimmed().toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
+
             // pins
             if(boolSettings[customPins]) {
                 serialPort.write("Xlp");
                 serialPort.waitForReadyRead(1000);
-                for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
                     inputsMap_orig[i] = serialPort.readLine().trimmed().toInt();
                     // For some reason, QTSerial drops output shortly after this.
                     // So we send a ping to refill the buffer.
@@ -378,19 +381,16 @@ void guiWindow::SerialLoad()
                 }
                 inputsMap = inputsMap_orig;
             }
+
             // settings
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+            for(uint8_t i = 0; i < settingsTypesCount; i++) {
                 settingsTable[i] = serialPort.readLine().trimmed().toInt();
                 settingsTable_orig[i] = settingsTable[i];
             }
-            // TODO: this is for customLEDstatic and customLEDcolors1-3
-            for(uint8_t i = 0; i < 4; i++) {
-                // nomf'd for now
-                buffer = serialPort.readLine().trimmed();
-            }
+
             // profiles
             for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
                 QString genString = QString("XlP%1").arg(i);
@@ -453,6 +453,8 @@ bool guiWindow::SerialInit(int portNum)
                         board.type = arduinoNanoRP2040;
                     } else if(buffer == "waveshareZero") {
                         board.type = waveshareZero;
+                    } else if(buffer == "vccgndYD") {
+                        board.type = vccgndYD;
                     } else {
                         board.type = generic;
                     }
@@ -521,7 +523,7 @@ void guiWindow::BoxesUpdate()
         for(uint8_t i = 0; i < 30; i++) {
             pinBoxes[i]->setEnabled(true);
         }
-        for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+        for(uint8_t i = 0; i < boardInputsCount-1; i++) {
             if(inputsMap.value(i) >= 0) {
                 currentPins[inputsMap.value(i)] = i+1;
                 pinBoxes[inputsMap.value(i)]->setCurrentIndex(currentPins[inputsMap.value(i)]);
@@ -585,12 +587,12 @@ void guiWindow::DiffUpdate()
             settingsDiff++;
         }
     }
-    for(uint8_t i = 1; i < sizeof(boolSettings); i++) {
+    for(uint8_t i = 1; i < boolTypesCount; i++) {
         if(boolSettings_orig[i] != boolSettings[i]) {
             settingsDiff++;
         }
     }
-    for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+    for(uint8_t i = 0; i < settingsTypesCount; i++) {
         if(settingsTable_orig[i] != settingsTable[i]) {
             settingsDiff++;
         }
@@ -651,22 +653,22 @@ void guiWindow::DiffUpdate()
 
 void guiWindow::SyncSettings()
 {
-    for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+    for(uint8_t i = 0; i < boolTypesCount; i++) {
         boolSettings_orig[i] = boolSettings[i];
     }
     if(boolSettings_orig[customPins]) {
         inputsMap_orig = inputsMap;
     } else {
-        for(uint8_t i = 0; i < INPUTS_COUNT; i++)
+        for(uint8_t i = 0; i < boardInputsCount-1; i++)
         inputsMap_orig[i] = -1;
     }
-    for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+    for(uint8_t i = 0; i < settingsTypesCount; i++) {
         settingsTable_orig[i] = settingsTable[i];
     }
     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
     board.previousProfile = board.selectedProfile;
-    for(uint8_t i = 0; i < 4; i++) {
+    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
         profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
         profilesTable_orig[i].runMode = profilesTable[i].runMode;
         profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
@@ -740,17 +742,17 @@ void guiWindow::on_confirmButton_clicked()
             ui->confirmButton->setEnabled(false);
 
             QStringList serialQueue;
-            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+            for(uint8_t i = 0; i < boolTypesCount; i++) {
                 serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]));
             }
 
             if(boolSettings[customPins]) {
-                for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
                     serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i)));
                 }
             }
 
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+            for(uint8_t i = 0; i < settingsTypesCount; i++) {
                 serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
             }
 
@@ -1296,13 +1298,54 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->rumbleIntensityBox->setValue(settingsTable[rumbleStrength]);
             ui->rumbleLengthBox->setValue(settingsTable[rumbleInterval]);
             ui->holdToPauseLengthBox->setValue(settingsTable[holdToPauseLength]);
-            ui->neopixelStrandLengthBox->setValue(settingsTable[customLEDcount]);
             ui->solenoidNormalIntervalBox->setValue(settingsTable[solenoidNormalInterval]);
             ui->solenoidFastIntervalBox->setValue(settingsTable[solenoidFastInterval]);
             ui->solenoidHoldLengthBox->setValue(settingsTable[solenoidHoldLength]);
             ui->autofireWaitFactorBox->setValue(settingsTable[autofireWaitFactor]);
             ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+            if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
+            ui->neopixelStrandLengthBox->setValue(settingsTable[customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(settingsTable[customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor3], 6, 16, QLatin1Char('0')));
+
+            switch(tinyUSBtable.tinyUSBid.toInt()) {
+            case 1:
+                ui->tUSB_p1->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 2:
+                ui->tUSB_p2->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 3:
+                ui->tUSB_p3->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 4:
+                ui->tUSB_p4->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            default:
+                ui->tUSB_p1->setChecked(false);
+                ui->tUSB_p2->setChecked(false);
+                ui->tUSB_p3->setChecked(false);
+                ui->tUSB_p4->setChecked(false);
+                ui->tUSBLayoutSimple->setVisible(false);
+                ui->tUSBLayoutAdvanced->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(true);
+                break;
+            }
         }
     } else {
         ui->boardLabel->clear();
@@ -1392,8 +1435,10 @@ void guiWindow::LabelsUpdate()
                 testLabel[i]->setEnabled(false);
             }
         }
-
     }
+    if(inputsMap[ledR-1] >= 0) { ui->redLedTestBtn->setEnabled(true); } else { ui->redLedTestBtn->setEnabled(false); }
+    if(inputsMap[ledG-1] >= 0) { ui->greenLedTestBtn->setEnabled(true); } else { ui->greenLedTestBtn->setEnabled(false); }
+    if(inputsMap[ledB-1] >= 0) { ui->blueLedTestBtn->setEnabled(true); } else { ui->blueLedTestBtn->setEnabled(false); }
 }
 
 void guiWindow::pinBoxes_activated(int index)
@@ -1433,6 +1478,7 @@ void guiWindow::pinBoxes_activated(int index)
     // because "->currentIndex" is already updated, we just update it at the end of activations
     // to check that we aren't re-selecting the index for that box.
     pinBoxesOldIndex[pin] = index;
+    if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
     DiffUpdate();
 }
 
@@ -1629,13 +1675,6 @@ void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 }
 
 
-void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
-{
-    settingsTable[customLEDcount] = arg1;
-    DiffUpdate();
-}
-
-
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
     settingsTable[solenoidNormalInterval] = arg1;
@@ -1680,22 +1719,103 @@ void guiWindow::on_productIdInput_textChanged(const QString &arg1)
 }
 
 
+void guiWindow::on_tUSB_p1_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "1";
+        tinyUSBtable.tinyUSBname = "FIRECon P1";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p2_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "2";
+        tinyUSBtable.tinyUSBname = "FIRECon P2";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p3_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "3";
+        tinyUSBtable.tinyUSBname = "FIRECon P3";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p4_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "4";
+        tinyUSBtable.tinyUSBname = "FIRECon P4";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
 void guiWindow::on_productIdInput_textEdited(const QString &arg1)
 {
     tinyUSBtable.tinyUSBid = arg1;
+    if(ui->productNameInput->text().isEmpty()) {
+        switch(tinyUSBtable.tinyUSBid.toInt()) {
+        case 1:
+            ui->tUSB_p1->setChecked(true);
+            break;
+        case 2:
+            ui->tUSB_p2->setChecked(true);
+            break;
+        case 3:
+            ui->tUSB_p3->setChecked(true);
+            break;
+        case 4:
+            ui->tUSB_p4->setChecked(true);
+            break;
+        default:
+            ui->tUSB_p1->setChecked(false);
+            ui->tUSB_p2->setChecked(false);
+            ui->tUSB_p3->setChecked(false);
+            ui->tUSB_p4->setChecked(false);
+            break;
+        }
+    }
+
     DiffUpdate();
 }
 
 
 void guiWindow::on_productNameInput_textEdited(const QString &arg1)
 {
-    // TODO: try this:
-    // when this is called, iterate through arg1 by length of itself in a loop
-    // and check if each character of i index is > 255.
-    // if so, revert to last good name.
-    // else, make this input the last good name and allow committing.
+    // TODO: there should be a way of using .toLocal8Bit() and checking if it's undefined,
+    // as that indicates a character exceeds the normal char size, therefore
+    // reset the lineEdit's text and don't change. But for now, weh.
     tinyUSBtable.tinyUSBname = arg1;
     DiffUpdate();
+}
+
+
+void guiWindow::on_tinyUSBLayoutToggle_stateChanged(int arg1)
+{
+    if(arg1) {
+        ui->tUSBLayoutSimple->setVisible(false);
+        ui->tUSBLayoutAdvanced->setVisible(true);
+    } else {
+        ui->tUSBLayoutAdvanced->setVisible(false);
+        ui->tUSBLayoutSimple->setVisible(true);
+    }
 }
 
 
@@ -1717,6 +1837,100 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
             board.selectedProfile = slot;
             DiffUpdate();
         }
+    }
+}
+
+
+void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
+{
+    settingsTable[customLEDcount] = arg1;
+    DiffUpdate();
+}
+
+
+void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
+{
+    settingsTable[customLEDstatic] = arg1;
+    if(customLEDstatic) {
+        switch(arg1) {
+        case 1:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(false);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        case 2:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(true);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        case 3:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(true);
+            ui->customLEDstaticBtn3->setEnabled(true);
+        default:
+            ui->customLEDstaticBtn1->setEnabled(false);
+            ui->customLEDstaticBtn2->setEnabled(false);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        }
+    }
+    DiffUpdate();
+}
+
+
+void guiWindow::on_customLEDstaticBtn1_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor1] = packedColor;
+        ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_customLEDstaticBtn2_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor2] = packedColor;
+        ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_customLEDstaticBtn3_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor3] = packedColor;
+        ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
     }
 }
 
@@ -1866,6 +2080,39 @@ void guiWindow::on_solenoidTestBtn_clicked()
         PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
     } else {
         ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
+    }
+}
+
+
+void guiWindow::on_redLedTestBtn_clicked()
+{
+    serialPort.write("XtR");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Red.", 2500);
+    }
+}
+
+
+void guiWindow::on_greenLedTestBtn_clicked()
+{
+    serialPort.write("XtG");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Green.", 2500);
+    }
+}
+
+
+void guiWindow::on_blueLedTestBtn_clicked()
+{
+    serialPort.write("XtB");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Blue.", 2500);
     }
 }
 

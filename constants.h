@@ -28,6 +28,7 @@ enum boardTypes_e {
     adafruitKB2040,
     arduinoNanoRP2040,
     waveshareZero,
+    vccgndYD,
     generic = 255
 };
 
@@ -64,7 +65,8 @@ enum boardInputs_e {
     battery,
     analogX,
     analogY,
-    tempPin
+    tempPin,
+    boardInputsCount
 };
 
 enum boolTypes_e {
@@ -76,7 +78,8 @@ enum boolTypes_e {
     holdToPause,
     commonAnode,
     lowButtonsMode,
-    rumbleFF
+    rumbleFF,
+    boolTypesCount
 };
 
 enum settingsTypes_e {
@@ -87,7 +90,12 @@ enum settingsTypes_e {
     solenoidHoldLength,
     autofireWaitFactor,
     holdToPauseLength,
-    customLEDcount
+    customLEDcount,
+    customLEDstatic,
+    customLEDcolor1,
+    customLEDcolor2,
+    customLEDcolor3,
+    settingsTypesCount
 };
 
 enum pinTypes_e {
