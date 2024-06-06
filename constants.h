@@ -23,10 +23,12 @@
 enum boardTypes_e {
     nothing = 0,
     rpipico,
+    rpipicow,
     adafruitItsyRP2040,
     adafruitKB2040,
     arduinoNanoRP2040,
     waveshareZero,
+    vccgndYD,
     generic = 255
 };
 
@@ -44,6 +46,7 @@ enum boardInputs_e {
     btnGunLeft,
     btnGunRight,
     btnPedal,
+    btnPedal2,
     btnHome,
     btnPump,
     rumblePin,
@@ -51,17 +54,19 @@ enum boardInputs_e {
     rumbleSwitch,
     solenoidSwitch,
     autofireSwitch,
+    neoPixel,
     ledR,
     ledG,
     ledB,
-    neoPixel,
     camSDA,
     camSCL,
     periphSDA,
     periphSCL,
+    battery,
     analogX,
     analogY,
-    tempPin
+    tempPin,
+    boardInputsCount
 };
 
 enum boolTypes_e {
@@ -73,7 +78,8 @@ enum boolTypes_e {
     holdToPause,
     commonAnode,
     lowButtonsMode,
-    rumbleFF
+    rumbleFF,
+    boolTypesCount
 };
 
 enum settingsTypes_e {
@@ -82,9 +88,14 @@ enum settingsTypes_e {
     solenoidNormalInterval,
     solenoidFastInterval,
     solenoidHoldLength,
-    customLEDcount,
     autofireWaitFactor,
-    holdToPauseLength
+    holdToPauseLength,
+    customLEDcount,
+    customLEDstatic,
+    customLEDcolor1,
+    customLEDcolor2,
+    customLEDcolor3,
+    settingsTypesCount
 };
 
 enum pinTypes_e {
@@ -112,10 +123,12 @@ typedef struct tinyUSBtable_t {
 } tinyUSBtable_s;
 
 typedef struct profilesTable_t {
-    uint16_t xScale;
-    uint16_t yScale;
-    uint16_t xCenter;
-    uint16_t yCenter;
+    uint16_t topOffset;
+    uint16_t bottomOffset;
+    uint16_t leftOffset;
+    uint16_t rightOffset;
+    uint16_t TLled;
+    uint16_t TRled;
     uint8_t irSensitivity;
     uint8_t runMode;
     bool layoutType;
@@ -139,7 +152,7 @@ const boardLayout_t rpipicoLayout[] = {
     {btnPedal, pinDigital},    {btnTrigger, pinDigital},
     {solenoidPin, pinDigital}, {rumblePin, pinDigital},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
-    {camSCL, pinDigital},      {camSDA, pinDigital},
+    {camSDA, pinDigital},      {camSCL, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing}, // 23, 24, 25
     {btnReserved, pinNothing}, {btnReserved, pinNothing}, // are unused/unexposed
     {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},  // ADC pins
@@ -147,21 +160,21 @@ const boardLayout_t rpipicoLayout[] = {
 };
 
 const boardLayout_t adafruitItsyRP2040Layout[] = {
-    {btnGunUp, pinDigital},    {btnGunDown, pinDigital},
+    {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {camSDA, pinDigital},      {camSCL, pinDigital},
-    {btnGunLeft, pinDigital},  {btnGunRight, pinDigital},
-    {btnTrigger, pinDigital},  {btnGunA, pinDigital},
-    {btnGunB, pinDigital},     {btnGunC, pinDigital},
-    {btnStart, pinDigital},    {btnSelect, pinDigital},
-    {btnPedal, pinDigital},    {btnReserved, pinNothing},
+    {btnPedal, pinDigital},    {btnUnmapped, pinDigital},
+    {btnTrigger, pinDigital},  {btnGunDown, pinDigital},
+    {btnGunLeft, pinDigital},  {btnGunUp, pinDigital},
+    {btnGunRight, pinDigital}, {btnGunC, pinDigital},
+    {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {btnUnmapped, pinDigital}, {btnUnmapped, pinDigital},
     {btnUnmapped, pinDigital}, {btnReserved, pinNothing},
     {btnReserved, pinNothing}, {btnReserved, pinNothing},
     {rumblePin, pinDigital},   {solenoidPin, pinDigital},
-    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog},
-    {btnUnmapped, pinAnalog},  {btnUnmapped, pinAnalog}
+    {btnGunB, pinAnalog},      {btnGunA, pinAnalog},
+    {btnStart, pinAnalog},     {btnSelect, pinAnalog}
 };
 
 const boardLayout_t adafruitKB2040Layout[] = {

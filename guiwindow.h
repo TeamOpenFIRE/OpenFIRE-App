@@ -18,10 +18,12 @@
 #ifndef GUIWINDOW_H
 #define GUIWINDOW_H
 
+#include "constants.h"
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QGraphicsItem>
 #include <QPen>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -42,6 +44,8 @@ public:
     bool serialActive = false;
 
 private slots:
+    void aliveTimer_timeout();
+
     void on_comPortSelector_currentIndexChanged(int index);
 
     void on_confirmButton_clicked();
@@ -90,8 +94,6 @@ private slots:
 
     void on_holdToPauseLengthBox_valueChanged(int arg1);
 
-    void on_neopixelStrandLengthBox_valueChanged(int arg1);
-
     void on_solenoidNormalIntervalBox_valueChanged(int arg1);
 
     void on_solenoidFastIntervalBox_valueChanged(int arg1);
@@ -103,6 +105,8 @@ private slots:
     void on_productIdInput_textEdited(const QString &arg1);
 
     void on_productNameInput_textEdited(const QString &arg1);
+
+    void on_neopixelStrandLengthBox_valueChanged(int arg1);
 
     void on_clearEepromBtn_clicked();
 
@@ -122,6 +126,30 @@ private slots:
 
     void on_actionAbout_UI_triggered();
 
+    void on_customLEDstaticSpinbox_valueChanged(int arg1);
+
+    void on_customLEDstaticBtn1_clicked();
+
+    void on_customLEDstaticBtn2_clicked();
+
+    void on_customLEDstaticBtn3_clicked();
+
+    void on_tinyUSBLayoutToggle_stateChanged(int arg1);
+
+    void on_tUSB_p1_toggled(bool checked);
+
+    void on_tUSB_p2_toggled(bool checked);
+
+    void on_tUSB_p3_toggled(bool checked);
+
+    void on_tUSB_p4_toggled(bool checked);
+
+    void on_redLedTestBtn_clicked();
+
+    void on_greenLedTestBtn_clicked();
+
+    void on_blueLedTestBtn_clicked();
+
 private:
     Ui::guiWindow *ui;
 
@@ -138,7 +166,8 @@ private:
         "D-Pad Down",
         "D-Pad Left",
         "D-Pad Right",
-        "External Pedal",
+        "Pedal",
+        "Alt Pedal",
         "Home Button",
         "Pump Action",
         "Rumble Signal",
@@ -146,14 +175,15 @@ private:
         "Rumble Switch",
         "Solenoid Switch",
         "Autofire Switch",
+        "External NeoPixel",
         "RGB LED Red",
         "RGB LED Green",
         "RGB LED Blue",
-        "External NeoPixel",
         "Camera SDA",
         "Camera SCL",
         "Peripherals SDA",
         "Peripherals SCL",
+        "Battery Sensor",
         "Analog Pin X",
         "Analog Pin Y",
         "Temp Sensor"
@@ -169,14 +199,14 @@ private:
     uint8_t settingsDiff;
 
     // Current array of booleans, meant to be used as a bitmask
-    bool boolSettings[9];
+    bool boolSettings[boolTypesCount];
     // Array of booleans, as loaded from the gun firmware
-    bool boolSettings_orig[9];
+    bool boolSettings_orig[boolTypesCount];
 
     // Current table of tunable settings
-    uint16_t settingsTable[8];
+    uint32_t settingsTable[settingsTypesCount];
     // Table of tunables, as loaded from gun firmware
-    uint16_t settingsTable_orig[8];
+    uint32_t settingsTable_orig[settingsTypesCount];
 
     // because pinBoxes' "->currentIndex" gets updated AFTER calling its activation signal,
     // we need to save its last index to properly compare and prevent duplicate changes,
@@ -189,6 +219,11 @@ private:
     uint8_t runModeOldIndex[4];
 
     bool testMode = false;
+
+    // for timer
+    bool boardIsAlive = false;
+
+    QTimer *aliveTimer;
 
     // Test Mode screen points & colors
     QGraphicsEllipseItem testPointTL;
@@ -213,6 +248,8 @@ private:
     void BoxesFill();
 
     void BoxesUpdate();
+
+    void LabelsUpdate();
 
     void DiffUpdate();
 

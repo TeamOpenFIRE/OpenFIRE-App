@@ -32,6 +32,7 @@
 #include <QThread>
 #include <QColorDialog>
 #include <QInputDialog>
+#include <QTimer>
 
 // Currently loaded board object
 boardInfo_s board;
@@ -52,7 +53,6 @@ QVector<profilesTable_s> profilesTable_orig(PROFILES_COUNT);
 // Values: -2 = N/A, -1 = reserved, 0 = available, unused
 QMap<uint8_t, int8_t> currentPins;
 
-#define INPUTS_COUNT 29
 // Map of what inputs are put where,
 // Key = button/output, Value = pin number occupying, if any.
 // Value of -1 means unmapped.
@@ -77,11 +77,16 @@ QComboBox *pinBoxes[30];
 QLabel *pinLabel[30];
 QWidget *padding[30];
 
+// buttons in the test screen
+QLabel *testLabel[16];
+
 QRadioButton *selectedProfile[PROFILES_COUNT];
-QLabel *xScale[PROFILES_COUNT];
-QLabel *yScale[PROFILES_COUNT];
-QLabel *xCenter[PROFILES_COUNT];
-QLabel *yCenter[PROFILES_COUNT];
+QLabel *topOffset[PROFILES_COUNT];
+QLabel *bottomOffset[PROFILES_COUNT];
+QLabel *leftOffset[PROFILES_COUNT];
+QLabel *rightOffset[PROFILES_COUNT];
+QLabel *TLled[PROFILES_COUNT];
+QLabel *TRled[PROFILES_COUNT];
 QComboBox *irSens[PROFILES_COUNT];
 QComboBox *runMode[PROFILES_COUNT];
 QCheckBox *layoutMode[PROFILES_COUNT];
@@ -90,6 +95,7 @@ QPushButton *renameBtn[PROFILES_COUNT];
 
 QSvgWidget *centerPic;
 QGraphicsScene *testScene;
+#define ALIVE_TIMER 5000
 
 //
 // ^^^-------GLOBAL VARS UP THERE----------^^^
@@ -107,7 +113,7 @@ void guiWindow::PortsSearch()
     } else {
         // Yeah, sue me, we reading this backwards to make stack management easier.
         for(int i = serialFoundList.length() - 1; i >= 0; --i) {
-            if(serialFoundList[i].vendorIdentifier() == 2336) {
+            if(serialFoundList[i].vendorIdentifier() == 0xF143) {
                 usbName.prepend(serialFoundList[i].systemLocation());
                 qDebug() << "Found device @" << serialFoundList[i].systemLocation();
             } else {
@@ -147,7 +153,7 @@ guiWindow::guiWindow(QWidget *parent)
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
     // just to be sure, init the inputsMap hashes
-    for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+    for(uint8_t i = 0; i < boardInputsCount-1; i++) {
         inputsMap[i] = -1;
         inputsMap_orig[i] = -1;
     }
@@ -181,18 +187,22 @@ guiWindow::guiWindow(QWidget *parent)
         connect(renameBtn[i], SIGNAL(clicked()), this, SLOT(renameBoxes_clicked()));
         selectedProfile[i] = new QRadioButton(QString("%1.").arg(i+1));
         connect(selectedProfile[i], SIGNAL(toggled(bool)), this, SLOT(selectedProfile_isChecked(bool)));
-        xScale[i] = new QLabel("0");
-        yScale[i] = new QLabel("0");
-        xCenter[i] = new QLabel("0");
-        yCenter[i] = new QLabel("0");
+        topOffset[i] = new QLabel("0");
+        bottomOffset[i] = new QLabel("0");
+        leftOffset[i] = new QLabel("0");
+        rightOffset[i] = new QLabel("0");
+        TLled[i] = new QLabel("0");
+        TRled[i] = new QLabel("0");
         irSens[i] = new QComboBox();
         runMode[i] = new QComboBox();
         layoutMode[i] = new QCheckBox();
         color[i] = new QPushButton();
-        xScale[i]->setAlignment(Qt::AlignHCenter);
-        yScale[i]->setAlignment(Qt::AlignHCenter);
-        xCenter[i]->setAlignment(Qt::AlignHCenter);
-        yCenter[i]->setAlignment(Qt::AlignHCenter);
+        topOffset[i]->setAlignment(Qt::AlignHCenter);
+        bottomOffset[i]->setAlignment(Qt::AlignHCenter);
+        leftOffset[i]->setAlignment(Qt::AlignHCenter);
+        rightOffset[i]->setAlignment(Qt::AlignHCenter);
+        TLled[i]->setAlignment(Qt::AlignHCenter);
+        TRled[i]->setAlignment(Qt::AlignHCenter);
         irSens[i]->addItem("Default");
         irSens[i]->addItem("Higher");
         irSens[i]->addItem("Highest");
@@ -207,15 +217,47 @@ guiWindow::guiWindow(QWidget *parent)
         connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
         ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
         ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
-        ui->profilesArea->addWidget(xScale[i], i+1, 2, 1, 1);
-        ui->profilesArea->addWidget(yScale[i], i+1, 4, 1, 1);
-        ui->profilesArea->addWidget(xCenter[i], i+1, 6, 1, 1);
-        ui->profilesArea->addWidget(yCenter[i], i+1, 8, 1, 1);
-        ui->profilesArea->addWidget(irSens[i], i+1, 10, 1, 1);
-        ui->profilesArea->addWidget(runMode[i], i+1, 12, 1, 1);
-        ui->profilesArea->addWidget(layoutMode[i], i+1, 14, 1, 1);
-        ui->profilesArea->addWidget(color[i], i+1, 16, 1, 1);
+        ui->profilesArea->addWidget(topOffset[i], i+1, 2, 1, 1);
+        ui->profilesArea->addWidget(bottomOffset[i], i+1, 4, 1, 1);
+        ui->profilesArea->addWidget(leftOffset[i], i+1, 6, 1, 1);
+        ui->profilesArea->addWidget(rightOffset[i], i+1, 8, 1, 1);
+        ui->profilesArea->addWidget(TLled[i], i+1, 10, 1, 1);
+        ui->profilesArea->addWidget(TRled[i], i+1, 12, 1, 1);
+        ui->profilesArea->addWidget(irSens[i], i+1, 14, 1, 1);
+        ui->profilesArea->addWidget(runMode[i], i+1, 16, 1, 1);
+        ui->profilesArea->addWidget(layoutMode[i], i+1, 18, 1, 1);
+        ui->profilesArea->addWidget(color[i], i+1, 20, 1, 1);
     }
+
+    // Setup test screen buttons
+    for(uint8_t i = 0; i < 16; i++) {
+        testLabel[i] = new QLabel;
+        if(i == 14) {
+            testLabel[i]->setText(valuesNameList[tempPin]);
+        } else if(i == 15) {
+            testLabel[i]->setText("Analog Stick");
+        } else {
+            testLabel[i]->setText(valuesNameList[i+1]);
+        }
+        testLabel[i]->setEnabled(false);
+        testLabel[i]->setAlignment(Qt::AlignCenter);
+        testLabel[i]->setFrameStyle(QFrame::Box | QFrame::Raised);
+        if(i == 15) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3, 1, 1);
+        } else if(i == 14) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1, 1, 1);
+        } else if(i > 9) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10, 1, 1);
+        } else if(i > 4) {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5, 1, 1);
+        } else {
+            ui->buttonsTestLayout->addWidget(testLabel[i], 0, i, 1, 1);
+        }
+    }
+    ui->buttonsTestLayout->setRowMinimumHeight(0, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(1, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(2, 32);
+    ui->buttonsTestLayout->setRowMinimumHeight(3, 32);
 
     // Setup Test Mode screen colors
     testPointTLPen.setColor(Qt::green);
@@ -252,7 +294,12 @@ guiWindow::guiWindow(QWidget *parent)
     // TODO: is there a way of dynamically scaling QGraphicsViews?
     ui->testView->scale(0.5, 0.5);
 
+    // hiding tUSB elements by default since this can't be done from default
+    ui->tUSBLayoutAdvanced->setVisible(false);
+
     // Finally get to the thing!
+    aliveTimer = new QTimer();
+    connect(aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
     PortsSearch();
     usbName.prepend("[No device]");
@@ -314,19 +361,17 @@ void guiWindow::SerialLoad()
         if(serialPort.waitForReadyRead(2000)) {
             // booleans
             QString buffer;
-            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
-                boolSettings[i] = buffer.toInt();
+            for(uint8_t i = 0; i < boolTypesCount; i++) {
+                boolSettings[i] = serialPort.readLine().trimmed().toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
+
             // pins
             if(boolSettings[customPins]) {
                 serialPort.write("Xlp");
                 serialPort.waitForReadyRead(1000);
-                for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
-                    buffer = serialPort.readLine();
-                    inputsMap_orig[i] = buffer.toInt();
+                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
+                    inputsMap_orig[i] = serialPort.readLine().trimmed().toInt();
                     // For some reason, QTSerial drops output shortly after this.
                     // So we send a ping to refill the buffer.
                     if(i == 14) {
@@ -336,64 +381,37 @@ void guiWindow::SerialLoad()
                 }
                 inputsMap = inputsMap_orig;
             }
+
             // settings
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
-                buffer = serialPort.readLine();
-                buffer = buffer.trimmed();
-                settingsTable[i] = buffer.toInt();
+            for(uint8_t i = 0; i < settingsTypesCount; i++) {
+                settingsTable[i] = serialPort.readLine().trimmed().toInt();
                 settingsTable_orig[i] = settingsTable[i];
             }
+
             // profiles
             for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
                 QString genString = QString("XlP%1").arg(i);
                 serialPort.write(genString.toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
-                buffer = serialPort.readLine().trimmed();
-                xScale[i]->setText(buffer);
-                profilesTable[i].xScale = buffer.toInt();
-                profilesTable_orig[i].xScale = profilesTable[i].xScale;
-                buffer = serialPort.readLine().trimmed();
-                yScale[i]->setText(buffer);
-                profilesTable[i].yScale = buffer.toInt();
-                profilesTable_orig[i].yScale = profilesTable[i].yScale;
-                buffer = serialPort.readLine().trimmed();
-                xCenter[i]->setText(buffer);
-                profilesTable[i].xCenter = buffer.toInt();
-                profilesTable_orig[i].xCenter = profilesTable[i].xCenter;
-                buffer = serialPort.readLine().trimmed();
-                yCenter[i]->setText(buffer);
-                profilesTable[i].yCenter = buffer.toInt();
-                profilesTable_orig[i].yCenter = profilesTable[i].yCenter;
-                buffer = serialPort.readLine().trimmed();
-                profilesTable[i].irSensitivity = buffer.toInt();
-                profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
-                irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity);
-                irSensOldIndex[i] = profilesTable[i].irSensitivity;
-                buffer = serialPort.readLine().trimmed();
-                profilesTable[i].runMode = buffer.toInt();
-                profilesTable_orig[i].runMode = profilesTable[i].runMode;
-                runMode[i]->setCurrentIndex(profilesTable[i].runMode);
-                runModeOldIndex[i] = profilesTable[i].runMode;
-                buffer = serialPort.readLine().trimmed();
-                layoutMode[i]->setChecked(buffer.toInt());
-                profilesTable[i].layoutType = buffer.toInt();
-                profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
-                buffer = serialPort.readLine().trimmed();
-                color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0')));
-                profilesTable[i].color = buffer.toLong();
-                profilesTable_orig[i].color = profilesTable[i].color;
-                buffer = serialPort.readLine().trimmed();
-                selectedProfile[i]->setText(buffer);
-                profilesTable[i].profName = buffer;
-                profilesTable_orig[i].profName = profilesTable[i].profName;
+                buffer = serialPort.readLine().trimmed(), topOffset[i]->setText(buffer), profilesTable[i].topOffset = buffer.toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
+                buffer = serialPort.readLine().trimmed(), bottomOffset[i]->setText(buffer), profilesTable[i].bottomOffset = buffer.toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
+                buffer = serialPort.readLine().trimmed(), leftOffset[i]->setText(buffer), profilesTable[i].leftOffset = buffer.toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
+                buffer = serialPort.readLine().trimmed(), rightOffset[i]->setText(buffer), profilesTable[i].rightOffset = buffer.toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
+                buffer = serialPort.readLine().trimmed(), TLled[i]->setText(buffer), profilesTable[i].TLled = buffer.toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
+                buffer = serialPort.readLine().trimmed(), TRled[i]->setText(buffer), profilesTable[i].TRled = buffer.toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
+                buffer = serialPort.readLine().trimmed(), profilesTable[i].irSensitivity = buffer.toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity), irSensOldIndex[i] = profilesTable[i].irSensitivity;
+                buffer = serialPort.readLine().trimmed(), profilesTable[i].runMode = buffer.toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode), runModeOldIndex[i] = profilesTable[i].runMode;
+                buffer = serialPort.readLine().trimmed(), layoutMode[i]->setChecked(buffer.toInt()), profilesTable[i].layoutType = buffer.toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                buffer = serialPort.readLine().trimmed(), color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer.toLong(), profilesTable_orig[i].color = profilesTable[i].color;
+                buffer = serialPort.readLine().trimmed(), selectedProfile[i]->setText(buffer), profilesTable[i].profName = buffer, profilesTable_orig[i].profName = profilesTable[i].profName;
             }
             serialActive = false;
         } else {
-            PopupWindow("Data hasn't arrived!", "Device was detected, but settings request wasn't received in time!\nThis can happen if the app was closed in the middle of an operation.\n\nTry selecting the device again.", "Oops!", 4);
+            PopupWindow("Data hasn't arrived!", "Device was detected, but settings request wasn't received in time!\nThis can happen if the app was closed in the middle of an operation.\n\nTry selecting the device again.", "Sync Error!", 4);
             //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
         }
     } else {
@@ -418,46 +436,45 @@ bool guiWindow::SerialInit(int portNum)
                 QString buffer = serialPort.readLine();
                 if(buffer.contains("OpenFIRE")) {
                     qDebug() << "OpenFIRE gun detected!";
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
-                    board.versionNumber = buffer.toFloat();
+                    board.versionNumber = serialPort.readLine().trimmed().toFloat();
                     qDebug() << "Version number:" << board.versionNumber;
-                    buffer = serialPort.readLine();
-                    board.versionCodename = buffer.trimmed();
+                    board.versionCodename = serialPort.readLine().trimmed();
                     qDebug() << "Version codename:" << board.versionCodename;
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
+                    buffer = serialPort.readLine().trimmed();
                     if(buffer == "rpipico") {
                         board.type = rpipico;
+                    } else if(buffer == "rpipicow") {
+                        board.type = rpipicow;
                     } else if(buffer == "adafruitItsyRP2040") {
                         board.type = adafruitItsyRP2040;
                     } else if(buffer == "adafruitKB2040") {
                         board.type = adafruitKB2040;
                     } else if(buffer == "arduinoNanoRP2040") {
                         board.type = arduinoNanoRP2040;
+                    } else if(buffer == "waveshareZero") {
+                        board.type = waveshareZero;
+                    } else if(buffer == "vccgndYD") {
+                        board.type = vccgndYD;
                     } else {
                         board.type = generic;
                     }
                     //qDebug() << "Selected profile number:" << buffer;
-                    buffer = serialPort.readLine();
-                    buffer = buffer.trimmed();
-                    board.selectedProfile = buffer.toInt();
+                    board.selectedProfile = serialPort.readLine().trimmed().toInt();
                     board.previousProfile = board.selectedProfile;
                     selectedProfile[board.selectedProfile]->setChecked(true);
                     //qDebug() << "Board type:" << buffer;
                     serialPort.write("Xln");
                     serialPort.waitForReadyRead(1000);
-                    buffer = serialPort.readLine();
-                    if(buffer.trimmed() == "SERIALREADERR01") {
+                    buffer = serialPort.readLine().trimmed();
+                    if(buffer == "SERIALREADERR01") {
                         tinyUSBtable.tinyUSBname = "";
                     } else {
-                        tinyUSBtable.tinyUSBname = buffer.trimmed();
+                        tinyUSBtable.tinyUSBname = buffer;
                     }
                     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
                     serialPort.write("Xli");
                     serialPort.waitForReadyRead(1000);
-                    buffer = serialPort.readLine();
-                    tinyUSBtable.tinyUSBid = buffer.trimmed();
+                    tinyUSBtable.tinyUSBid = serialPort.readLine().trimmed();
                     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
                     SerialLoad();
                     return true;
@@ -466,7 +483,7 @@ bool guiWindow::SerialInit(int portNum)
                     return false;
                 }
             } else {
-                PopupWindow("Data hasn't arrived!", "Device was detected, but initial settings request wasn't received in time!\nThis can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\nTry selecting the device again.", "Oops!", 3);
+                PopupWindow("Data hasn't arrived! (Stale state?)", "Device was detected, but initial settings request wasn't received in time!\nThis can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\nTry selecting the device again.", "Sync Error!", 3);
                 qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
                 return false;
             }
@@ -475,7 +492,7 @@ bool guiWindow::SerialInit(int portNum)
             return false;
         }
     } else {
-        PopupWindow("Couldn't open port!", "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\nPlease close the offending application and try selecting this port again.", "Oops!", 3);
+        PopupWindow("Serial port is blocked!", "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\nPlease close the offending application and try selecting this port again.", "Port In Use!", 3);
         return false;
     }
 }
@@ -483,18 +500,30 @@ bool guiWindow::SerialInit(int portNum)
 
 void guiWindow::BoxesUpdate()
 {
-    for(uint8_t i = 0; i < 30; i++) {
-        pinBoxes[i]->setCurrentIndex(btnUnmapped);
-        pinBoxesOldIndex[i] = btnUnmapped;
-    }
     if(boolSettings[customPins]) {
-        currentPins.clear();
+        // if the custom pins setting grabbed from the gun has been set
+        if(boolSettings_orig[customPins]) {
+            // clear map
+            currentPins.clear();
+            // set or clear the local pins mapping
+            for(uint8_t i = 0; i < 30; i++) {
+                currentPins[i] = btnUnmapped;
+            }
+            // (re)-copy pins settings grabbed from the gun to the app catalog
+            inputsMap = inputsMap_orig;
+        // else, if the board was using default maps before switching to custom
+        } else {
+            for(uint8_t i = 0; i < 30; i++) {
+                if(currentPins[i] > btnUnmapped) {
+                    inputsMap[currentPins[i]-1] = i;
+                }
+            }
+        }
+        // enable pinboxes
         for(uint8_t i = 0; i < 30; i++) {
             pinBoxes[i]->setEnabled(true);
-            currentPins[i] = btnUnmapped;
         }
-        inputsMap = inputsMap_orig;
-        for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+        for(uint8_t i = 0; i < boardInputsCount-1; i++) {
             if(inputsMap.value(i) >= 0) {
                 currentPins[inputsMap.value(i)] = i+1;
                 pinBoxes[inputsMap.value(i)]->setCurrentIndex(currentPins[inputsMap.value(i)]);
@@ -504,50 +533,44 @@ void guiWindow::BoxesUpdate()
         return;
     } else {
         switch(board.type) {
+        // pico and w are the same physical board, so why need a new layout for it?
         case rpipico:
+        case rpipicow:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = rpipicoLayout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
-            return;
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = rpipicoLayout[i].pinAssignment; }
             break;
         }
         case adafruitItsyRP2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
-            return;
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment; }
             break;
         }
         case adafruitKB2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = adafruitKB2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
-            return;
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitKB2040Layout[i].pinAssignment; }
             break;
         }
         case arduinoNanoRP2040:
         {
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = arduinoNanoRP2040Layout[i].pinAssignment;
-                pinBoxes[i]->setCurrentIndex(currentPins[i]);
-                pinBoxesOldIndex[i] = currentPins[i];
-                pinBoxes[i]->setEnabled(false);
-            }
-            return;
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = arduinoNanoRP2040Layout[i].pinAssignment; }
             break;
         }
+        case waveshareZero:
+        {
+            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = waveshareZeroLayout[i].pinAssignment; }
+            break;
+        }
+        }
+
+        for(uint8_t i = 0; i < 30; i++) {
+            pinBoxes[i]->setCurrentIndex(currentPins[i]);
+            pinBoxesOldIndex[i] = currentPins[i];
+            pinBoxes[i]->setEnabled(false);
+        }
+        for(uint8_t i = 0; i < 30; i++) {
+            if(currentPins[i] > btnUnmapped) {
+                inputsMap[currentPins[i]-1] = i;
+            }
         }
     }
 }
@@ -557,19 +580,19 @@ void guiWindow::DiffUpdate()
 {
     settingsDiff = 0;
     if(boolSettings_orig[customPins] != boolSettings[customPins]) {
-        //settingsDiff++;
+        settingsDiff++;
     }
     if(boolSettings[customPins]) {
         if(inputsMap_orig != inputsMap) {
             settingsDiff++;
         }
     }
-    for(uint8_t i = 1; i < sizeof(boolSettings); i++) {
+    for(uint8_t i = 1; i < boolTypesCount; i++) {
         if(boolSettings_orig[i] != boolSettings[i]) {
             settingsDiff++;
         }
     }
-    for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+    for(uint8_t i = 0; i < settingsTypesCount; i++) {
         if(settingsTable_orig[i] != settingsTable[i]) {
             settingsDiff++;
         }
@@ -587,16 +610,22 @@ void guiWindow::DiffUpdate()
         if(profilesTable_orig[i].profName != profilesTable[i].profName) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].xScale != profilesTable[i].xScale) {
+        if(profilesTable_orig[i].topOffset != profilesTable[i].topOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].yScale != profilesTable[i].yScale) {
+        if(profilesTable_orig[i].bottomOffset != profilesTable[i].bottomOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].xCenter != profilesTable[i].xCenter) {
+        if(profilesTable_orig[i].leftOffset != profilesTable[i].leftOffset) {
             settingsDiff++;
         }
-        if(profilesTable_orig[i].yCenter != profilesTable[i].yCenter) {
+        if(profilesTable_orig[i].rightOffset != profilesTable[i].rightOffset) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].TLled != profilesTable[i].TLled) {
+            settingsDiff++;
+        }
+        if(profilesTable_orig[i].TRled != profilesTable[i].TRled) {
             settingsDiff++;
         }
         if(profilesTable_orig[i].irSensitivity != profilesTable[i].irSensitivity) {
@@ -624,28 +653,29 @@ void guiWindow::DiffUpdate()
 
 void guiWindow::SyncSettings()
 {
-    for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+    for(uint8_t i = 0; i < boolTypesCount; i++) {
         boolSettings_orig[i] = boolSettings[i];
     }
     if(boolSettings_orig[customPins]) {
         inputsMap_orig = inputsMap;
     } else {
-        for(uint8_t i = 0; i < INPUTS_COUNT; i++)
+        for(uint8_t i = 0; i < boardInputsCount-1; i++)
         inputsMap_orig[i] = -1;
     }
-    for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+    for(uint8_t i = 0; i < settingsTypesCount; i++) {
         settingsTable_orig[i] = settingsTable[i];
     }
     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
     board.previousProfile = board.selectedProfile;
-    for(uint8_t i = 0; i < 4; i++) {
+    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
         profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
         profilesTable_orig[i].runMode = profilesTable[i].runMode;
         profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
         profilesTable_orig[i].color = profilesTable[i].color;
         profilesTable_orig[i].profName = profilesTable[i].profName;
     }
+    LabelsUpdate();
 }
 
 
@@ -663,6 +693,9 @@ QString PrettifyName()
         break;
     case rpipico:
         name = name + " | Raspberry Pi Pico";
+        break;
+    case rpipicow:
+        name = name + " | Raspberry Pi Pico W";
         break;
     case adafruitItsyRP2040:
         name = name + " | Adafruit ItsyBitsy RP2040";
@@ -697,6 +730,7 @@ void guiWindow::on_confirmButton_clicked()
     if(value == QMessageBox::Yes) {
         if(serialPort.isOpen()) {
             serialActive = true;
+            aliveTimer->stop();
             // send a signal so the gun pauses its test outputs for the save op.
             serialPort.write("Xm");
             serialPort.waitForBytesWritten(1000);
@@ -708,17 +742,17 @@ void guiWindow::on_confirmButton_clicked()
             ui->confirmButton->setEnabled(false);
 
             QStringList serialQueue;
-            for(uint8_t i = 0; i < sizeof(boolSettings); i++) {
+            for(uint8_t i = 0; i < boolTypesCount; i++) {
                 serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]));
             }
 
             if(boolSettings[customPins]) {
-                for(uint8_t i = 0; i < INPUTS_COUNT; i++) {
+                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
                     serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i)));
                 }
             }
 
-            for(uint8_t i = 0; i < sizeof(settingsTable) / 2; i++) {
+            for(uint8_t i = 0; i < settingsTypesCount; i++) {
                 serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
             }
 
@@ -751,19 +785,19 @@ void guiWindow::on_confirmButton_clicked()
                     if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
                         statusProgressBar->setValue(statusProgressBar->value() + 1);
                     } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                        buffer = serialPort.readLine();
-                        if(buffer.contains("Settings saved to")) {
-                            success = true;
-                            // because there's probably some leftover bytes that might congest things:
+                        for(uint8_t t = 0; t < 3; t++) {
+                            if(serialPort.atEnd()) { serialPort.waitForReadyRead(2000); }
+                            buffer = serialPort.readLine();
+                            if(buffer.contains("Settings saved to")) {
+                                success = true;
+                                t = 3;
+                            }
+                        }
+                        if(success) {
                             while(!serialPort.atEnd()) {
                                 serialPort.readLine();
                             }
-                        } else {
-                            qDebug() << "Sent save command, but didn't save successfully! What the fuck happened???";
                         }
-                    } else {
-                        success = false;
-                        break;
                     }
                 }
             }
@@ -780,6 +814,7 @@ void guiWindow::on_confirmButton_clicked()
                 ui->boardLabel->setText(PrettifyName());
             }
             serialActive = false;
+            aliveTimer->start(ALIVE_TIMER);
             serialQueue.clear();
             if(!serialPort.atEnd()) {
                 serialPort.readAll();
@@ -789,6 +824,19 @@ void guiWindow::on_confirmButton_clicked()
         }
     } else {
         statusBar()->showMessage("Save operation canceled.", 3000);
+    }
+}
+
+
+void guiWindow::aliveTimer_timeout()
+{
+    if(serialPort.isOpen()) {
+        serialPort.write(".");
+        if(!serialPort.waitForBytesWritten(1)) {
+            statusBar()->showMessage("Board hasn't responded to pulse; assuming it's been disconnected.");
+            serialPort.close();
+            ui->comPortSelector->setCurrentIndex(0);
+        }
     }
 }
 
@@ -856,16 +904,80 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialPort.close();
             serialActive = false;
         }
+        // try to init serial port
+        // if returns false, it failed, so just turn the index back to initial.
         if(!SerialInit(index - 1)) {
             ui->comPortSelector->setCurrentIndex(0);
+            aliveTimer->stop();
+        // else, serial port is online! What do we got?
         } else {
+            aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(board.versionNumber).arg(board.versionCodename));
             BoxesFill();
+            LabelsUpdate();
 
             switch(board.type) {
                 case rpipico:
                 {
                     centerPic = new QSvgWidget(":/boardPics/pico.svg");
+                    QSvgRenderer *picRenderer = centerPic->renderer();
+                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                    ui->boardLabel->setText(PrettifyName());
+
+                    // left side
+                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
+                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
+                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
+                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
+                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
+                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
+                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
+                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
+                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
+                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
+                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
+                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
+                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
+                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
+                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
+                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
+                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
+                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
+
+                    // right side
+                    PinsRight->addWidget(padding[5],   0,  1);   // padding
+                    PinsRight->addWidget(padding[6],   1,  1);   // VBUS
+                    PinsRight->addWidget(padding[7],   2,  1);   // VSYS
+                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
+                    PinsRight->addWidget(padding[9],   4,  1);   // 3V3 EN
+                    PinsRight->addWidget(padding[10],  5,  1);   // 3V3 OUT
+                    PinsRight->addWidget(padding[11],  6,  1);   // ADC VREF
+                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
+                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
+                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
+                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
+                    PinsRight->addWidget(padding[13],  11, 1);   // RUN
+                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
+                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
+                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
+                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
+                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
+                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
+                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
+                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
+
+                    // center
+                    PinsCenter->addWidget(centerPic);
+                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+                    break;
+                }
+                case rpipicow:
+                {
+                    centerPic = new QSvgWidget(":/boardPics/picow.svg");
                     QSvgRenderer *picRenderer = centerPic->renderer();
                     picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
                     ui->boardLabel->setText(PrettifyName());
@@ -957,8 +1069,8 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                     PinsRight->addWidget(pinBoxes[7],  7,  1), PinsRight->addWidget(pinLabel[7],  7,  0);
                     PinsRight->addWidget(pinBoxes[6],  8,  1), PinsRight->addWidget(pinLabel[6],  8,  0);
                     PinsRight->addWidget(padding[11],  9,  1);   // 5!
-                    PinsRight->addWidget(pinBoxes[2],  10, 1), PinsRight->addWidget(pinLabel[2],  10, 0);
-                    PinsRight->addWidget(pinBoxes[3],  11, 1), PinsRight->addWidget(pinLabel[3],  11, 0);
+                    PinsRight->addWidget(pinBoxes[3],  10, 1), PinsRight->addWidget(pinLabel[3],  10, 0);
+                    PinsRight->addWidget(pinBoxes[2],  11, 1), PinsRight->addWidget(pinLabel[2],  11, 0);
                     PinsRight->addWidget(pinBoxes[0],  12, 1), PinsRight->addWidget(pinLabel[0],  12, 0);
                     PinsRight->addWidget(pinBoxes[1],  13, 1), PinsRight->addWidget(pinLabel[1],  13, 0);
                     PinsRight->addWidget(padding[12],  14, 1);   // bottom padding
@@ -1186,13 +1298,54 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->rumbleIntensityBox->setValue(settingsTable[rumbleStrength]);
             ui->rumbleLengthBox->setValue(settingsTable[rumbleInterval]);
             ui->holdToPauseLengthBox->setValue(settingsTable[holdToPauseLength]);
-            ui->neopixelStrandLengthBox->setValue(settingsTable[customLEDcount]);
             ui->solenoidNormalIntervalBox->setValue(settingsTable[solenoidNormalInterval]);
             ui->solenoidFastIntervalBox->setValue(settingsTable[solenoidFastInterval]);
             ui->solenoidHoldLengthBox->setValue(settingsTable[solenoidHoldLength]);
             ui->autofireWaitFactorBox->setValue(settingsTable[autofireWaitFactor]);
             ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+            if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
+            ui->neopixelStrandLengthBox->setValue(settingsTable[customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(settingsTable[customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor3], 6, 16, QLatin1Char('0')));
+
+            switch(tinyUSBtable.tinyUSBid.toInt()) {
+            case 1:
+                ui->tUSB_p1->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 2:
+                ui->tUSB_p2->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 3:
+                ui->tUSB_p3->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            case 4:
+                ui->tUSB_p4->setChecked(true);
+                ui->tUSBLayoutAdvanced->setVisible(false);
+                ui->tUSBLayoutSimple->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(false);
+                break;
+            default:
+                ui->tUSB_p1->setChecked(false);
+                ui->tUSB_p2->setChecked(false);
+                ui->tUSB_p3->setChecked(false);
+                ui->tUSB_p4->setChecked(false);
+                ui->tUSBLayoutSimple->setVisible(false);
+                ui->tUSBLayoutAdvanced->setVisible(true);
+                ui->tinyUSBLayoutToggle->setChecked(true);
+                break;
+            }
         }
     } else {
         ui->boardLabel->clear();
@@ -1220,6 +1373,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             serialActive = false;
         }
         qDebug() << "COM port disabled!";
+        aliveTimer->stop();
         ui->tabWidget->setEnabled(false);
     }
 }
@@ -1249,6 +1403,42 @@ void guiWindow::BoxesFill()
         }
     }
     BoxesUpdate();
+}
+
+// Only runs either on initial load or save
+void guiWindow::LabelsUpdate()
+{
+    // because inputsMap uses pin no. starting from 0
+    for(uint8_t i = 0; i < 16; i++) {
+        if(i < 14) {
+            if(inputsMap[i] >= 0) {
+                testLabel[i]->setText(valuesNameList[i+1]);
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText(valuesNameList[i+1] + " (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        } else if(i == 14) {
+            if(inputsMap[tempPin-1] >= 0) {
+                testLabel[i]->setText("Temp:");
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText("Temp (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        } else if(i == 15) {
+            if(inputsMap[analogX-1] >=0 && inputsMap[analogY-1] >= 0) {
+                testLabel[i]->setText("Analog");
+                testLabel[i]->setEnabled(true);
+            } else {
+                testLabel[i]->setText("Analog (N/C)");
+                testLabel[i]->setEnabled(false);
+            }
+        }
+    }
+    if(inputsMap[ledR-1] >= 0) { ui->redLedTestBtn->setEnabled(true); } else { ui->redLedTestBtn->setEnabled(false); }
+    if(inputsMap[ledG-1] >= 0) { ui->greenLedTestBtn->setEnabled(true); } else { ui->greenLedTestBtn->setEnabled(false); }
+    if(inputsMap[ledB-1] >= 0) { ui->blueLedTestBtn->setEnabled(true); } else { ui->blueLedTestBtn->setEnabled(false); }
 }
 
 void guiWindow::pinBoxes_activated(int index)
@@ -1288,6 +1478,7 @@ void guiWindow::pinBoxes_activated(int index)
     // because "->currentIndex" is already updated, we just update it at the end of activations
     // to check that we aren't re-selecting the index for that box.
     pinBoxesOldIndex[pin] = index;
+    if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
     DiffUpdate();
 }
 
@@ -1484,13 +1675,6 @@ void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 }
 
 
-void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
-{
-    settingsTable[customLEDcount] = arg1;
-    DiffUpdate();
-}
-
-
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
     settingsTable[solenoidNormalInterval] = arg1;
@@ -1535,22 +1719,103 @@ void guiWindow::on_productIdInput_textChanged(const QString &arg1)
 }
 
 
+void guiWindow::on_tUSB_p1_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "1";
+        tinyUSBtable.tinyUSBname = "FIRECon P1";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p2_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "2";
+        tinyUSBtable.tinyUSBname = "FIRECon P2";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p3_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "3";
+        tinyUSBtable.tinyUSBname = "FIRECon P3";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p4_toggled(bool checked)
+{
+    if(checked) {
+        tinyUSBtable.tinyUSBid = "4";
+        tinyUSBtable.tinyUSBname = "FIRECon P4";
+        ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
+        DiffUpdate();
+    }
+}
+
+
 void guiWindow::on_productIdInput_textEdited(const QString &arg1)
 {
     tinyUSBtable.tinyUSBid = arg1;
+    if(ui->productNameInput->text().isEmpty()) {
+        switch(tinyUSBtable.tinyUSBid.toInt()) {
+        case 1:
+            ui->tUSB_p1->setChecked(true);
+            break;
+        case 2:
+            ui->tUSB_p2->setChecked(true);
+            break;
+        case 3:
+            ui->tUSB_p3->setChecked(true);
+            break;
+        case 4:
+            ui->tUSB_p4->setChecked(true);
+            break;
+        default:
+            ui->tUSB_p1->setChecked(false);
+            ui->tUSB_p2->setChecked(false);
+            ui->tUSB_p3->setChecked(false);
+            ui->tUSB_p4->setChecked(false);
+            break;
+        }
+    }
+
     DiffUpdate();
 }
 
 
 void guiWindow::on_productNameInput_textEdited(const QString &arg1)
 {
-    // TODO: try this:
-    // when this is called, iterate through arg1 by length of itself in a loop
-    // and check if each character of i index is > 255.
-    // if so, revert to last good name.
-    // else, make this input the last good name and allow committing.
+    // TODO: there should be a way of using .toLocal8Bit() and checking if it's undefined,
+    // as that indicates a character exceeds the normal char size, therefore
+    // reset the lineEdit's text and don't change. But for now, weh.
     tinyUSBtable.tinyUSBname = arg1;
     DiffUpdate();
+}
+
+
+void guiWindow::on_tinyUSBLayoutToggle_stateChanged(int arg1)
+{
+    if(arg1) {
+        ui->tUSBLayoutSimple->setVisible(false);
+        ui->tUSBLayoutAdvanced->setVisible(true);
+    } else {
+        ui->tUSBLayoutAdvanced->setVisible(false);
+        ui->tUSBLayoutSimple->setVisible(true);
+    }
 }
 
 
@@ -1572,6 +1837,100 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
             board.selectedProfile = slot;
             DiffUpdate();
         }
+    }
+}
+
+
+void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
+{
+    settingsTable[customLEDcount] = arg1;
+    DiffUpdate();
+}
+
+
+void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
+{
+    settingsTable[customLEDstatic] = arg1;
+    if(customLEDstatic) {
+        switch(arg1) {
+        case 1:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(false);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        case 2:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(true);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        case 3:
+            ui->customLEDstaticBtn1->setEnabled(true);
+            ui->customLEDstaticBtn2->setEnabled(true);
+            ui->customLEDstaticBtn3->setEnabled(true);
+        default:
+            ui->customLEDstaticBtn1->setEnabled(false);
+            ui->customLEDstaticBtn2->setEnabled(false);
+            ui->customLEDstaticBtn3->setEnabled(false);
+            break;
+        }
+    }
+    DiffUpdate();
+}
+
+
+void guiWindow::on_customLEDstaticBtn1_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor1] = packedColor;
+        ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_customLEDstaticBtn2_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor2] = packedColor;
+        ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_customLEDstaticBtn3_clicked()
+{
+    QColor colorPick = QColorDialog::getColor();
+    if(colorPick.isValid()) {
+        int *red = new int;
+        int *green = new int;
+        int *blue = new int;
+        colorPick.getRgb(red, green, blue);
+        uint32_t packedColor = 0;
+        packedColor |= *red << 16;
+        packedColor |= *green << 8;
+        packedColor |= *blue;
+        settingsTable[customLEDcolor3] = packedColor;
+        ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
     }
 }
 
@@ -1618,124 +1977,68 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
-                idleBuffer = idleBuffer.right(4);
-                idleBuffer = idleBuffer.trimmed();
-                uint8_t button = idleBuffer.toInt();
-                switch(button) {
-                case btnTrigger:
-                    ui->btnTriggerLabel->setText("<font color=#FF0000>Trigger</font>");
-                    break;
-                case btnGunA:
-                    ui->btnALabel->setText("<font color=#FF0000>Button A</font>");
-                    break;
-                case btnGunB:
-                    ui->btnBLabel->setText("<font color=#FF0000>Button B</font>");
-                    break;
-                case btnGunC:
-                    ui->btnCLabel->setText("<font color=#FF0000>Button C</font>");
-                    break;
-                case btnStart:
-                    ui->btnStartLabel->setText("<font color=#FF0000>Start</font>");
-                    break;
-                case btnSelect:
-                    ui->btnSelectLabel->setText("<font color=#FF0000>Select</font>");
-                    break;
-                case btnGunUp:
-                    ui->btnGunUpLabel->setText("<font color=#FF0000>Up</font>");
-                    break;
-                case btnGunDown:
-                    ui->btnGunDownLabel->setText("<font color=#FF0000>Down</font>");
-                    break;
-                case btnGunLeft:
-                    ui->btnGunLeftLabel->setText("<font color=#FF0000>Left</font>");
-                    break;
-                case btnGunRight:
-                    ui->btnGunRightLabel->setText("<font color=#FF0000>Right</font>");
-                    break;
-                case btnPedal:
-                    ui->btnPedalLabel->setText("<font color=#FF0000>Pedal</font>");
-                    break;
-                case btnHome:
-                    ui->btnHomeLabel->setText("<font color=#FF0000>Home</font>");
-                    break;
-                case btnPump:
-                    ui->btnPumpLabel->setText("<font color=#FF0000>Pump Action</font>");
-                    break;
-                }
+                uint8_t button = idleBuffer.trimmed().right(2).toInt();
+                testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
             } else if(idleBuffer.contains("Released:")) {
-                idleBuffer = idleBuffer.right(4);
-                idleBuffer = idleBuffer.trimmed();
-                uint8_t button = idleBuffer.toInt();
-                switch(button) {
-                case btnTrigger:
-                    ui->btnTriggerLabel->setText("Trigger");
-                    break;
-                case btnGunA:
-                    ui->btnALabel->setText("Button A");
-                    break;
-                case btnGunB:
-                    ui->btnBLabel->setText("Button B");
-                    break;
-                case btnGunC:
-                    ui->btnCLabel->setText("Button C");
-                    break;
-                case btnStart:
-                    ui->btnStartLabel->setText("Start");
-                    break;
-                case btnSelect:
-                    ui->btnSelectLabel->setText("Select");
-                    break;
-                case btnGunUp:
-                    ui->btnGunUpLabel->setText("Up");
-                    break;
-                case btnGunDown:
-                    ui->btnGunDownLabel->setText("Down");
-                    break;
-                case btnGunLeft:
-                    ui->btnGunLeftLabel->setText("Left");
-                    break;
-                case btnGunRight:
-                    ui->btnGunRightLabel->setText("Right");
-                    break;
-                case btnPedal:
-                    ui->btnPedalLabel->setText("Pedal");
-                    break;
-                case btnHome:
-                    ui->btnHomeLabel->setText("Home");
-                    break;
-                case btnPump:
-                    ui->btnPumpLabel->setText("Pump Action");
-                    break;
+                uint8_t button = idleBuffer.trimmed().right(2).toInt();
+                testLabel[button-1]->setText(valuesNameList[button]);
+            } else if(idleBuffer.contains("Temperature:")) {
+                uint8_t temp = idleBuffer.trimmed().right(2).toInt();
+                if(temp > 70) {
+                    testLabel[14]->setText(QString("<font color=#FF0000>Temp: %1</font>").arg(temp));
+                } else if(temp > 60) {
+                    testLabel[14]->setText(QString("<font color=#EABD2B>Temp: %1</font>").arg(temp));
+                } else {
+                    testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1</font>").arg(temp));
                 }
+            } else if(idleBuffer.contains("Analog:")) {
+                uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();
+                if(analogDir) {
+                    switch(analogDir) {
+                    case 1: testLabel[15]->setText("<font color=#FF0000>Analog 🡹</font>"); break;
+                    case 2: testLabel[15]->setText("<font color=#FF0000>Analog 🡼</font>"); break;
+                    case 3: testLabel[15]->setText("<font color=#FF0000>Analog 🡸</font>"); break;
+                    case 4: testLabel[15]->setText("<font color=#FF0000>Analog 🡿</font>"); break;
+                    case 5: testLabel[15]->setText("<font color=#FF0000>Analog 🡻</font>"); break;
+                    case 6: testLabel[15]->setText("<font color=#FF0000>Analog 🡾</font>"); break;
+                    case 7: testLabel[15]->setText("<font color=#FF0000>Analog 🡺</font>"); break;
+                    case 8: testLabel[15]->setText("<font color=#FF0000>Analog 🡽</font>"); break;
+                    }
+                } else {
+                    testLabel[15]->setText("Analog");
+                }
+                // no idea here lol
             } else if(idleBuffer.contains("Profile: ")) {
-                idleBuffer = idleBuffer.right(3);
-                idleBuffer = idleBuffer.trimmed();
-                uint8_t selection = idleBuffer.toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
                 if(selection != board.selectedProfile) {
                     board.selectedProfile = selection;
                     selectedProfile[selection]->setChecked(true);
                 }
                 DiffUpdate();
             } else if(idleBuffer.contains("UpdatedProf: ")) {
-                idleBuffer = idleBuffer.right(3);
-                idleBuffer = idleBuffer.trimmed();
-                uint8_t selection = idleBuffer.toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
                 if(selection != board.selectedProfile) {
                     selectedProfile[selection]->setChecked(true);
                 }
                 board.selectedProfile = selection;
-                idleBuffer = serialPort.readLine();
-                xScale[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].xScale = xScale[selection]->text().toInt();
-                idleBuffer = serialPort.readLine();
-                yScale[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].yScale = yScale[selection]->text().toInt();
-                idleBuffer = serialPort.readLine();
-                xCenter[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].xCenter = xCenter[selection]->text().toInt();
-                idleBuffer = serialPort.readLine();
-                yCenter[selection]->setText(idleBuffer.trimmed());
-                profilesTable[selection].yCenter = yCenter[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
+                topOffset[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
+                bottomOffset[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
+                leftOffset[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
+                rightOffset[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
+                serialPort.waitForReadyRead(2000);
+                TLled[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].TLled = TLled[selection]->text().toFloat();
+                serialPort.waitForReadyRead(2000);
+                TRled[selection]->setText(serialPort.readLine().trimmed());
+                profilesTable[selection].TRled = TRled[selection]->text().toFloat();
                 DiffUpdate();
             }
         }
@@ -1781,11 +2084,45 @@ void guiWindow::on_solenoidTestBtn_clicked()
 }
 
 
+void guiWindow::on_redLedTestBtn_clicked()
+{
+    serialPort.write("XtR");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Red.", 2500);
+    }
+}
+
+
+void guiWindow::on_greenLedTestBtn_clicked()
+{
+    serialPort.write("XtG");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Green.", 2500);
+    }
+}
+
+
+void guiWindow::on_blueLedTestBtn_clicked()
+{
+    serialPort.write("XtB");
+    if(!serialPort.waitForBytesWritten(1000)) {
+        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
+    } else {
+        ui->statusBar->showMessage("Set LED to Blue.", 2500);
+    }
+}
+
+
 void guiWindow::on_testBtn_clicked()
 {
     if(serialPort.isOpen()) {
         // Pre-emptively put a sock in the readyRead signal
         serialActive = true;
+        aliveTimer->stop();
         serialPort.write("XT");
         serialPort.waitForBytesWritten(1000);
         serialPort.waitForReadyRead(1000);
@@ -1813,6 +2150,7 @@ void guiWindow::on_testBtn_clicked()
             ui->dangerZoneBox->setEnabled(true);
             DiffUpdate();
             serialActive = false;
+            aliveTimer->start(ALIVE_TIMER);
         }
     }
 }

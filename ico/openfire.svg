@@ -1,27 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="90.691" height="90.691" data-name="Layer 2" version="1.1" viewBox="0 0 90.691 90.691" xmlns="http://www.w3.org/2000/svg">
- <defs>
-  <style>.uuid-a346da39-f640-425d-a333-7508e880cbaf {
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   viewBox="0 0 90.691005 90.691005"
+   id="svg4"
+   width="90.691002"
+   height="90.691002"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <style
+       id="style1">
+      .cls-1 {
         fill: #ed1a3b;
       }
 
-      .uuid-a346da39-f640-425d-a333-7508e880cbaf, .uuid-a25f232d-0d6a-4478-b5c1-280933c4bfb9, .uuid-d4f50e89-9c3a-4727-92be-48917a68e728 {
+      .cls-1, .cls-2, .cls-3 {
         stroke-width: 0px;
       }
 
-      .uuid-a25f232d-0d6a-4478-b5c1-280933c4bfb9 {
-        fill: #fff;
+      .cls-2 {
+        fill: #00b3f0;
       }
 
-      .uuid-d4f50e89-9c3a-4727-92be-48917a68e728 {
-        fill: #00aeef;
-      }</style>
- </defs>
- <g transform="translate(1.7348 2.3245)" data-name="Layer 1">
-  <rect x="-1.7348" y="-2.3245" width="90.691" height="90.691" ry="9.6003" fill="#2a2a2a" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1"/>
-  <rect class="uuid-d4f50e89-9c3a-4727-92be-48917a68e728" x="32.49" y="56.03" width="4.84" height="7"/>
-  <rect class="uuid-d4f50e89-9c3a-4727-92be-48917a68e728" x="24.07" y="56.03" width="4.84" height="7"/>
-  <path class="uuid-a25f232d-0d6a-4478-b5c1-280933c4bfb9" d="m86.74 39.87h-5.29c-1.66-17.83-15.9-32.07-33.73-33.73v-6.14h-7v6.14c-17.83 1.66-32.07 15.9-33.73 33.73h-6.99v7h6.99c1.66 17.83 15.9 32.07 33.73 33.73v5.57h7v-5.57c17.83-1.66 32.07-15.9 33.73-33.73h5.29zm-72.92 3.5c0-16.76 13.64-30.4 30.4-30.4 15.58 0 28.45 11.78 30.19 26.9h-33.69v33.69c-15.12-1.74-26.9-14.61-26.9-30.19zm33.9 30.19v-10.53h16.51v-7h-16.51v-9.16h26.69c-1.61 13.97-12.72 25.08-26.69 26.69z"/>
-  <path class="uuid-a346da39-f640-425d-a333-7508e880cbaf" d="m25.16 43.37h-5c0-13.27 10.79-24.06 24.06-24.06 6.43 0 12.47 2.5 17.01 7.05l-3.54 3.54c-3.6-3.6-8.39-5.58-13.48-5.58-10.51 0-19.06 8.55-19.06 19.06z"/>
- </g>
+      .cls-3 {
+        fill: #231f20;
+      }
+    </style>
+  </defs>
+  <g
+     id="uuid-1225c850-ef75-4cdc-b195-48a4f32c03c2"
+     transform="translate(2,2)">
+    <g
+       id="uuid-860b055d-dac9-4be5-b553-a0b9bd726899">
+      <rect
+         x="-2"
+         y="-2"
+         width="90.691002"
+         height="90.691002"
+         ry="9.6002998"
+         fill="#2a2a2a"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="1.1"
+         id="rect1"
+         style="display:inline" />
+      <path
+         class="cls-3"
+         d="M 86.6,40 H 81.3 C 79.6,22.2 65.4,7.9 47.6,6.3 V 0 h -7 V 6.1 C 22.8,7.9 8.5,22.1 6.9,40 h -7 v 7 h 7 c 1.7,17.8 15.9,32.1 33.7,33.7 v 5.6 h 7 V 80.7 C 65.4,79 79.7,64.8 81.3,47 h 5.3 z m -72.9,3.5 c 0,-16.8 13.6,-30.4 30.4,-30.4 16.8,0 28.4,11.8 30.2,26.9 H 40.6 V 73.7 C 25.5,72 13.7,59.1 13.7,43.5 Z M 47.6,73.6 V 60.9 H 59.8 V 55.2 H 47.6 V 46.9 H 74.3 C 72.7,60.9 61.6,72 47.6,73.6 Z"
+         id="path1"
+         style="display:inline;fill:#ffffff;fill-opacity:1" />
+    </g>
+    <circle
+       class="cls-1"
+       cx="24.9"
+       cy="49"
+       r="3.0999999"
+       id="circle1" />
+    <circle
+       class="cls-1"
+       cx="34"
+       cy="49"
+       r="3.0999999"
+       id="circle2" />
+    <circle
+       class="cls-1"
+       cx="24.9"
+       cy="57.799999"
+       r="3.0999999"
+       id="circle3" />
+    <circle
+       class="cls-1"
+       cx="34"
+       cy="57.799999"
+       r="3.0999999"
+       id="circle4" />
+  </g>
+  <g
+     id="Isolation_Mode"
+     data-name="Isolation Mode"
+     transform="translate(2,2)">
+    <path
+       class="cls-2"
+       d="M 44.3,20.2 C 33,20.2 23.6,28.7 22.2,39.7 h 4.7 c 1.3,-8.4 8.6,-14.9 17.4,-14.9 8.8,0 9.1,1.8 12.5,5.2 l 3.3,-3.3 C 55.9,22.5 50.3,20.2 44.4,20.2 Z"
+       id="path4" />
+  </g>
 </svg>

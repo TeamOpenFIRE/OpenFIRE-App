@@ -42,7 +42,7 @@
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -58,7 +58,7 @@
          <string>COM Port:</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -85,14 +85,14 @@
        <string notr="true"/>
       </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
     </item>
     <item>
      <widget class="Line" name="line">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
      </widget>
     </item>
@@ -111,7 +111,7 @@
        <enum>Qt::TextFormat::PlainText</enum>
       </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
     </item>
@@ -137,20 +137,7 @@
         <item>
          <layout class="QHBoxLayout" name="PinsTopHalf"/>
         </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignBottom">
          <widget class="QCheckBox" name="customPinsEnabled">
           <property name="enabled">
            <bool>true</bool>
@@ -191,7 +178,7 @@
         <string>Gun Settings</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
          <widget class="QGroupBox" name="TogglesGroup">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -214,7 +201,7 @@
              <item>
               <spacer name="horizontalSpacer_6">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -257,7 +244,7 @@
              <item>
               <spacer name="horizontalSpacer_7">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -274,7 +261,7 @@
              <item>
               <spacer name="horizontalSpacer_4">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -314,7 +301,7 @@
              <item>
               <spacer name="horizontalSpacer_5">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -331,7 +318,7 @@
              <item>
               <spacer name="horizontalSpacer_2">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -364,7 +351,7 @@
              <item>
               <spacer name="horizontalSpacer_3">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -379,7 +366,7 @@
           </layout>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
          <widget class="QGroupBox" name="groupBox_2">
           <property name="enabled">
            <bool>true</bool>
@@ -388,35 +375,6 @@
            <string>Setting Values</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="3" column="2">
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>Autofire Wait Factor:</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Rumble Length:</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="2">
             <widget class="QLabel" name="label_8">
              <property name="text">
@@ -426,23 +384,26 @@
               <enum>Qt::TextFormat::PlainText</enum>
              </property>
              <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Solenoid Interval:</string>
+           <item row="1" column="3">
+            <widget class="QSpinBox" name="solenoidFastIntervalBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 30 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string> ms</string>
              </property>
             </widget>
            </item>
@@ -455,39 +416,7 @@
               <enum>Qt::TextFormat::PlainText</enum>
              </property>
              <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Hold-to-Pause Length:</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>NeoPixel Strand Length:</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -503,14 +432,14 @@
               <enum>Qt::TextFormat::PlainText</enum>
              </property>
              <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="rumbleIntensityBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity of rumble force feedback events - scales from 0 (disabled) to a maximum of 255.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity of rumble force feedback events - scales from 0 (disabled) to a maximum of 255.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 255 (100%)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="frame">
               <bool>true</bool>
@@ -521,37 +450,123 @@
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
              </property>
+             <property name="suffix">
+              <string> / 255</string>
+             </property>
              <property name="maximum">
               <number>255</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Rumble Length:</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::TextFormat::PlainText</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
              </property>
             </widget>
            </item>
            <item row="1" column="1">
             <widget class="QSpinBox" name="rumbleLengthBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of rumble motor activation when pulling the trigger offscreen, in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of rumble motor activation when pulling the trigger offscreen, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 150 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string> ms</string>
              </property>
              <property name="maximum">
               <number>9999</number>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QSpinBox" name="holdToPauseLengthBox">
+           <item row="0" column="3">
+            <widget class="QSpinBox" name="solenoidNormalIntervalBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Hold To Pause&lt;/span&gt; mode is enabled, how long should the buttons be held before Pause Mode activates?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string> ms</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QSpinBox" name="solenoidHoldLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string> ms</string>
+             </property>
+             <property name="maximum">
+              <number>9999</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Hold-to-Pause Length:</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::TextFormat::PlainText</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Solenoid Interval:</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::TextFormat::PlainText</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QSpinBox" name="holdToPauseLengthBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Hold To Pause&lt;/span&gt; mode is enabled, how long (in milliseconds) should the buttons be held before Pause Mode activates?&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 2500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string> ms</string>
              </property>
              <property name="maximum">
               <number>9999</number>
@@ -559,70 +574,25 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QSpinBox" name="neopixelStrandLengthBox">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs are in the NeoPixel chain.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Autofire Wait Factor:</string>
              </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+             <property name="textFormat">
+              <enum>Qt::TextFormat::PlainText</enum>
              </property>
-             <property name="correctionMode">
-              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
              </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>100</number>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="0" column="3">
-            <widget class="QSpinBox" name="solenoidNormalIntervalBox">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-             </property>
-             <property name="correctionMode">
-              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QSpinBox" name="solenoidFastIntervalBox">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-             </property>
-             <property name="correctionMode">
-              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="3">
-            <widget class="QSpinBox" name="solenoidHoldLengthBox">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-             </property>
-             <property name="correctionMode">
-              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-             </property>
-             <property name="maximum">
-              <number>9999</number>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="3">
+           <item row="3" column="2">
             <widget class="QSpinBox" name="autofireWaitFactorBox">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The multiplier to be applied for the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The multiplier to be applied for the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 3(x)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
@@ -632,6 +602,9 @@
              </property>
              <property name="showGroupSeparator" stdset="0">
               <bool>false</bool>
+             </property>
+             <property name="suffix">
+              <string>x</string>
              </property>
              <property name="minimum">
               <number>2</number>
@@ -644,140 +617,393 @@
           </layout>
          </widget>
         </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
+         <widget class="QGroupBox" name="neopixelGroupBox">
+          <property name="title">
+           <string>NeoPixels</string>
           </property>
-          <property name="maximumSize">
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <spacer name="horizontalSpacer_10">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>NeoPixel Strand Length: </string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="neopixelStrandLengthBox">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs are in the NeoPixel chain.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="buttonSymbols">
+                <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+               </property>
+               <property name="correctionMode">
+                <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+               </property>
+               <property name="suffix">
+                <string> Pixel(s)</string>
+               </property>
+               <property name="prefix">
+                <string/>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_11">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <spacer name="horizontalSpacer_12">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Static NeoPixels: </string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="customLEDstaticSpinbox">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How many LEDs in the NeoPixel chain are statically colored&lt;span style=&quot; font-weight:700;&quot;/&gt;- &lt;span style=&quot; font-weight:700;&quot;&gt;these won't be affected by menu elements or MAMEHOOKER LED events.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="suffix">
+                <string> Pixel(s)</string>
+               </property>
+               <property name="prefix">
+                <string>First </string>
+               </property>
+               <property name="maximum">
+                <number>3</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="customLEDstaticBtn1">
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                 <underline>false</underline>
+                 <kerning>false</kerning>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Set the color of the first static NeoPixel.</string>
+               </property>
+               <property name="text">
+                <string>Static Color 1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="customLEDstaticBtn2">
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Set the color of the second static NeoPixel.</string>
+               </property>
+               <property name="text">
+                <string>Static Color 2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="customLEDstaticBtn3">
+               <property name="font">
+                <font>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Set the color of the third static NeoPixel.</string>
+               </property>
+               <property name="text">
+                <string>Static Color 3</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_13">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
            <size>
-            <width>16777215</width>
-            <height>115</height>
+            <width>20</width>
+            <height>40</height>
            </size>
           </property>
+         </spacer>
+        </item>
+        <item alignment="Qt::AlignmentFlag::AlignBottom">
+         <widget class="QGroupBox" name="tinyUSBGroupboxNew">
           <property name="title">
            <string>TinyUSB Identifier</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_5">
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="productNameInput">
-             <property name="toolTip">
-              <string>The Product Name that the gun reports to the PC.</string>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
+            <widget class="QGroupBox" name="tUSBLayoutAdvanced">
+             <property name="font">
+              <font>
+               <kerning>false</kerning>
+              </font>
              </property>
-             <property name="inputMask">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="maxLength">
-              <number>15</number>
-             </property>
-             <property name="placeholderText">
-              <string>(15 Characters)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="productIdConverted">
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>Product ID:</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
+             <property name="title">
+              <string/>
              </property>
              <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="productIdInput">
+                <property name="toolTip">
+                 <string>The Product ID that the gun reports when connected to the PC, in decimal (with its hexadecimal equivalent).</string>
+                </property>
+                <property name="inputMethodHints">
+                 <set>Qt::InputMethodHint::ImhDigitsOnly</set>
+                </property>
+                <property name="inputMask">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="maxLength">
+                 <number>5</number>
+                </property>
+                <property name="placeholderText">
+                 <string>(In Decimal)</string>
+                </property>
+                <property name="clearButtonEnabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="productIdConverted">
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="productNameInput">
+                <property name="toolTip">
+                 <string>The Product Name that the gun reports to the PC.</string>
+                </property>
+                <property name="inputMask">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="maxLength">
+                 <number>15</number>
+                </property>
+                <property name="placeholderText">
+                 <string>(15 Characters)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>Product ID:</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Product Name:</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="5">
+               <spacer name="horizontalSpacer_8">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_14">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>→</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::PlainText</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>Product Name:</string>
+           <item>
+            <widget class="QGroupBox" name="tUSBLayoutSimple">
+             <property name="font">
+              <font>
+               <kerning>false</kerning>
+              </font>
              </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
+             <property name="title">
+              <string/>
              </property>
              <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item alignment="Qt::AlignmentFlag::AlignHCenter">
+               <widget class="QRadioButton" name="tUSB_p1">
+                <property name="text">
+                 <string>P1</string>
+                </property>
+               </widget>
+              </item>
+              <item alignment="Qt::AlignmentFlag::AlignHCenter">
+               <widget class="QRadioButton" name="tUSB_p2">
+                <property name="text">
+                 <string>P2</string>
+                </property>
+               </widget>
+              </item>
+              <item alignment="Qt::AlignmentFlag::AlignHCenter">
+               <widget class="QRadioButton" name="tUSB_p3">
+                <property name="text">
+                 <string>P3</string>
+                </property>
+               </widget>
+              </item>
+              <item alignment="Qt::AlignmentFlag::AlignHCenter">
+               <widget class="QRadioButton" name="tUSB_p4">
+                <property name="text">
+                 <string>P4</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
-           <item row="0" column="5">
-            <spacer name="horizontalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="productIdInput">
-             <property name="toolTip">
-              <string>The Product ID that the gun reports when connected to the PC, in decimal (with its hexadecimal equivalent).</string>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::InputMethodHint::ImhDigitsOnly</set>
-             </property>
-             <property name="inputMask">
-              <string notr="true"/>
-             </property>
+           <item alignment="Qt::AlignmentFlag::AlignRight">
+            <widget class="QCheckBox" name="tinyUSBLayoutToggle">
              <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="maxLength">
-              <number>5</number>
-             </property>
-             <property name="placeholderText">
-              <string>(In Decimal)</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <spacer name="horizontalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_14">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>→</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::PlainText</enum>
+              <string>Advanced View</string>
              </property>
             </widget>
            </item>
@@ -791,7 +1017,7 @@
         <string>Saved Profiles</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
          <widget class="QGroupBox" name="profilesBox">
           <property name="title">
            <string>Calibration Profiles</string>
@@ -799,27 +1025,95 @@
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <layout class="QGridLayout" name="profilesArea">
+             <item row="0" column="1">
+              <widget class="QLabel" name="headerPadding">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="Line" name="line_4">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="8">
+              <widget class="QLabel" name="rightOffHeader">
+               <property name="text">
+                <string>Right</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="19">
+              <widget class="Line" name="line_9">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="14">
+              <widget class="QLabel" name="irSensHeader">
+               <property name="text">
+                <string>Sensitivity</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="renamePadding">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="11">
+              <widget class="Line" name="line_10">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="15">
+              <widget class="Line" name="line_8">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="4">
-              <widget class="QLabel" name="yScaleHeader">
+              <widget class="QLabel" name="bottomOffHeader">
                <property name="text">
-                <string>yScale</string>
+                <string>Bottom</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
-             <item row="0" column="6">
-              <widget class="QLabel" name="xCenterHeader">
+             <item row="0" column="16">
+              <widget class="QLabel" name="runModeHeader">
                <property name="text">
-                <string>xCenter</string>
+                <string>Run Mode</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
-             <item row="0" column="13">
+             <item row="0" column="17">
               <widget class="Line" name="line_3">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -827,44 +1121,17 @@
               </widget>
              </item>
              <item row="0" column="12">
-              <widget class="QLabel" name="runModeHeader">
+              <widget class="QLabel" name="TRledHeader">
                <property name="text">
-                <string>Run Mode</string>
+                <string>TRled</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="14">
-              <widget class="QLabel" name="layoutHeader">
-               <property name="text">
-                <string>Layout</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="15">
-              <widget class="Line" name="line_9">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="8">
-              <widget class="QLabel" name="yCenterHeader">
-               <property name="text">
-                <string>yCenter</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
              <item row="0" column="2">
-              <widget class="QLabel" name="xScaleHeader">
+              <widget class="QLabel" name="topOffHeader">
                <property name="frameShape">
                 <enum>QFrame::Shape::NoFrame</enum>
                </property>
@@ -875,37 +1142,17 @@
                 <number>1</number>
                </property>
                <property name="text">
-                <string>xScale</string>
+                <string>Top</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
-             <item row="0" column="11">
-              <widget class="Line" name="line_8">
+             <item row="0" column="7">
+              <widget class="Line" name="line_6">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="headerPadding">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="16">
-              <widget class="QLabel" name="colorHeader">
-               <property name="text">
-                <string>Color</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -923,34 +1170,50 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="10">
-              <widget class="QLabel" name="irSensHeader">
+             <item row="0" column="20">
+              <widget class="QLabel" name="colorHeader">
                <property name="text">
-                <string>Sensitivity</string>
+                <string>Color</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
-             <item row="0" column="7">
-              <widget class="Line" name="line_6">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="Line" name="line_4">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="renamePadding">
+             <item row="0" column="6">
+              <widget class="QLabel" name="leftOffHeader">
                <property name="text">
-                <string/>
+                <string>Left</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="10">
+              <widget class="QLabel" name="TLledHeader">
+               <property name="text">
+                <string>TLled</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="18">
+              <widget class="QLabel" name="layoutHeader">
+               <property name="text">
+                <string>Layout</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="13">
+              <widget class="Line" name="line_11">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1019,267 +1282,7 @@
           <property name="title">
            <string>Buttons Tester</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="1" column="3">
-            <widget class="QLabel" name="btnGunRightLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Right</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="btnALabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Button A</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="btnGunUpLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Up</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="margin">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="btnCLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Button C</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="btnTriggerLabel">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Trigger</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="margin">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="btnGunLeftLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Left</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="btnGunDownLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Down</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLabel" name="btnBLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Button B</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="btnStartLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Start</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="4">
-            <widget class="QLabel" name="btnSelectLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Select</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="btnPedalLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Pedal</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="margin">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="btnHomeLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Home</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="3">
-            <widget class="QLabel" name="btnPumpLabel">
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <property name="text">
-              <string>Pump Action</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::TextFormat::RichText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <layout class="QGridLayout" name="buttonsTestLayout"/>
          </widget>
         </item>
         <item>
@@ -1301,6 +1304,31 @@
               <widget class="QPushButton" name="solenoidTestBtn">
                <property name="text">
                 <string>Test Solenoid</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QPushButton" name="redLedTestBtn">
+               <property name="text">
+                <string>Test Red LED</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="greenLedTestBtn">
+               <property name="text">
+                <string>Test Green LED</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="blueLedTestBtn">
+               <property name="text">
+                <string>Test Blue LED</string>
                </property>
               </widget>
              </item>
@@ -1379,7 +1407,7 @@
         <item>
          <widget class="Line" name="line_2">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
          </widget>
         </item>
