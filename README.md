@@ -15,12 +15,12 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
 ### For Linux:
 ##### Requirements: Anything with QT5 support.
  - Arch Linux: **TODO: Aur PKGBUILD when public**
- - Other distros: Try the latest binary (built for Ubuntu 20.04 LTS, but should work for most distros?)
+ - Other distros: [Try the latest binary](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest) (built for Ubuntu 20.04 LTS, but should work for most distros?)
  - Make sure your user is part of the `dialout` group (`# usermod -a -G dialout insertusernamehere`); you'll be notified on startup if this is necessary.
 
 ### For Windows:
 ##### Requirements: Windows 7 and up (64-bit only).
- - Download the latest release zip.
+ - Download the [latest release zip.](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest)
  - Extract the `OpenFIREapp` folder from the archive to anywhere that's most convenient on your system - `OpenFIREapp.exe` should be sitting next to `Qt5Core.dll` and others, as well as the `platforms` and `styles` folders.
  - Start `OpenFIREapp.exe`
 
@@ -54,9 +54,8 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
 ### TODO:
  - Implement version comparison to latest OpenFIRE GitHub release (or at least latest as of the GUI version).
  - Add one-click firmware installation/updating from GUI (for both already flashed guns AND RP2040 devices in bootloader mode).
- - Add radio buttons for preset TinyUSB Identifier settings (for the extra picky distros that depend on set PIDs or names...)
 
 ### Special Thanks:
- * Samuel Ballentyne, Mike Lynch/Prow7, and co. for their work on the SAMCO system & derivatives, and supporting work and conception of OpenFIRE.
- * Odwalla-J, mykylegp, SawdustMaker & lemmingDev for prerelease consultation, bug testing and feedback.
+ * Samuel Ballentyne, Prow7, and co. for their work on the SAMCO system & derivatives, and supporting work and conception of OpenFIRE.
+ * Odwalla-J, mykylegp, RG2020 & lemmingDev for prerelease consultation, bug testing and feedback.
  * All early IR-GUN4ALL testers and ArcadeForums users whom provided early testing and feedback.
