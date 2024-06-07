@@ -2196,18 +2196,11 @@ void guiWindow::on_clearEepromBtn_clicked()
 
 void guiWindow::on_baudResetBtn_clicked()
 {
-    // TODO: Native version does not work for now, for some reason.
-    // Seems to be a QT bug? This is nearly identical to Earle's code.
-    qDebug() << "Sending reset command.";
+    // No need for workarounds, bootloader reset is in the firmware now.
     serialActive = true;
+    serialPort.write("Xxx");
+    serialPort.waitForBytesWritten(1000);
     serialPort.close();
-    // DIRTY HACK: just directly call OS-level apps to do this for us.
-    #ifdef Q_OS_UNIX
-    // stty does this in a neat one-liner and is standard on *nixes
-    QProcess *externalProg = new QProcess;
-    QStringList args;
-    args << "-F" << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].systemLocation()) << "1200";
-    externalProg->start("/usr/bin/stty", args);
 
 /* test stuff for potential app FW update functionality
     // At least on my system, the Bootloader device takes ~7s to appear
@@ -2226,26 +2219,6 @@ void guiWindow::on_baudResetBtn_clicked()
     qDebug() << picoPath;
     // QFile::copy("file", picoPath+"file");
 */
-    #elifdef Q_OS_WIN
-    // Ooooh, Windows has a mode option that does basically the same!
-    QProcess *externalProg = new QProcess;
-    QStringList args;
-    args << QString("%1").arg(serialFoundList[ui->comPortSelector->currentIndex()-1].portName()) << "baud=12" << "parity=n" << "data=8" << "stop=1" << "dtr=off";
-    externalProg->start("mode", args);
-    #else
-    // The builtin method that currently does not work at all atm. Let's hope to use this soon.
-    serialPort.setDataTerminalReady(false);
-    qDebug() << serialPort.isDataTerminalReady();
-    QThread::msleep(100);
-    serialPort.setBaudRate(QSerialPort::Baud1200);
-    qDebug() << serialPort.baudRate();
-    QThread::msleep(100);
-    serialPort.close();
-    QThread::msleep(100);
-    qDebug() << serialPort.baudRate();
-    qDebug() << serialPort.isDataTerminalReady();
-    serialPort.open(QIODevice::ReadOnly);
-    #endif
     ui->statusBar->showMessage("Board reset to bootloader.", 5000);
     ui->comPortSelector->setCurrentIndex(0);
     serialActive = false;
