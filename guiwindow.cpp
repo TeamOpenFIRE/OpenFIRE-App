@@ -1555,7 +1555,7 @@ void guiWindow::colorBoxes_clicked()
         }
     }
 
-    QColor colorPick = QColorDialog::getColor();
+    QColor colorPick = QColorDialog::getColor(profilesTable[slot].color);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1879,7 +1879,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticBtn1_clicked()
 {
-    QColor colorPick = QColorDialog::getColor();
+    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor1]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1898,7 +1898,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
 
 void guiWindow::on_customLEDstaticBtn2_clicked()
 {
-    QColor colorPick = QColorDialog::getColor();
+    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor2]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1917,7 +1917,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
 
 void guiWindow::on_customLEDstaticBtn3_clicked()
 {
-    QColor colorPick = QColorDialog::getColor();
+    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor3]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
