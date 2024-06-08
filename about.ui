@@ -2,16 +2,25 @@
 <ui version="4.0">
  <class>aboutDialog</class>
  <widget class="QDialog" name="aboutDialog">
+  <property name="windowModality">
+   <enum>Qt::WindowModality::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>258</height>
+    <width>370</width>
+    <height>260</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string notr="true">About OpenFIRE</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
