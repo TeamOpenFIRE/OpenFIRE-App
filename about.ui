@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>375</width>
-    <height>357</height>
+    <width>369</width>
+    <height>258</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,22 +17,27 @@
    <item>
     <layout class="QHBoxLayout" name="upperLayout">
      <item>
-      <widget class="QLabel" name="headerLogo">
-       <property name="text">
-        <string/>
+      <widget class="QLabel" name="logo">
+       <property name="enabled">
+        <bool>true</bool>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="headerText">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:22pt; font-style:italic;&quot;&gt;OpenFIRE&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:12pt; font-style:italic;&quot;&gt;The Free and Open Source&lt;br/&gt;Light Gun System for everyone.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string notr="true"/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="vectors.qrc">:/icon/openfire.png</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>false</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -41,7 +46,7 @@
    <item>
     <widget class="Line" name="line">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -54,23 +59,25 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/TeamOpenFIRE/OpenFIRE-App&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;Created for the OpenFIRE Project&lt;br/&gt;&lt;/span&gt;&lt;/a&gt;Made with blood, sweat, and QT5 on Linux.&lt;br/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Special Thanks:&lt;br/&gt;Samuel Ballantyne, for their work on the original &lt;a href=&quot;https://github.com/samuelballantyne/IR-Light-Gun&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;SAMCO lightgun system&lt;/span&gt;&lt;/a&gt;.&lt;br/&gt;Mike Lynch, AKA Prow7, for their enhanced fork and libraries.&lt;br/&gt;&lt;a href=&quot;https://forum.arcadecontrols.com/index.php/board,20.0.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;The ArcadeControls forums&lt;/span&gt;&lt;/a&gt; for their support.&lt;br/&gt;All the early GitHub testers for their feedback.&lt;br/&gt;And You, for enjoying this software!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/TeamOpenFIRE/OpenFIRE-App&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;Created for the OpenFIRE Project&lt;br/&gt;&lt;/span&gt;&lt;/a&gt;Made with blood, sweat, and Qt 5 on Linux.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Special Thanks:&lt;br/&gt;Samuel Ballantyne, for their work on the original &lt;a href=&quot;https://github.com/samuelballantyne/IR-Light-Gun&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;SAMCO lightgun system&lt;/span&gt;&lt;/a&gt;.&lt;br/&gt;Mike Lynch, AKA Prow7, for their enhanced fork and libraries.&lt;br/&gt;&lt;a href=&quot;https://forum.arcadecontrols.com/index.php/board,20.0.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#8ab4f8;&quot;&gt;The ArcadeControls forums&lt;/span&gt;&lt;/a&gt; for their support.&lt;br/&gt;All the early GitHub testers for their feedback.&lt;br/&gt;And You, for enjoying this software!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="vectors.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
