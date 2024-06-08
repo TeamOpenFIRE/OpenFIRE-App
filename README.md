@@ -1,5 +1,4 @@
-###### pretty screenies here
-
+![screenies](OFA-screenies.png)
 # OpenFIRE App
 ### Reference configuration utility for the [OpenFIRE light gun system](https://github.com/TeamOpenFIRE/OpenFIRE-Firmware), written in Qt & C++.
 
