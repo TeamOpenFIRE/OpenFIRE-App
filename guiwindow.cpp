@@ -360,24 +360,22 @@ void guiWindow::SerialLoad()
     if(serialPort.waitForBytesWritten(2000)) {
         if(serialPort.waitForReadyRead(2000)) {
             // booleans
-            QString buffer;
+            QString bufStr = serialPort.readLine().trimmed();
+            QStringList buffer = bufStr.split(',');
             for(uint8_t i = 0; i < boolTypesCount; i++) {
-                boolSettings[i] = serialPort.readLine().trimmed().toInt();
+                boolSettings[i] = buffer[i].toInt();
                 boolSettings_orig[i] = boolSettings[i];
             }
 
             // pins
             if(boolSettings[customPins]) {
                 serialPort.write("Xlp");
-                serialPort.waitForReadyRead(1000);
+                serialPort.waitForBytesWritten(2000);
+                serialPort.waitForReadyRead(2000);
+                bufStr = serialPort.readLine().trimmed();
+                buffer = bufStr.split(',');
                 for(uint8_t i = 0; i < boardInputsCount-1; i++) {
-                    inputsMap_orig[i] = serialPort.readLine().trimmed().toInt();
-                    // For some reason, QTSerial drops output shortly after this.
-                    // So we send a ping to refill the buffer.
-                    if(i == 14) {
-                        serialPort.write(".");
-                        serialPort.waitForReadyRead(1000);
-                    }
+                    inputsMap_orig[i] = buffer[i].toInt();
                 }
                 inputsMap = inputsMap_orig;
             }
@@ -386,8 +384,10 @@ void guiWindow::SerialLoad()
             serialPort.write("Xls");
             serialPort.waitForBytesWritten(2000);
             serialPort.waitForReadyRead(2000);
+            bufStr = serialPort.readLine().trimmed();
+            buffer = bufStr.split(',');
             for(uint8_t i = 0; i < settingsTypesCount; i++) {
-                settingsTable[i] = serialPort.readLine().trimmed().toInt();
+                settingsTable[i] = buffer[i].toInt();
                 settingsTable_orig[i] = settingsTable[i];
             }
 
@@ -397,17 +397,19 @@ void guiWindow::SerialLoad()
                 serialPort.write(genString.toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
-                buffer = serialPort.readLine().trimmed(), topOffset[i]->setText(buffer), profilesTable[i].topOffset = buffer.toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
-                buffer = serialPort.readLine().trimmed(), bottomOffset[i]->setText(buffer), profilesTable[i].bottomOffset = buffer.toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
-                buffer = serialPort.readLine().trimmed(), leftOffset[i]->setText(buffer), profilesTable[i].leftOffset = buffer.toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
-                buffer = serialPort.readLine().trimmed(), rightOffset[i]->setText(buffer), profilesTable[i].rightOffset = buffer.toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
-                buffer = serialPort.readLine().trimmed(), TLled[i]->setText(buffer), profilesTable[i].TLled = buffer.toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
-                buffer = serialPort.readLine().trimmed(), TRled[i]->setText(buffer), profilesTable[i].TRled = buffer.toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
-                buffer = serialPort.readLine().trimmed(), profilesTable[i].irSensitivity = buffer.toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity), irSensOldIndex[i] = profilesTable[i].irSensitivity;
-                buffer = serialPort.readLine().trimmed(), profilesTable[i].runMode = buffer.toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode), runModeOldIndex[i] = profilesTable[i].runMode;
-                buffer = serialPort.readLine().trimmed(), layoutMode[i]->setChecked(buffer.toInt()), profilesTable[i].layoutType = buffer.toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
-                buffer = serialPort.readLine().trimmed(), color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer.toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer.toLong(), profilesTable_orig[i].color = profilesTable[i].color;
-                buffer = serialPort.readLine().trimmed(), selectedProfile[i]->setText(buffer), profilesTable[i].profName = buffer, profilesTable_orig[i].profName = profilesTable[i].profName;
+                bufStr = serialPort.readLine().trimmed();
+                buffer = bufStr.split(',');
+                topOffset[i]->setText(buffer[0]), profilesTable[i].topOffset = buffer[0].toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
+                bottomOffset[i]->setText(buffer[1]), profilesTable[i].bottomOffset = buffer[1].toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
+                leftOffset[i]->setText(buffer[2]), profilesTable[i].leftOffset = buffer[2].toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
+                rightOffset[i]->setText(buffer[3]), profilesTable[i].rightOffset = buffer[3].toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
+                TLled[i]->setText(buffer[4]), profilesTable[i].TLled = buffer[4].toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
+                TRled[i]->setText(buffer[5]), profilesTable[i].TRled = buffer[5].toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
+                profilesTable[i].irSensitivity = buffer[6].toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity), irSensOldIndex[i] = profilesTable[i].irSensitivity;
+                profilesTable[i].runMode = buffer[7].toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode), runModeOldIndex[i] = profilesTable[i].runMode;
+                layoutMode[i]->setChecked(buffer[8].toInt()), profilesTable[i].layoutType = buffer[8].toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer[9].toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer[9].toLong(), profilesTable_orig[i].color = profilesTable[i].color;
+                selectedProfile[i]->setText(buffer[10]), profilesTable[i].profName = buffer[10], profilesTable_orig[i].profName = profilesTable[i].profName;
             }
             serialActive = false;
         } else {
@@ -433,49 +435,46 @@ bool guiWindow::SerialInit(int portNum)
         serialPort.write("XP");
         if(serialPort.waitForBytesWritten(2000)) {
             if(serialPort.waitForReadyRead(2000)) {
-                QString buffer = serialPort.readLine();
-                if(buffer.contains("OpenFIRE")) {
+                QString bufStr = serialPort.readLine().trimmed();
+                QStringList buffer = bufStr.split(',');
+                if(buffer[0].contains("OpenFIRE")) {
                     qDebug() << "OpenFIRE gun detected!";
-                    board.versionNumber = serialPort.readLine().trimmed().toFloat();
+                    board.versionNumber = buffer[1].toFloat();
                     qDebug() << "Version number:" << board.versionNumber;
-                    board.versionCodename = serialPort.readLine().trimmed();
+                    board.versionCodename = buffer[2];
                     qDebug() << "Version codename:" << board.versionCodename;
-                    buffer = serialPort.readLine().trimmed();
-                    if(buffer == "rpipico") {
+                    if(buffer[3] == "rpipico") {
                         board.type = rpipico;
-                    } else if(buffer == "rpipicow") {
+                    } else if(buffer[3] == "rpipicow") {
                         board.type = rpipicow;
-                    } else if(buffer == "adafruitItsyRP2040") {
+                    } else if(buffer[3] == "adafruitItsyRP2040") {
                         board.type = adafruitItsyRP2040;
-                    } else if(buffer == "adafruitKB2040") {
+                    } else if(buffer[3] == "adafruitKB2040") {
                         board.type = adafruitKB2040;
-                    } else if(buffer == "arduinoNanoRP2040") {
+                    } else if(buffer[3] == "arduinoNanoRP2040") {
                         board.type = arduinoNanoRP2040;
-                    } else if(buffer == "waveshareZero") {
+                    } else if(buffer[3] == "waveshareZero") {
                         board.type = waveshareZero;
-                    } else if(buffer == "vccgndYD") {
+                    } else if(buffer[3] == "vccgndYD") {
                         board.type = vccgndYD;
                     } else {
                         board.type = generic;
                     }
-                    //qDebug() << "Selected profile number:" << buffer;
-                    board.selectedProfile = serialPort.readLine().trimmed().toInt();
+                    board.selectedProfile = buffer[4].toInt();
                     board.previousProfile = board.selectedProfile;
                     selectedProfile[board.selectedProfile]->setChecked(true);
-                    //qDebug() << "Board type:" << buffer;
-                    serialPort.write("Xln");
-                    serialPort.waitForReadyRead(1000);
-                    buffer = serialPort.readLine().trimmed();
-                    if(buffer == "SERIALREADERR01") {
-                        tinyUSBtable.tinyUSBname = "";
-                    } else {
-                        tinyUSBtable.tinyUSBname = buffer;
-                    }
-                    tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
                     serialPort.write("Xli");
                     serialPort.waitForReadyRead(1000);
-                    tinyUSBtable.tinyUSBid = serialPort.readLine().trimmed();
+                    bufStr = serialPort.readLine().trimmed();
+                    buffer = bufStr.split(',');
+                    tinyUSBtable.tinyUSBid = buffer[0];
                     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
+                    if(buffer[1] == "SERIALREADERR01") {
+                        tinyUSBtable.tinyUSBname = "";
+                    } else {
+                        tinyUSBtable.tinyUSBname = buffer[1];
+                    }
+                    tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
                     SerialLoad();
                     return true;
                 } else {
