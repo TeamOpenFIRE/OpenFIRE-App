@@ -1294,6 +1294,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->holdToPauseToggle->setChecked(boolSettings[holdToPause]);
             ui->commonAnodeToggle->setChecked(boolSettings[commonAnode]);
             ui->lowButtonsToggle->setChecked(boolSettings[lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(boolSettings[rumbleFF]);
             ui->rumbleIntensityBox->setValue(settingsTable[rumbleStrength]);
             ui->rumbleLengthBox->setValue(settingsTable[rumbleInterval]);
             ui->holdToPauseLengthBox->setValue(settingsTable[holdToPauseLength]);
