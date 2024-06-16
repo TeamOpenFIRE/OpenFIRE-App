@@ -46,9 +46,9 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
    ./OpenFIREapp
    ```
 ### For Windows:
-#### Requires the Qt SerialPort extension to be installed from the Qt Installation Wizard or Qt Maintenance Tool
+#### Qt 5.15.2 needs to be installed from the Archive section of the Qt Installation Wizard/Maintenance Tool, which comes with all needed additional components
+#### Qt 6.x requires installing the respective SerialPort extension for the version
  - Should be buildable through CMake w/ msys2 (follow Arch Linux instructions) or the Qt Creator IDE.
-###### TODO: check for accuracy
 
 ### TODO:
  - Implement version comparison to latest OpenFIRE GitHub release (or at least latest as of the GUI version).
