@@ -1601,6 +1601,12 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
     boolSettings[rumble] = arg1;
+    if(!arg1) {
+        ui->rumbleFFToggle->setChecked(false);
+        ui->rumbleFFToggle->setEnabled(false);
+    } else {
+        ui->rumbleFFToggle->setEnabled(true);
+    }
     DiffUpdate();
 }
 
@@ -1608,6 +1614,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
     boolSettings[solenoid] = arg1;
+    if(arg1) { ui->rumbleFFToggle->setChecked(false); }
     DiffUpdate();
 }
 
@@ -1650,6 +1657,7 @@ void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
     boolSettings[rumbleFF] = arg1;
+    if(arg1) { ui->solenoidToggle->setChecked(false); }
     DiffUpdate();
 }
 

@@ -224,7 +224,7 @@
              <item>
               <widget class="QCheckBox" name="solenoidToggle">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if solenoid force feedback is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if solenoid force feedback is enabled.&lt;/p&gt;&lt;p&gt;Note that the &lt;span style=&quot; font-style:italic;&quot;&gt;Rumble FF&lt;/span&gt; setting conflicts with solenoid functionality, and will be disabled if this is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Solenoid Enabled</string>
@@ -273,6 +273,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="rumbleFFToggle">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable to have the rumble motor be used for onscreen trigger feedback, rather than the default off-screen feedback. This requires rumble to be enabled.&lt;/p&gt;&lt;p&gt;Note that &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; takes priority over this setting, and will be disabled if this is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Rumble FF</string>
                </property>
