@@ -2237,7 +2237,7 @@ void guiWindow::on_actionAbout_UI_triggered()
     QDialog *about = new QDialog;
     Ui::aboutDialog aboutDialog;
     aboutDialog.setupUi(about);
-    about->setFixedSize(370, 260);
+    about->setFixedSize(450, 300);
     about->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint | Qt::WindowCloseButtonHint);
     about->show();
 }
