@@ -1875,6 +1875,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(true);
             ui->customLEDstaticBtn3->setEnabled(true);
+            break;
         default:
             ui->customLEDstaticBtn1->setEnabled(false);
             ui->customLEDstaticBtn2->setEnabled(false);
