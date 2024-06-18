@@ -153,9 +153,9 @@ const int8_t rpipicoPresets[boardCustomPresetsCount[rpipico]][boardInputsCount-1
 
 const int8_t adafruitItsyBitsyRP2040Presets[boardCustomPresetsCount[adafruitItsyRP2040]][boardInputsCount-1] = {
     // SAMCO 2.0
-    {6, 27, 26, 11, 28, 29,
+    {6, 27, 26, -1, 28, 29,
      9, 7, 8, 10, 4, -1,
-     -1, -1, 24, 25, -1, -1,
+     11, -1, 24, 25, -1, -1,
      -1, -1, -1, -1, -1, 2,
      3, -1, -1, -1, -1, -1,
      -1}
