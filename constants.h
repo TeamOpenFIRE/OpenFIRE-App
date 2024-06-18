@@ -139,7 +139,7 @@ const QStringList adafruitItsyBitsyRP2040PresetsList = {
  * Temperature
  */
 
-const int8_t rpipicoPresets[boardCustomPresetsCount[rpipico]][boardInputsCount-1] = {
+const int8_t rpipicoPresets[1][boardInputsCount-1] = {
     // name 1: this is currently a placeholder for testing
     {1, -1, -1, -1, -1, -1,
      -1, -1, -1, -1, -1, -1,
@@ -151,7 +151,7 @@ const int8_t rpipicoPresets[boardCustomPresetsCount[rpipico]][boardInputsCount-1
     // name 2: subsequent layouts go here
 };
 
-const int8_t adafruitItsyBitsyRP2040Presets[boardCustomPresetsCount[adafruitItsyRP2040]][boardInputsCount-1] = {
+const int8_t adafruitItsyBitsyRP2040Presets[2][boardInputsCount-1] = {
     // SAMCO 2.0
     {6, 27, 26, -1, 28, 29,
      9, 7, 8, 10, 4, -1,
