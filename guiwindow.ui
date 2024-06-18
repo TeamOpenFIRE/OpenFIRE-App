@@ -137,36 +137,50 @@
         <item>
          <layout class="QHBoxLayout" name="PinsTopHalf"/>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignBottom">
-         <widget class="QCheckBox" name="customPinsEnabled">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>Enable to use custom pins mapping, or disable to use the default mappings for the current board.</string>
-          </property>
-          <property name="text">
-           <string>Use Custom Pins</string>
-          </property>
-         </widget>
+        <item>
+         <layout class="QHBoxLayout" name="PinsBottomHalf">
+          <item alignment="Qt::AlignmentFlag::AlignBottom">
+           <widget class="QCheckBox" name="customPinsEnabled">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Enable to use custom pins mapping, or disable to use the default mappings for the current board.</string>
+            </property>
+            <property name="text">
+             <string>Use Custom Pins</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignBottom">
+           <widget class="QComboBox" name="presetsBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="placeholderText">
+             <string>Preset Layouts</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

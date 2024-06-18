@@ -66,6 +66,8 @@ private slots:
 
     void on_customPinsEnabled_stateChanged(int arg1);
 
+    void on_presetsBox_currentIndexChanged(int index);
+
     void on_rumbleTestBtn_clicked();
 
     void on_solenoidTestBtn_clicked();
