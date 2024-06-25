@@ -176,7 +176,7 @@
              <bool>false</bool>
             </property>
             <property name="placeholderText">
-             <string>Preset Layouts</string>
+             <string>Select Layout Preset</string>
             </property>
            </widget>
           </item>

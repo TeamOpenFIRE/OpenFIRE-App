@@ -89,7 +89,7 @@ QLabel *TLled[PROFILES_COUNT];
 QLabel *TRled[PROFILES_COUNT];
 QComboBox *irSens[PROFILES_COUNT];
 QComboBox *runMode[PROFILES_COUNT];
-QCheckBox *layoutMode[PROFILES_COUNT];
+QComboBox *layoutMode[PROFILES_COUNT];
 QPushButton *color[PROFILES_COUNT];
 QPushButton *renameBtn[PROFILES_COUNT];
 
@@ -195,14 +195,14 @@ guiWindow::guiWindow(QWidget *parent)
         TRled[i] = new QLabel("0");
         irSens[i] = new QComboBox();
         runMode[i] = new QComboBox();
-        layoutMode[i] = new QCheckBox();
+        layoutMode[i] = new QComboBox();
         color[i] = new QPushButton();
-        topOffset[i]->setAlignment(Qt::AlignHCenter);
-        bottomOffset[i]->setAlignment(Qt::AlignHCenter);
-        leftOffset[i]->setAlignment(Qt::AlignHCenter);
-        rightOffset[i]->setAlignment(Qt::AlignHCenter);
-        TLled[i]->setAlignment(Qt::AlignHCenter);
-        TRled[i]->setAlignment(Qt::AlignHCenter);
+        topOffset[i]->setAlignment(Qt::AlignCenter);
+        bottomOffset[i]->setAlignment(Qt::AlignCenter);
+        leftOffset[i]->setAlignment(Qt::AlignCenter);
+        rightOffset[i]->setAlignment(Qt::AlignCenter);
+        TLled[i]->setAlignment(Qt::AlignCenter);
+        TRled[i]->setAlignment(Qt::AlignCenter);
         irSens[i]->addItem("Default");
         irSens[i]->addItem("Higher");
         irSens[i]->addItem("Highest");
@@ -210,8 +210,8 @@ guiWindow::guiWindow(QWidget *parent)
         runMode[i]->addItem("Normal");
         runMode[i]->addItem("1-Frame Avg");
         runMode[i]->addItem("2-Frame Avg");
-        layoutMode[i]->setToolTip("Unticked is for the default double lightbar 'square' IR arrangement.\nTicked is for the GUN4IR-compatible 'diamond' IR arrangement.");
-        connect(layoutMode[i], SIGNAL(stateChanged(int)), this, SLOT(layoutToggles_stateChanged(int)));
+        layoutMode[i]->addItems({"Square", "Diamond"});
+        connect(layoutMode[i], SIGNAL(activated(int)), this, SLOT(layoutBoxes_activated(int)));
         connect(runMode[i], SIGNAL(activated(int)), this, SLOT(runModeBoxes_activated(int)));
         color[i]->setFixedWidth(32);
         connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
@@ -296,6 +296,9 @@ guiWindow::guiWindow(QWidget *parent)
 
     // hiding tUSB elements by default since this can't be done from default
     ui->tUSBLayoutAdvanced->setVisible(false);
+
+    // set hidden by default until a board with presets is loaded
+    ui->presetsBox->setHidden(true);
 
     // Finally get to the thing!
     aliveTimer = new QTimer();
@@ -407,7 +410,7 @@ void guiWindow::SerialLoad()
                 TRled[i]->setText(buffer[5]), profilesTable[i].TRled = buffer[5].toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
                 profilesTable[i].irSensitivity = buffer[6].toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity), irSensOldIndex[i] = profilesTable[i].irSensitivity;
                 profilesTable[i].runMode = buffer[7].toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode), runModeOldIndex[i] = profilesTable[i].runMode;
-                layoutMode[i]->setChecked(buffer[8].toInt()), profilesTable[i].layoutType = buffer[8].toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                layoutMode[i]->setCurrentIndex(buffer[8].toInt()), profilesTable[i].layoutType = buffer[8].toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
                 color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer[9].toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer[9].toLong(), profilesTable_orig[i].color = profilesTable[i].color;
                 selectedProfile[i]->setText(buffer[10]), profilesTable[i].profName = buffer[10], profilesTable_orig[i].profName = profilesTable[i].profName;
             }
@@ -1405,8 +1408,9 @@ void guiWindow::BoxesFill()
             pinBoxes[i]->insertSeparator(periphSCL);
         }
     }
+    ui->presetsBox->clear();
     if(boardCustomPresetsCount[board.type]) {
-        ui->presetsBox->clear();
+        ui->presetsBox->setHidden(false);
         switch(board.type) {
         case rpipico:
         case rpipicow:
@@ -1420,6 +1424,8 @@ void guiWindow::BoxesFill()
         default:
             ui->presetsBox->setEnabled(false);
         }
+    } else {
+        ui->presetsBox->setHidden(true);
     }
     BoxesUpdate();
 }
@@ -1596,9 +1602,9 @@ void guiWindow::colorBoxes_clicked()
 }
 
 
-void guiWindow::layoutToggles_stateChanged(int arg1)
+void guiWindow::layoutBoxes_activated(int arg1)
 {
-    // Demultiplexing to figure out which tick we're using.
+    // Demultiplexing to figure out which box we're using.
     uint8_t slot;
     QObject* obj = sender();
     for(uint8_t i = 0;;i++) {

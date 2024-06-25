@@ -58,7 +58,7 @@ private slots:
 
     void colorBoxes_clicked();
 
-    void layoutToggles_stateChanged(int arg1);
+    void layoutBoxes_activated(int arg1);
 
     void irBoxes_activated(int index);
 

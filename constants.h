@@ -112,9 +112,9 @@ enum layoutTypes_e {
 
 const uint8_t boardCustomPresetsCount[presetBoardsCount] = {
     0, // padding
-    1, // rpipico
-    1, // rpipicow
-    2, // itsybitsy
+    0, // rpipico
+    0, // rpipicow
+    1, // itsybitsy
     0, // KB2040
     0, // arduinoNano
     0, // waveshareZero
@@ -126,7 +126,6 @@ const QStringList rpipicoPresetsList = {
 };
 
 const QStringList adafruitItsyBitsyRP2040PresetsList = {
-    "SAMCO 2.0",
     "SAMCO 1.1"
 };
 
@@ -153,13 +152,14 @@ const int8_t rpipicoPresets[1][boardInputsCount-1] = {
 
 const int8_t adafruitItsyBitsyRP2040Presets[2][boardInputsCount-1] = {
     // SAMCO 2.0
+    /*
     {6, 27, 26, -1, 28, 29,
      9, 7, 8, 10, 4, -1,
      11, -1, 24, 25, -1, -1,
      -1, -1, -1, -1, -1, 2,
      3, -1, -1, -1, -1, -1,
      -1}
-    ,
+    ,*/
     // SAMCO 1.1
     {10, 6, 7, -1, -1, -1,
      -1, -1, -1, -1, 27, -1,
