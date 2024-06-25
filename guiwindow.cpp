@@ -477,6 +477,9 @@ bool guiWindow::SerialInit(int portNum)
                     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
                     SerialLoad();
                     return true;
+                } else if(buffer[0].contains("Device not available")) {
+                    PopupWindow("Camera not available!", "Device was detected, but data received indicates that the camera is in a bad state.\nThis can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\nThe camera must be removed or resoldered to resolve this.", "Device Error!", 3);
+                    return false;
                 } else {
                     qDebug() << "Port did not respond with expected response! Seong fucked this up again.";
                     return false;
