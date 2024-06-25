@@ -1405,6 +1405,22 @@ void guiWindow::BoxesFill()
             pinBoxes[i]->insertSeparator(periphSCL);
         }
     }
+    if(boardCustomPresetsCount[board.type]) {
+        ui->presetsBox->clear();
+        switch(board.type) {
+        case rpipico:
+        case rpipicow:
+            ui->presetsBox->setEnabled(true);
+            ui->presetsBox->addItems(rpipicoPresetsList);
+            break;
+        case adafruitItsyRP2040:
+            ui->presetsBox->setEnabled(true);
+            ui->presetsBox->addItems(adafruitItsyBitsyRP2040PresetsList);
+            break;
+        default:
+            ui->presetsBox->setEnabled(false);
+        }
+    }
     BoxesUpdate();
 }
 
@@ -1454,6 +1470,10 @@ void guiWindow::pinBoxes_activated(int index)
                 pin = i;
                 break;
             }
+    }
+
+    if(ui->presetsBox->currentIndex() > -1) {
+        ui->presetsBox->setCurrentIndex(-1);
     }
 
     if(!index) {
@@ -1598,6 +1618,44 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
     boolSettings[customPins] = arg1;
     BoxesUpdate();
     DiffUpdate();
+}
+
+
+void guiWindow::on_presetsBox_currentIndexChanged(int index)
+{
+    if(index > -1) {
+        if(!ui->customPinsEnabled->isChecked()) { ui->customPinsEnabled->setChecked(true); }
+        for(uint8_t i = 0; i < 30; i++) {
+            pinBoxes[i]->setCurrentIndex(btnUnmapped);
+            pinBoxesOldIndex[i] = btnUnmapped;
+            currentPins[i] = btnUnmapped;
+        }
+        for(uint8_t i = 0; i < boardInputsCount-1; i++) {
+            switch(board.type) {
+            case rpipico:
+            case rpipicow:
+                if(rpipicoPresets[index][i] > -1) {
+                    pinBoxes[rpipicoPresets[index][i]]->setCurrentIndex(i+1);
+                    pinBoxesOldIndex[rpipicoPresets[index][i]] = i+1;
+                    currentPins[rpipicoPresets[index][i]] = i+1;
+                }
+                inputsMap[i] = rpipicoPresets[index][i];
+                break;
+            case adafruitItsyRP2040:
+                if(adafruitItsyBitsyRP2040Presets[index][i] > -1) {
+                    pinBoxes[adafruitItsyBitsyRP2040Presets[index][i]]->setCurrentIndex(i+1);
+                    pinBoxesOldIndex[adafruitItsyBitsyRP2040Presets[index][i]] = i+1;
+                    currentPins[adafruitItsyBitsyRP2040Presets[index][i]] = i+1;
+                }
+                inputsMap[i] = adafruitItsyBitsyRP2040Presets[index][i];
+                break;
+            default:
+                // lol wut
+                break;
+            }
+        }
+        DiffUpdate();
+    }
 }
 
 

@@ -29,6 +29,7 @@ enum boardTypes_e {
     arduinoNanoRP2040,
     waveshareZero,
     vccgndYD,
+    presetBoardsCount,
     generic = 255
 };
 
@@ -107,6 +108,66 @@ enum pinTypes_e {
 enum layoutTypes_e {
     layoutSquare = 0,
     layoutDiamond
+};
+
+const uint8_t boardCustomPresetsCount[presetBoardsCount] = {
+    0, // padding
+    1, // rpipico
+    1, // rpipicow
+    2, // itsybitsy
+    0, // KB2040
+    0, // arduinoNano
+    0, // waveshareZero
+    0, // vccgnd
+};
+
+const QStringList rpipicoPresetsList = {
+    "EZCon"
+};
+
+const QStringList adafruitItsyBitsyRP2040PresetsList = {
+    "SAMCO 2.0",
+    "SAMCO 1.1"
+};
+
+/* Inputs map order:
+ * Trigger, A, B, C, Start, Select,
+ * Up, Down, Left, Right, Pedal, Pedal2,
+ * Home, Pump, Rumble Sig, Solenoid Sig, Rumble Switch, Solenoid Switch,
+ * Autofire Switch, NeoPixel, LEDR, LEDG, LEDB, Camera SDA,
+ * Camera SCL, Periph SDA, Periph SCL, Battery, Analog X, Analog Y,
+ * Temperature
+ */
+
+const int8_t rpipicoPresets[1][boardInputsCount-1] = {
+    // name 1: this is currently a placeholder for testing
+    {1, -1, -1, -1, -1, -1,
+     -1, -1, -1, -1, -1, -1,
+     -1, -1, -1, -1, -1, -1,
+     -1, -1, -1, -1, -1, -1,
+     -1, -1, -1, -1, -1, -1,
+     -1}
+    ,
+    // name 2: subsequent layouts go here
+};
+
+const int8_t adafruitItsyBitsyRP2040Presets[2][boardInputsCount-1] = {
+    // SAMCO 2.0
+    {6, 27, 26, -1, 28, 29,
+     9, 7, 8, 10, 4, -1,
+     11, -1, 24, 25, -1, -1,
+     -1, -1, -1, -1, -1, 2,
+     3, -1, -1, -1, -1, -1,
+     -1}
+    ,
+    // SAMCO 1.1
+    {10, 6, 7, -1, -1, -1,
+     -1, -1, -1, -1, 27, -1,
+     9, -1, 8, -1, -1, -1,
+     -1, -1, -1, -1, -1, 2,
+     3, -1, -1, -1, -1, -1,
+     -1}
+    ,
 };
 
 typedef struct boardInfo_t {
