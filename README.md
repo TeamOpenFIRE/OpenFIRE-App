@@ -57,5 +57,5 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
 
 ### Special Thanks:
  * Samuel Ballentyne, Prow7, and co. for their work on the SAMCO system & derivatives, and supporting work and conception of OpenFIRE.
- * Odwalla-J, mykylegp, RG2020 & lemmingDev for prerelease consultation, bug testing and feedback.
+ * Odwalla-J, mrkylegp, RG2020 & lemmingDev for prerelease consultation, bug testing and feedback.
  * All early IR-GUN4ALL testers and ArcadeForums users whom provided early testing and feedback.
