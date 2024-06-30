@@ -2060,12 +2060,12 @@ void guiWindow::serialPort_readyRead()
                 testLabel[button-1]->setText(valuesNameList[button]);
             } else if(idleBuffer.contains("Temperature:")) {
                 uint8_t temp = idleBuffer.trimmed().right(2).toInt();
-                if(temp > 70) {
-                    testLabel[14]->setText(QString("<font color=#FF0000>Temp: %1</font>").arg(temp));
-                } else if(temp > 60) {
-                    testLabel[14]->setText(QString("<font color=#EABD2B>Temp: %1</font>").arg(temp));
+                if(temp > tempShutoff) {
+                    testLabel[14]->setText(QString("<font color=#FF0000>Temp: %1°C</font>").arg(temp));
+                } else if(temp > tempWarning) {
+                    testLabel[14]->setText(QString("<font color=#EABD2B>Temp: %1°C</font>").arg(temp));
                 } else {
-                    testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1</font>").arg(temp));
+                    testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1°C</font>").arg(temp));
                 }
             } else if(idleBuffer.contains("Analog:")) {
                 uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();

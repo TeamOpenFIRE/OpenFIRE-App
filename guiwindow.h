@@ -210,6 +210,10 @@ private:
     // Table of tunables, as loaded from gun firmware
     uint32_t settingsTable_orig[settingsTypesCount];
 
+    // TODO: add this to settingsTable (5.1?)
+    uint8_t tempWarning = 35;
+    uint8_t tempShutoff = 42;
+
     // because pinBoxes' "->currentIndex" gets updated AFTER calling its activation signal,
     // we need to save its last index to properly compare and prevent duplicate changes,
     // and then update it at the end of the activate signal.
