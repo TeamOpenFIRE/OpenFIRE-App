@@ -248,7 +248,7 @@
              <item>
               <widget class="QCheckBox" name="autofireToggle">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set if solenoid full auto is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable for continuous automatic solenoid feedback while trigger depressed.&lt;/p&gt;&lt;p&gt;Note that if &lt;span style=&quot; font-style:italic;&quot;&gt;Rumble FF&lt;/span&gt; is enabled, this option will provide continuous rumble motor feedback instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Autofire Enabled</string>
