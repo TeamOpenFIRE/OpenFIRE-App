@@ -1919,15 +1919,19 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
     settingsTable[customLEDcount] = arg1;
+    if(arg1 < settingsTable[customLEDstatic]) {
+        ui->customLEDstaticSpinbox->setValue(arg1);
+    }
     DiffUpdate();
 }
 
 
 void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 {
-    settingsTable[customLEDstatic] = arg1;
+    if(arg1 > settingsTable[customLEDcount]) { ui->customLEDstaticSpinbox->setValue(settingsTable[customLEDcount]); }
+    else { settingsTable[customLEDstatic] = arg1; }
     if(customLEDstatic) {
-        switch(arg1) {
+        switch(settingsTable[customLEDstatic]) {
         case 1:
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(false);
