@@ -14,7 +14,7 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
 ### For Linux:
 ##### Requirements: Anything with QT5 support.
  - Arch Linux: AUR PKGBUILD @ [`openfireapp`](https://aur.archlinux.org/packages/openfireapp)
- - Other distros: [Try the latest binary](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest) (built for Ubuntu 20.04 LTS, but should work for most distros?)
+ - Other distros: Use `OpenFIRE_App-x86_64.AppImage` [from the releases page](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest)
  - Make sure your user is part of the `dialout` group (`# usermod -a -G dialout insertusernamehere`); you'll be notified on startup if this is necessary. Log out and back in again for the change to take effect.
    - If you get the error message `usermod: group 'dialout' does not exist` when running the command above, you'll need to create the group (`# groupadd dialout`) and reboot for the change to take effect before trying again.
 
