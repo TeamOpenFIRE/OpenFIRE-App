@@ -36,6 +36,13 @@
 #include <QDesktopServices>
 #include <QUrl>
 
+#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
+#include <unistd.h>
+#include <sys/stat.h>
+#endif
+
+
+
 // Currently loaded board object
 boardInfo_s board;
 
@@ -121,6 +128,23 @@ void guiWindow::PortsSearch()
         if(!usbName.length()) {
             PopupWindow("No OpenFIRE devices detected!", "Is the microcontroller board currently running OpenFIRE and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nThis app will now close.", "ERROR", 4);
             exit(1);
+        }else{
+#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
+            if(getuid()) {
+                auto deviceName = usbName.first();
+                QFileInfo fi(deviceName);
+                auto neededGroup = fi.group();
+                auto neededGid = fi.groupId();
+                if(!group_member(neededGid)) {
+                    PopupWindow("User doesn't have serial permissions!",
+                    QString("Currently, your user is not allowed to have access to serial devices.\n\nTo add yourself to the right group, run this command in a terminal and then re-login to your session: \n\nsudo usermod -aG %2 %1").arg(qEnvironmentVariable("USER")).arg(neededGroup), "Permission error", 2);
+                    exit(0);
+                }
+            } else {
+                PopupWindow("Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.", "ERROR", 4);
+                exit(2);
+            }
+#endif
         }
     }
 }
@@ -130,22 +154,6 @@ guiWindow::guiWindow(QWidget *parent)
     , ui(new Ui::guiWindow)
 {
     ui->setupUi(this);
-
-#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
-    if(qEnvironmentVariable("USER") != "root") {
-        QProcess *externalProg = new QProcess;
-        QStringList args;
-        externalProg->start("/usr/bin/groups", args);
-        externalProg->waitForFinished();
-        if(!externalProg->readAllStandardOutput().contains("dialout")) {
-            PopupWindow("User doesn't have serial permissions!", QString("Currently, your user is not allowed to have access to serial devices.\n\nTo add yourself to the right group, run this command in a terminal and then re-login to your session: \n\nsudo usermod -aG dialout %1").arg(qEnvironmentVariable("USER")), "Permission error", 2);
-            exit(0);
-        }
-    } else {
-        PopupWindow("Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.", "ERROR", 4);
-        exit(2);
-    }
-#endif
 
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
@@ -2204,15 +2212,15 @@ void guiWindow::serialPort_readyRead()
 {
     if(!serialActive) {
         while(!serialPort.atEnd()) {
-            QString idleBuffer = serialPort.readLine();
+            QString idleBuffer = serialPort.readLine().trimmed();
             if(idleBuffer.contains("Pressed:")) {
-                uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
+                uint8_t button = idleBuffer.right(2).toInt();
                 testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
             } else if(idleBuffer.contains("Released:")) {
-                uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
+                uint8_t button = idleBuffer.right(2).toInt();
                 testLabel[button-1]->setText(valuesNameList[button]);
             } else if(idleBuffer.contains("Temperature:")) {
-                uint8_t temp = idleBuffer.trimmed().rightRef(2).toInt();
+                uint8_t temp = idleBuffer.right(2).toInt();
                 if(temp > tempShutoff) {
                     testLabel[14]->setText(QString("<font color=#FF0000>Temp: %1°C</font>").arg(temp));
                 } else if(temp > tempWarning) {
@@ -2221,7 +2229,7 @@ void guiWindow::serialPort_readyRead()
                     testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1°C</font>").arg(temp));
                 }
             } else if(idleBuffer.contains("Analog:")) {
-                uint8_t analogDir = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t analogDir = idleBuffer.right(1).toInt();
                 if(analogDir) {
                     switch(analogDir) {
                     case 1: testLabel[15]->setText("<font color=#FF0000>Analog 🡹</font>"); break;
@@ -2238,14 +2246,14 @@ void guiWindow::serialPort_readyRead()
                 }
                 // no idea here lol
             } else if(idleBuffer.contains("Profile: ")) {
-                uint8_t selection = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t selection = idleBuffer.right(1).toInt();
                 if(selection != board.selectedProfile) {
                     board.selectedProfile = selection;
                     selectedProfile[selection]->setChecked(true);
                 }
                 DiffUpdate();
             } else if(idleBuffer.contains("UpdatedProf: ")) {
-                uint8_t selection = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t selection = idleBuffer.right(1).toInt();
                 if(selection != board.selectedProfile) {
                     selectedProfile[selection]->setChecked(true);
                 }
