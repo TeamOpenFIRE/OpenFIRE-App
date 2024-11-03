@@ -2207,10 +2207,12 @@ void guiWindow::serialPort_readyRead()
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
                 uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
-                testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
+                testLabel[button-1]->setStyleSheet("background-color: #FF0000");
+                //testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
             } else if(idleBuffer.contains("Released:")) {
                 uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
-                testLabel[button-1]->setText(valuesNameList[button]);
+                testLabel[button-1]->setStyleSheet("");
+                //testLabel[button-1]->setText(valuesNameList[button]);
             } else if(idleBuffer.contains("Temperature:")) {
                 uint8_t temp = idleBuffer.trimmed().rightRef(2).toInt();
                 if(temp > tempShutoff) {
