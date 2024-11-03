@@ -2163,7 +2163,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
     }
 }
 
-
+// TODO: cali should use a fullscreen window depicting target graphics w/ hidden cursor. This should be its own method and activated when "Cali:" is detected in the serial stream.
 void guiWindow::on_calib1Btn_clicked()
 {
     serialPort.write("XC1C");
@@ -2206,13 +2206,9 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
             if(idleBuffer.contains("Pressed:")) {
-                uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
-                testLabel[button-1]->setStyleSheet("background-color: #FF0000");
-                //testLabel[button-1]->setText(QString("<font color=#FF0000>%1</font>").arg(valuesNameList[button]));
+                testLabel[idleBuffer.trimmed().rightRef(2).toInt()-1]->setStyleSheet("background-color: #FF0000");
             } else if(idleBuffer.contains("Released:")) {
-                uint8_t button = idleBuffer.trimmed().rightRef(2).toInt();
-                testLabel[button-1]->setStyleSheet("");
-                //testLabel[button-1]->setText(valuesNameList[button]);
+                testLabel[idleBuffer.trimmed().rightRef(2).toInt()-1]->setStyleSheet("");
             } else if(idleBuffer.contains("Temperature:")) {
                 uint8_t temp = idleBuffer.trimmed().rightRef(2).toInt();
                 if(temp > tempShutoff) {
@@ -2223,22 +2219,20 @@ void guiWindow::serialPort_readyRead()
                     testLabel[14]->setText(QString("<font color=#11D00A>Temp: %1°C</font>").arg(temp));
                 }
             } else if(idleBuffer.contains("Analog:")) {
+                // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
                 uint8_t analogDir = idleBuffer.trimmed().rightRef(1).toInt();
                 if(analogDir) {
                     switch(analogDir) {
-                    case 1: testLabel[15]->setText("<font color=#FF0000>Analog 🡹</font>"); break;
-                    case 2: testLabel[15]->setText("<font color=#FF0000>Analog 🡼</font>"); break;
-                    case 3: testLabel[15]->setText("<font color=#FF0000>Analog 🡸</font>"); break;
-                    case 4: testLabel[15]->setText("<font color=#FF0000>Analog 🡿</font>"); break;
-                    case 5: testLabel[15]->setText("<font color=#FF0000>Analog 🡻</font>"); break;
-                    case 6: testLabel[15]->setText("<font color=#FF0000>Analog 🡾</font>"); break;
-                    case 7: testLabel[15]->setText("<font color=#FF0000>Analog 🡺</font>"); break;
-                    case 8: testLabel[15]->setText("<font color=#FF0000>Analog 🡽</font>"); break;
+                        case 1: testLabel[15]->setText("<font color=#FF0000>Analog 🡹</font>"); break;
+                        case 2: testLabel[15]->setText("<font color=#FF0000>Analog 🡼</font>"); break;
+                        case 3: testLabel[15]->setText("<font color=#FF0000>Analog 🡸</font>"); break;
+                        case 4: testLabel[15]->setText("<font color=#FF0000>Analog 🡿</font>"); break;
+                        case 5: testLabel[15]->setText("<font color=#FF0000>Analog 🡻</font>"); break;
+                        case 6: testLabel[15]->setText("<font color=#FF0000>Analog 🡾</font>"); break;
+                        case 7: testLabel[15]->setText("<font color=#FF0000>Analog 🡺</font>"); break;
+                        case 8: testLabel[15]->setText("<font color=#FF0000>Analog 🡽</font>"); break;
                     }
-                } else {
-                    testLabel[15]->setText("Analog");
-                }
-                // no idea here lol
+                } else { testLabel[15]->setText("Analog"); }
             } else if(idleBuffer.contains("Profile: ")) {
                 uint8_t selection = idleBuffer.trimmed().rightRef(1).toInt();
                 if(selection != board.selectedProfile) {
