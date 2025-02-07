@@ -19,9 +19,9 @@ set(TS_FILES
 set(PROJECT_SOURCES
         src/main.cpp
         src/constants.h
-        src/guiwindow.cpp
-        src/guiwindow.h
-        src/guiwindow.ui
+        src/appmainwindow.cpp
+        src/appmainwindow.h
+        src/appmainwindow.ui
         src/about.ui
         img/vectors.qrc
         ${TS_FILES}
