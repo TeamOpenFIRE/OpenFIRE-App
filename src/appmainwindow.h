@@ -15,8 +15,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef GUIWINDOW_H
-#define GUIWINDOW_H
+#ifndef APPMAINWINDOW_H
+#define APPMAINWINDOW_H
 
 #include "constants.h"
 #include <QMainWindow>

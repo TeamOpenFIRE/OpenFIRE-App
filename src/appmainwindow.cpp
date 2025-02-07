@@ -15,10 +15,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "guiwindow.h"
+#include "appmainwindow.h"
 #include "constants.h"
-#include "ui_guiwindow.h"
+#include "ui_appmainwindow.h"
 #include "ui_about.h"
+
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QRadioButton>

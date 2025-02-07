@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/boardPics">
+        <file alias="pico.svg">buildinBoardPics/pico.svg</file>
+        <file alias="adafruitItsy2040.svg">buildinBoardPics/adafruitItsy2040.svg</file>
+        <file alias="arduinoNano2040.svg">buildinBoardPics/arduinoNano2040.svg</file>
+        <file alias="unknown.svg">buildinBoardPics/unknown.svg</file>
+        <file alias="adafruitKB2040.svg">buildinBoardPics/adafruitKB2040.svg</file>
+        <file alias="waveshareZero.svg">buildinBoardPics/waveshareZero.svg</file>
+        <file alias="picow.svg">buildinBoardPics/picow.svg</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file alias="icon.png">ico/openfire.png</file>
+        <file alias="edit.png">ico/edit.png</file>
+        <file alias="openfire.png">ico/typeface.png</file>
+        <file alias="donate.svg">ico/donate.svg</file>
+    </qresource>
+</RCC>
