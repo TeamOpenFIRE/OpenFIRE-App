@@ -26,6 +26,8 @@ set(PROJECT_SOURCES
         src/appserial.cpp
         src/about.ui
         img/vectors.qrc
+        boards/boardPics/boards.qrc
+        boards/OpenFIREshared.h
         ${TS_FILES}
 )
 
