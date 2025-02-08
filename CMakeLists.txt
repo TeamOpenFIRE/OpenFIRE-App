@@ -22,6 +22,8 @@ set(PROJECT_SOURCES
         src/appmainwindow.cpp
         src/appmainwindow.h
         src/appmainwindow.ui
+        src/appserial.h
+        src/appserial.cpp
         src/about.ui
         img/vectors.qrc
         ${TS_FILES}
