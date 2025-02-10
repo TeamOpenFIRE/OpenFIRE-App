@@ -18,12 +18,23 @@
 #ifndef APPMAINWINDOW_H
 #define APPMAINWINDOW_H
 
+// Amount of profiles to read in (TODO: could just be made a flexible number)
+#define PROFILES_COUNT 4
+
 #include "constants.h"
+#include "../boards/OpenFIREshared.h"
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QGraphicsItem>
 #include <QPen>
 #include <QTimer>
+#include <QVBoxLayout>
+#include <QGridLayout>
+#include <QComboBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSvgWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,7 +63,7 @@ private slots:
 
     void serialPort_readyRead();
 
-    void pinBoxes_activated(int index);
+    void pinBoxes_currentIndexChanged(int index);
 
     void renameBoxes_clicked();
 
@@ -159,41 +170,34 @@ private slots:
 private:
     Ui::guiWindow *ui;
 
-    // Used by pinBoxes, matching boardInputs_e
-    QStringList valuesNameList = {
-        "Unmapped",
-        "Trigger",
-        "Button A",
-        "Button B",
-        "Button C",
-        "Start",
-        "Select",
-        "D-Pad Up",
-        "D-Pad Down",
-        "D-Pad Left",
-        "D-Pad Right",
-        "Pedal",
-        "Alt Pedal",
-        "Home Button",
-        "Pump Action",
-        "Rumble Signal",
-        "Solenoid Signal",
-        "Rumble Switch",
-        "Solenoid Switch",
-        "Autofire Switch",
-        "External NeoPixel",
-        "RGB LED Red",
-        "RGB LED Green",
-        "RGB LED Blue",
-        "Camera SDA",
-        "Camera SCL",
-        "Peripherals SDA",
-        "Peripherals SCL",
-        "Battery Sensor",
-        "Analog Pin X",
-        "Analog Pin Y",
-        "Temp Sensor"
-    };
+    // Submethod that fills contents of boxes with OF_Const::valuesNamesList
+    void BoxesFill();
+
+    // what does this do again? lol
+    void BoxesUpdate();
+
+    // Updates board view labels/prettifies labels
+    void LabelsUpdate();
+
+    // Checks for differences in current staging settings, enables "send to board" button
+    void DiffUpdate();
+    // The same, but for NeoPixels specifically
+    void PixelsDiff();
+
+    // Search ports (TODO: move to appserial)
+    void PortsSearch();
+
+    void SelectionUpdate(uint8_t newSelection);
+
+    // TODO: move to appserial
+    bool SerialInit(int portNum);
+    void SerialLoad();
+    void SyncSettings();
+    QString PrettifyName();
+
+    // ^^^---Methods---^^^
+    //
+    // vvv---Internal Values---vvv
 
     // List of serial port objects that were found in PortsSearch()
     QList<QSerialPortInfo> serialFoundList;
@@ -205,14 +209,14 @@ private:
     uint8_t settingsDiff;
 
     // Current array of booleans, meant to be used as a bitmask
-    bool boolSettings[boolTypesCount];
+    bool boolSettings[OF_Const::boolTypesCount];
     // Array of booleans, as loaded from the gun firmware
-    bool boolSettings_orig[boolTypesCount];
+    bool boolSettings_orig[OF_Const::boolTypesCount];
 
     // Current table of tunable settings
-    uint32_t settingsTable[settingsTypesCount];
+    uint32_t settingsTable[OF_Const::settingsTypesCount];
     // Table of tunables, as loaded from gun firmware
-    uint32_t settingsTable_orig[settingsTypesCount];
+    uint32_t settingsTable_orig[OF_Const::settingsTypesCount];
 
     // TODO: add this to settingsTable (5.1?)
     uint8_t tempWarning = 35;
@@ -222,14 +226,76 @@ private:
     // Also doubles as combobox sanity check.
     // Key = pin number, Value = pin function
     // Values: -2 = N/A, -1 = reserved, 0 = available, unused
-    QMap<uint8_t, int8_t> currentPins;
+    //QMap<uint8_t, int8_t> currentPins;
 
+    // Indicator if the test window is activated (to block potentially sending noise)
     bool testMode = false;
 
-    // for timer
+    // Timer that probes the board if it's still plugged in
+    QTimer *aliveTimer;
+    // For AliveTimer that probes the board if it's still plugged in
     bool boardIsAlive = false;
 
-    QTimer *aliveTimer;
+    // ^^^---Internal Values---^^^
+    //
+    // vvv---GUI Objects---vvv
+
+    // Currently loaded board object
+    boardInfo_s board;
+
+    // Currently loaded board's TinyUSB identifier info
+    tinyUSBtable_s tinyUSBtable;
+    // TinyUSB ident, as loaded from the board
+    tinyUSBtable_s tinyUSBtable_orig;
+
+    // Current calibration profiles
+    QVector<profilesTable_s> profilesTable;
+    // Calibration profiles, as loaded from the board
+    QVector<profilesTable_s> profilesTable_orig;
+
+    // Map of what inputs are put where,
+    // Key = button/output, Value = pin number occupying, if any.
+    // Value of -1 means unmapped.
+    // Key order based on boardInputs_e, minus 1
+    // Map functions used in deduplication
+    QMap<uint8_t, int8_t> inputsMap;
+    // Inputs map, as loaded from the board
+    QMap<uint8_t, int8_t> inputsMap_orig;
+
+    // ^^^-----Typedefs up there:----^^^
+    //
+    // vvv---UI Objects down here:---vvv
+
+    // Always remember to nullptr your fresh pointers, kids!
+    // or else release mode undefined behavior will bite your ass :)
+    QVBoxLayout *PinsCenter = nullptr;
+    QGridLayout *PinsCenterSub = nullptr;
+    QGridLayout *PinsLeft = nullptr;
+    QGridLayout *PinsRight = nullptr;
+
+    QComboBox *pinBoxes[30] = {nullptr};
+    QLabel *pinLabel[30] = {nullptr};
+    QWidget *padding[30] = {nullptr};
+
+    // buttons in the test screen
+    QLabel *testLabel[16];
+
+    QRadioButton *selectedProfile[PROFILES_COUNT];
+    QLabel *topOffset[PROFILES_COUNT];
+    QLabel *bottomOffset[PROFILES_COUNT];
+    QLabel *leftOffset[PROFILES_COUNT];
+    QLabel *rightOffset[PROFILES_COUNT];
+    QLabel *TLled[PROFILES_COUNT];
+    QLabel *TRled[PROFILES_COUNT];
+    QComboBox *irSens[PROFILES_COUNT];
+    QComboBox *runMode[PROFILES_COUNT];
+    QComboBox *layoutMode[PROFILES_COUNT];
+    QPushButton *color[PROFILES_COUNT];
+    QPushButton *renameBtn[PROFILES_COUNT];
+
+    QSvgWidget *centerPic = nullptr;
+    QGraphicsScene *testScene = nullptr;
+#define ALIVE_TIMER 5000
 
     // Test Mode screen points & colors
     QGraphicsEllipseItem testPointTL;
@@ -246,31 +312,5 @@ private:
     QPen testPointBRPen;
     QPen testPointMedPen;
     QPen testPointDPen;
-
-    // ^^^---Values---^^^
-    //
-    // vvv---Methods---vvv
-
-    void BoxesFill();
-
-    void BoxesUpdate();
-
-    void LabelsUpdate();
-
-    void DiffUpdate();
-
-    void PixelsDiff();
-
-    void PopupWindow(QString errorTitle, QString errorMessage, QString windowTitle, int errorType);
-
-    void PortsSearch();
-
-    void SelectionUpdate(uint8_t newSelection);
-
-    bool SerialInit(int portNum);
-
-    void SerialLoad();
-
-    void SyncSettings();
 };
 #endif // GUIWINDOW_H

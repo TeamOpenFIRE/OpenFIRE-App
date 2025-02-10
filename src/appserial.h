@@ -9,7 +9,13 @@ class AppSerialDevice : public QObject
 public:
     explicit AppSerialDevice(QObject *parent = nullptr);
 
+
+
+private:
+
+
 signals:
+
 };
 
 #endif // APPSERIAL_H

@@ -37,94 +37,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-// Currently loaded board object
-boardInfo_s board;
-
-// Currently loaded board's TinyUSB identifier info
-tinyUSBtable_s tinyUSBtable;
-// TinyUSB ident, as loaded from the board
-tinyUSBtable_s tinyUSBtable_orig;
-
+#define PINS_COUNT 30
 #define PROFILES_COUNT 4
-// Current calibration profiles
-QVector<profilesTable_s> profilesTable(PROFILES_COUNT);
-// Calibration profiles, as loaded from the board
-QVector<profilesTable_s> profilesTable_orig(PROFILES_COUNT);
-
-// Map of what inputs are put where,
-// Key = button/output, Value = pin number occupying, if any.
-// Value of -1 means unmapped.
-// Key order based on boardInputs_e, minus 1
-// Map functions used in deduplication
-QMap<uint8_t, int8_t> inputsMap;
-// Inputs map, as loaded from the board
-QMap<uint8_t, int8_t> inputsMap_orig;
-
-// ^^^-----Typedefs up there:----^^^
-//
-// vvv---UI Objects down here:---vvv
-
-// Guess I'll have to do the dynamic layout spawning/destroying stuff to make things work.
-// How else do I hide things lol?
-QVBoxLayout *PinsCenter;
-QGridLayout *PinsCenterSub;
-QGridLayout *PinsLeft;
-QGridLayout *PinsRight;
-
-QComboBox *pinBoxes[30];
-QLabel *pinLabel[30];
-QWidget *padding[30];
-
-// buttons in the test screen
-QLabel *testLabel[16];
-
-QRadioButton *selectedProfile[PROFILES_COUNT];
-QLabel *topOffset[PROFILES_COUNT];
-QLabel *bottomOffset[PROFILES_COUNT];
-QLabel *leftOffset[PROFILES_COUNT];
-QLabel *rightOffset[PROFILES_COUNT];
-QLabel *TLled[PROFILES_COUNT];
-QLabel *TRled[PROFILES_COUNT];
-QComboBox *irSens[PROFILES_COUNT];
-QComboBox *runMode[PROFILES_COUNT];
-QComboBox *layoutMode[PROFILES_COUNT];
-QPushButton *color[PROFILES_COUNT];
-QPushButton *renameBtn[PROFILES_COUNT];
-
-QSvgWidget *centerPic;
-QGraphicsScene *testScene;
-#define ALIVE_TIMER 5000
-
-//
-// ^^^-------GLOBAL VARS UP THERE----------^^^
-//
-// vvv-------GUI METHODS DOWN HERE---------vvv
-//
-
-void guiWindow::PortsSearch()
-{
-    serialFoundList = QSerialPortInfo::availablePorts();
-    if(serialFoundList.isEmpty()) {
-        //statusBar()->showMessage("FATAL: No COM devices detected!");
-        PopupWindow("No devices detected!", "Is the microcontroller board currently running OpenFIRE and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nThis app will now close.", "ERROR", 4);
-        exit(1);
-    } else {
-        // Yeah, sue me, we reading this backwards to make stack management easier.
-        for(int i = serialFoundList.length() - 1; i >= 0; --i) {
-            if(serialFoundList[i].vendorIdentifier() == 0xF143) {
-                usbName.prepend(serialFoundList[i].systemLocation());
-                qDebug() << "Found device @" << serialFoundList[i].systemLocation();
-            } else {
-                qDebug() << "Deleting dummy device" << serialFoundList[i].systemLocation();
-                serialFoundList.removeAt(i);
-            }
-        }
-        if(!usbName.length()) {
-            PopupWindow("No OpenFIRE devices detected!", "Is the microcontroller board currently running OpenFIRE and is currently plugged in? Make sure it's connected and recognized by the PC.\n\nThis app will now close.", "ERROR", 4);
-            exit(1);
-        }
-    }
-}
 
 guiWindow::guiWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -139,42 +53,19 @@ guiWindow::guiWindow(QWidget *parent)
         externalProg->start("/usr/bin/groups", args);
         externalProg->waitForFinished();
         if(!externalProg->readAllStandardOutput().contains("dialout")) {
-            PopupWindow("User doesn't have serial permissions!", QString("Currently, your user is not allowed to have access to serial devices.\n\nTo add yourself to the right group, run this command in a terminal and then re-login to your session: \n\nsudo usermod -aG dialout %1").arg(qEnvironmentVariable("USER")), "Permission error", 2);
+            QMessageBox::critical(this, "ERROR: User doesn't have serial permissions!",
+                                        "Currently, your user is not allowed to have access to serial devices.\n\n"
+                                        "To add yourself to the right group, run this command in a terminal and then re-login to your session:\n\n"
+                                        "sudo usermod -aG dialout " + qEnvironmentVariable("USER"));
             exit(0);
         }
     } else {
-        PopupWindow("Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.", "ERROR", 4);
+        QMessageBox::critical(this, "ERROR: Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.");
         exit(2);
     }
 #endif
 
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
-
-    // just to be sure, init the inputsMap hashes
-    for(uint8_t i = 0; i < boardInputsCount-1; i++) {
-        inputsMap[i] = -1;
-        inputsMap_orig[i] = -1;
-    }
-
-    // sending all these children to die upon comPortSelector->on_currentIndexChanged
-    // (which gets fired immediately after ui->comPortSelector->addItems).
-    PinsCenter = new QVBoxLayout();
-    PinsCenterSub = new QGridLayout();
-    PinsLeft = new QGridLayout();
-    PinsRight = new QGridLayout();
-
-    ui->PinsTopHalf->addLayout(PinsLeft);
-    ui->PinsTopHalf->addLayout(PinsCenter);
-    ui->PinsTopHalf->addLayout(PinsRight);
-
-    for(uint8_t i = 0; i < 30; i++) {
-        pinBoxes[i] = new QComboBox();
-        connect(pinBoxes[i], SIGNAL(activated(int)), this, SLOT(pinBoxes_activated(int)));
-        pinLabel[i] = new QLabel();
-        pinLabel[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        padding[i] = new QWidget();
-        padding[i]->setMinimumHeight(25);
-    }
 
     // These can actually stay, tho.
     for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
@@ -230,28 +121,28 @@ guiWindow::guiWindow(QWidget *parent)
     // Setup test screen buttons
     for(uint8_t i = 0; i < 16; i++) {
         testLabel[i] = new QLabel;
-        if(i == 14) {
-            testLabel[i]->setText(valuesNameList[tempPin]);
-        } else if(i == 15) {
-            testLabel[i]->setText("Analog Stick");
-        } else {
-            testLabel[i]->setText(valuesNameList[i+1]);
-        }
+
+        // temperature sensor
+        if(i == 14) testLabel[i]->setText(OF_Const::valuesNameList[OF_Const::tempPin]);
+        // analog stick
+        else if(i == 15) testLabel[i]->setText("Analog Stick");
+        // every other standard input
+        else testLabel[i]->setText(OF_Const::valuesNameList[i+1]);
+
         testLabel[i]->setEnabled(false);
         testLabel[i]->setAlignment(Qt::AlignCenter);
         testLabel[i]->setFrameStyle(QFrame::Box | QFrame::Raised);
-        if(i == 15) {
-            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3, 1, 1);
-        } else if(i == 14) {
-            ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1, 1, 1);
-        } else if(i > 9) {
-            ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10, 1, 1);
-        } else if(i > 4) {
-            ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5, 1, 1);
-        } else {
-            ui->buttonsTestLayout->addWidget(testLabel[i], 0, i, 1, 1);
-        }
+
+        // analog stick
+        if(i == 15)      ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3, 1, 1);
+        // temp sensor
+        else if(i == 14) ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1, 1, 1);
+        // third/second/first row of buttons
+        else if(i > 9)   ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10, 1, 1);
+        else if(i > 4)   ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5, 1, 1);
+        else             ui->buttonsTestLayout->addWidget(testLabel[i], 0, i, 1, 1);
     }
+
     ui->buttonsTestLayout->setRowMinimumHeight(0, 32);
     ui->buttonsTestLayout->setRowMinimumHeight(1, 32);
     ui->buttonsTestLayout->setRowMinimumHeight(2, 32);
@@ -324,103 +215,34 @@ guiWindow::~guiWindow()
 }
 
 
-void guiWindow::PopupWindow(QString errorTitle, QString errorMessage, QString windowTitle, int errorType)
+void guiWindow::PortsSearch()
 {
-    QMessageBox messageBox;
-    messageBox.setText(errorTitle);
-    messageBox.setInformativeText(errorMessage);
-    messageBox.setWindowTitle(windowTitle);
-    switch(errorType) {
-    case 0:
-        // lol nothing here
-        break;
-    case 1:
-        messageBox.setIcon(QMessageBox::Question);
-        break;
-    case 2:
-        messageBox.setIcon(QMessageBox::Information);
-        break;
-    case 3:
-        messageBox.setIcon(QMessageBox::Warning);
-        break;
-    case 4:
-        messageBox.setIcon(QMessageBox::Critical);
-        break;
-    }
-    messageBox.exec();
-    // TODO: maybe we should be using Serial Port errors instead of assuming,
-    // but for now just clear it here for cleanliness.
-    serialPort.clearError();
-}
-
-
-void guiWindow::SerialLoad()
-{
-    serialActive = true;
-    serialPort.write("Xlb");
-    if(serialPort.waitForBytesWritten(2000)) {
-        if(serialPort.waitForReadyRead(2000)) {
-            // booleans
-            QString bufStr = serialPort.readLine().trimmed();
-            QStringList buffer = bufStr.split(',');
-            for(uint8_t i = 0; i < boolTypesCount; i++) {
-                boolSettings[i] = buffer[i].toInt();
-                boolSettings_orig[i] = boolSettings[i];
-            }
-
-            // pins
-            if(boolSettings[customPins]) {
-                serialPort.write("Xlp");
-                serialPort.waitForBytesWritten(2000);
-                serialPort.waitForReadyRead(2000);
-                bufStr = serialPort.readLine().trimmed();
-                buffer = bufStr.split(',');
-                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
-                    inputsMap_orig[i] = buffer[i].toInt();
-                }
-                inputsMap = inputsMap_orig;
-            }
-
-            // settings
-            serialPort.write("Xls");
-            serialPort.waitForBytesWritten(2000);
-            serialPort.waitForReadyRead(2000);
-            bufStr = serialPort.readLine().trimmed();
-            buffer = bufStr.split(',');
-            for(uint8_t i = 0; i < settingsTypesCount; i++) {
-                settingsTable[i] = buffer[i].toInt();
-                settingsTable_orig[i] = settingsTable[i];
-            }
-
-            // profiles
-            for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-                QString genString = QString("XlP%1").arg(i);
-                serialPort.write(genString.toLocal8Bit());
-                serialPort.waitForBytesWritten(2000);
-                serialPort.waitForReadyRead(2000);
-                bufStr = serialPort.readLine().trimmed();
-                buffer = bufStr.split(',');
-                topOffset[i]->setText(buffer[0]), profilesTable[i].topOffset = buffer[0].toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
-                bottomOffset[i]->setText(buffer[1]), profilesTable[i].bottomOffset = buffer[1].toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
-                leftOffset[i]->setText(buffer[2]), profilesTable[i].leftOffset = buffer[2].toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
-                rightOffset[i]->setText(buffer[3]), profilesTable[i].rightOffset = buffer[3].toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
-                TLled[i]->setText(buffer[4]), profilesTable[i].TLled = buffer[4].toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
-                TRled[i]->setText(buffer[5]), profilesTable[i].TRled = buffer[5].toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
-                profilesTable[i].irSensitivity = buffer[6].toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity);
-                profilesTable[i].runMode = buffer[7].toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode);
-                layoutMode[i]->setCurrentIndex(buffer[8].toInt()), profilesTable[i].layoutType = buffer[8].toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
-                color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer[9].toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer[9].toLong(), profilesTable_orig[i].color = profilesTable[i].color;
-                selectedProfile[i]->setText(buffer[10]), profilesTable[i].profName = buffer[10], profilesTable_orig[i].profName = profilesTable[i].profName;
-            }
-            serialActive = false;
-        } else {
-            PopupWindow("Data hasn't arrived!", "Device was detected, but settings request wasn't received in time!\nThis can happen if the app was closed in the middle of an operation.\n\nTry selecting the device again.", "Sync Error!", 4);
-            //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
-        }
+    serialFoundList = QSerialPortInfo::availablePorts();
+    if(serialFoundList.isEmpty()) {
+        QMessageBox::critical(this, "ERROR: No devices detected!",  "Is the microcontroller board currently running OpenFIRE and is currently plugged in?\n"
+                                                                    "Make sure it's connected and recognized by the PC.\n\n"
+                                                                    "This app will now close.");
+        exit(1);
     } else {
-        qDebug() << "Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?";
+        // Yeah, sue me, we reading this backwards to make stack management easier.
+        for(int i = serialFoundList.length() - 1; i >= 0; --i) {
+            if(serialFoundList[i].vendorIdentifier() == 0xF143) {
+                usbName.prepend(serialFoundList[i].systemLocation());
+                printf("Found device @ %s\n", serialFoundList[i].systemLocation().toLocal8Bit().constData());
+            } else {
+                printf("Deleting dummy device %s\n", serialFoundList[i].systemLocation().toLocal8Bit().constData());
+                serialFoundList.removeAt(i);
+            }
+        }
+        if(!usbName.length()) {
+            QMessageBox::critical(this, "ERROR: No devices detected!",  "Is the microcontroller board currently running OpenFIRE and is currently plugged in?\n"
+                                                                        "Make sure it's connected and recognized by the PC.\n\n"
+                                                                        "This app will now close.");
+            exit(1);
+        }
     }
 }
+
 
 // Bool returns success (false if failed)
 bool guiWindow::SerialInit(int portNum)
@@ -435,137 +257,211 @@ bool guiWindow::SerialInit(int portNum)
         serialPort.write("XP");
         if(serialPort.waitForBytesWritten(2000)) {
             if(serialPort.waitForReadyRead(2000)) {
-                QString bufStr = serialPort.readLine().trimmed();
-                QStringList buffer = bufStr.split(',');
+                QByteArray bufStr = serialPort.readLine().trimmed();
+                QList<QByteArray> buffer = bufStr.split(',');
                 if(buffer[0].contains("OpenFIRE")) {
-                    qDebug() << "OpenFIRE gun detected!";
-                    board.versionNumber = buffer[1];
-                    qDebug() << "Version number:" << board.versionNumber;
-                    board.versionCodename = buffer[2];
-                    qDebug() << "Version codename:" << board.versionCodename;
-                    if(buffer[3] == "rpipico") {
-                        board.type = rpipico;
-                    } else if(buffer[3] == "rpipicow") {
-                        board.type = rpipicow;
-                    } else if(buffer[3] == "adafruitItsyRP2040") {
-                        board.type = adafruitItsyRP2040;
-                    } else if(buffer[3] == "adafruitKB2040") {
-                        board.type = adafruitKB2040;
-                    } else if(buffer[3] == "arduinoNanoRP2040") {
-                        board.type = arduinoNanoRP2040;
-                    } else if(buffer[3] == "waveshareZero") {
-                        board.type = waveshareZero;
-                    } else if(buffer[3] == "vccgndYD") {
-                        board.type = vccgndYD;
-                    } else {
-                        board.type = generic;
-                    }
+                    printf("OpenFIRE gun detected!\n");
+
+                    board.versionNumber = buffer[1].constData();
+                    printf("Version number: %s\n", board.versionNumber.toLocal8Bit().constData());
+
+                    board.versionCodename = buffer[2].constData();
+                    printf("Version codename: %s\n", board.versionCodename.toLocal8Bit().constData());
+
+                    board.boardType = buffer[3].constData();
+                    printf("Board type: %s\n", board.boardType.toLocal8Bit().constData());
+
                     board.selectedProfile = buffer[4].toInt();
                     board.previousProfile = board.selectedProfile;
                     selectedProfile[board.selectedProfile]->setChecked(true);
+
                     serialPort.write("Xli");
                     serialPort.waitForReadyRead(1000);
                     bufStr = serialPort.readLine().trimmed();
                     buffer = bufStr.split(',');
                     tinyUSBtable.tinyUSBid = buffer[0];
                     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
-                    if(buffer[1] == "SERIALREADERR01") {
+                    if(buffer[1] == "SERIALREADERR01")
                         tinyUSBtable.tinyUSBname = "";
-                    } else {
-                        tinyUSBtable.tinyUSBname = buffer[1];
-                    }
+                    else tinyUSBtable.tinyUSBname = buffer[1];
+
                     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
+
                     SerialLoad();
                     return true;
                 } else if(buffer[0].contains("Device not available")) {
-                    PopupWindow("Camera not available!", "Device was detected, but data received indicates that the camera is in a bad state.\nThis can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\nThe camera must be removed or resoldered to resolve this.", "Device Error!", 3);
+                    QMessageBox::warning(this,  "Device Error: Camera not available!",
+                                                "Data received from the board indicates that the camera is in a bad state.\n"
+                                                "This can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\n"
+                                                "The camera must be removed or resoldered to resolve this.");
                     return false;
                 } else {
-                    qDebug() << "Port did not respond with expected response! Seong fucked this up again.";
+                    printf("Port did not respond with expected response! Seong fucked this up again.");
                     return false;
                 }
             } else {
-                PopupWindow("Data hasn't arrived! (Stale state?)", "Device was detected, but initial settings request wasn't received in time!\nThis can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\nTry selecting the device again.", "Sync Error!", 3);
-                qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
+                QMessageBox::warning(this,  "Data hasn't arrived! (Stale state?)",
+                                            "Device was detected, but initial settings request wasn't received in time!\n"
+                                            "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
+                                            "Try selecting the device again.");
                 return false;
             }
         } else {
-            qDebug() << "Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?";
+            printf("Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?");
             return false;
         }
     } else {
-        PopupWindow("Serial port is blocked!", "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\nPlease close the offending application and try selecting this port again.", "Port In Use!", 3);
+        QMessageBox::warning(this,  "Serial port is already in use!",
+                                    "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
+                                    "Please close the offending application and try selecting this port again.");
         return false;
+    }
+}
+
+
+void guiWindow::SerialLoad()
+{
+    serialActive = true;
+    serialPort.clear();
+    serialPort.write("Xlb");
+    if(serialPort.waitForBytesWritten(2000)) {
+        if(serialPort.waitForReadyRead(2000)) {
+            // booleans
+            QString bufStr = serialPort.readLine().trimmed();
+            QStringList buffer = bufStr.split(',');
+            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
+                if(!buffer.isEmpty()) {
+                    boolSettings[i] = buffer[i].toInt();
+                    boolSettings_orig[i] = boolSettings[i];
+                } else break;
+            }
+
+            // pins
+            if(boolSettings[OF_Const::customPins]) {
+                serialPort.clear();
+                serialPort.write("Xlp");
+                serialPort.waitForBytesWritten(2000);
+                serialPort.waitForReadyRead(2000);
+                bufStr = serialPort.readLine().trimmed();
+                buffer = bufStr.split(',');
+                for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
+                    if(!buffer.isEmpty())
+                        inputsMap_orig[i] = buffer[i].toInt();
+                    else break;
+                }
+            } else {
+                for(int i = 0; i < OF_Const::boardInputsCount; i++)
+                    inputsMap_orig[i] = OF_Const::btnUnmapped;
+            }
+
+            inputsMap = inputsMap_orig;
+
+            // settings
+            serialPort.clear();
+            serialPort.write("Xls");
+            serialPort.waitForBytesWritten(2000);
+            serialPort.waitForReadyRead(2000);
+            bufStr = serialPort.readLine().trimmed();
+            buffer = bufStr.split(',');
+            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
+                if(!buffer.isEmpty()) {
+                    settingsTable[i] = buffer[i].toInt();
+                    settingsTable_orig[i] = settingsTable[i];
+                } else break;
+            }
+
+            // profiles
+            profilesTable.resize(4), profilesTable_orig.resize(4);
+            for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+                serialPort.clear();
+                serialPort.write(QString("XlP%1").arg(i).toLocal8Bit());
+                serialPort.waitForBytesWritten(2000);
+                if(serialPort.waitForReadyRead(2000)) {
+                    // TODO (in fw): needs to be a loooot safer than it is tbh. We make a lot of assumptions here that could get hairy.
+                    bufStr = serialPort.readLine().trimmed();
+                    buffer = bufStr.split(',');
+
+                    topOffset[i]->setText(buffer[0]), profilesTable[i].topOffset = buffer[0].toInt(), profilesTable_orig[i].topOffset = profilesTable[i].topOffset;
+                    bottomOffset[i]->setText(buffer[1]), profilesTable[i].bottomOffset = buffer[1].toInt(), profilesTable_orig[i].bottomOffset = profilesTable[i].bottomOffset;
+                    leftOffset[i]->setText(buffer[2]), profilesTable[i].leftOffset = buffer[2].toInt(), profilesTable_orig[i].leftOffset = profilesTable[i].leftOffset;
+                    rightOffset[i]->setText(buffer[3]), profilesTable[i].rightOffset = buffer[3].toInt(), profilesTable_orig[i].rightOffset = profilesTable[i].rightOffset;
+                    TLled[i]->setText(buffer[4]), profilesTable[i].TLled = buffer[4].toFloat(), profilesTable_orig[i].TLled = profilesTable[i].TLled;
+                    TRled[i]->setText(buffer[5]), profilesTable[i].TRled = buffer[5].toFloat(), profilesTable_orig[i].TRled = profilesTable[i].TRled;
+                    profilesTable[i].irSensitivity = buffer[6].toInt(), profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity, irSens[i]->setCurrentIndex(profilesTable[i].irSensitivity);
+                    profilesTable[i].runMode = buffer[7].toInt(), profilesTable_orig[i].runMode = profilesTable[i].runMode, runMode[i]->setCurrentIndex(profilesTable[i].runMode);
+                    layoutMode[i]->setCurrentIndex(buffer[8].toInt()), profilesTable[i].layoutType = buffer[8].toInt(), profilesTable_orig[i].layoutType = profilesTable[i].layoutType;
+                    color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer[9].toLong(), 6, 16, QLatin1Char('0'))), profilesTable[i].color = buffer[9].toLong(), profilesTable_orig[i].color = profilesTable[i].color;
+                    selectedProfile[i]->setText(buffer[10]), profilesTable[i].profName = buffer[10].toLocal8Bit(), profilesTable_orig[i].profName = profilesTable[i].profName;
+                } else break;
+            }
+            serialActive = false;
+        } else {
+            QMessageBox::warning(this,  "Sync Error: Data hasn't arrived!!",    "Device was detected, but settings request wasn't received in time!\n"
+                                                                            "This can happen if the app was closed in the middle of an operation.\n\n"
+                                                                            "Try selecting the device again.");
+            //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
+        }
+    } else {
+        printf("Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?\n");
     }
 }
 
 
 void guiWindow::BoxesUpdate()
 {
-    if(boolSettings[customPins]) {
+    // enabling custom pins
+    if(boolSettings[OF_Const::customPins]) {
+        // enable pinboxes
+        for(int i = 0; i < PINS_COUNT; i++)
+            pinBoxes[i]->setEnabled(true);
+
         // if the custom pins setting *grabbed from the gun* has been set
-        if(boolSettings_orig[customPins]) {
-            // clear map
-            currentPins.clear();
-            // set or clear the local pins mapping
-            for(uint8_t i = 0; i < 30; i++) {
-                currentPins[i] = btnUnmapped;
-            }
-            // (re)-copy pins settings grabbed from the gun to the app catalog
-            inputsMap = inputsMap_orig;
-        // else, if the board *was using default maps* before switching to custom
+        if(boolSettings_orig[OF_Const::customPins]) {
+            // reset pinboxes
+            for(int i = 0; i < PINS_COUNT; i++)
+                pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+
+            // set pinboxes to copied values (pinbox index is off by 1)
+            for(int i = 0; i < inputsMap_orig.count(); i++)
+                if(inputsMap_orig.value(i) > OF_Const::btnUnmapped && inputsMap_orig.value(i) < PINS_COUNT)
+                    pinBoxes[inputsMap_orig.value(i)]->setCurrentIndex(i+1);
+
+        // else, if the board *was using default maps* before switching to custom (no need to re-set pinboxes)
         } else {
-            for(uint8_t i = 0; i < 30; i++) {
-                if(currentPins[i] > btnUnmapped) {
-                    inputsMap[currentPins[i]-1] = i;
+            // copy original map, which clears this map (as boards using defaults comes with no actual map instated)
+            inputsMap = inputsMap_orig;
+
+            // copy presets to inputs map
+            if(OF_Const::boardsPresetsMap.count(board.boardType.toStdString())) {
+                for(int i = 0; i < PINS_COUNT; i++) {
+                    if(OF_Const::boardsPresetsMap.at(board.boardType.toStdString()).pin[i] > OF_Const::btnUnmapped) {
+                        inputsMap[OF_Const::boardsPresetsMap.at(board.boardType.toStdString()).pin[i]] = i;
+                    }
                 }
             }
         }
-        // enable pinboxes
-        for(uint8_t i = 0; i < 30; i++) {
-            pinBoxes[i]->setEnabled(true);
-        }
-        // copy OF's native inputs map layout to app's current pins layout, copy to pinboxes.
-        for(uint8_t i = 0; i < boardInputsCount-1; i++) {
-            if(inputsMap.value(i) >= 0) {
-                currentPins[inputsMap.value(i)] = i+1;
-                pinBoxes[inputsMap.value(i)]->setCurrentIndex(currentPins[inputsMap.value(i)]);
-            }
-        }
+
         return;
+
+    // disabling custom pins, reset to presets
     } else {
-        switch(board.type) {
-        // Copy preloaded values to current pins map based on board.
-        // pico and w are the same physical board, so why need a new layout for it?
-        case rpipico:
-        case rpipicow:
-            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = rpipicoLayout[i].pinAssignment; }
-            break;
-        case adafruitItsyRP2040:
-            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitItsyRP2040Layout[i].pinAssignment; }
-            break;
-        case adafruitKB2040:
-            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = adafruitKB2040Layout[i].pinAssignment; }
-            break;
-        case arduinoNanoRP2040:
-            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = arduinoNanoRP2040Layout[i].pinAssignment; }
-            break;
-        case waveshareZero:
-            for(uint8_t i = 0; i < 30; i++) { currentPins[i] = waveshareZeroLayout[i].pinAssignment; }
-            break;
+        // reset inputs map, as it's not even referenced when custom pins are disabled
+        for(int i = 0; i < inputsMap.size(); i++)
+            inputsMap[i] = OF_Const::btnUnmapped;
+
+        // copy preset layout to pinboxes
+        if(OF_Const::boardsPresetsMap.count(board.boardType.toStdString()))
+            for(int i = 0; i < PINS_COUNT; i++) {
+                pinBoxes[i]->setEnabled(false);
+                pinBoxes[i]->setCurrentIndex(OF_Const::boardsPresetsMap.at(board.boardType.toStdString()).pin[i]+1);
+            }
+        // generics don't come with mappings
+        else for(int i = 0; i < PINS_COUNT; i++) {
+            pinBoxes[i]->setEnabled(false);
+            pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
         }
 
-        // assign pinboxes from custom pins map
-        for(uint8_t i = 0; i < 30; i++) {
-            pinBoxes[i]->setCurrentIndex(currentPins[i]);
-            pinBoxes[i]->setEnabled(false);
-        }
-        // convert app's current pins map (each pin = 1 function) to OF's native input map layout (each function = 1 pin)
-        for(uint8_t i = 0; i < 30; i++) {
-            if(currentPins[i] > btnUnmapped) {
-                inputsMap[currentPins[i]-1] = i;
-            }
-        }
+        return;
     }
 }
 
@@ -573,68 +469,67 @@ void guiWindow::BoxesUpdate()
 void guiWindow::DiffUpdate()
 {
     settingsDiff = 0;
-    if(boolSettings_orig[customPins] != boolSettings[customPins]) {
+
+    if(boolSettings_orig[OF_Const::customPins] != boolSettings[OF_Const::customPins])
         settingsDiff++;
-    }
-    if(boolSettings[customPins]) {
-        if(inputsMap_orig != inputsMap) {
+
+    if(boolSettings[OF_Const::customPins])
+        // TODO: why is inputsMap getting an entry @ key 255???
+        if(inputsMap_orig != inputsMap)
             settingsDiff++;
-        }
-    }
-    for(uint8_t i = 1; i < boolTypesCount; i++) {
-        if(boolSettings_orig[i] != boolSettings[i]) {
+
+    for(uint8_t i = 1; i < OF_Const::boolTypesCount; i++)
+        if(boolSettings_orig[i] != boolSettings[i])
             settingsDiff++;
-        }
-    }
-    for(uint8_t i = 0; i < settingsTypesCount; i++) {
-        if(settingsTable_orig[i] != settingsTable[i]) {
+
+    for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
+        if(settingsTable_orig[i] != settingsTable[i])
             settingsDiff++;
-        }
-    }
-    if(tinyUSBtable_orig.tinyUSBid != tinyUSBtable.tinyUSBid) {
+
+    if(tinyUSBtable_orig.tinyUSBid != tinyUSBtable.tinyUSBid)
         settingsDiff++;
-    }
-    if(tinyUSBtable_orig.tinyUSBname != tinyUSBtable.tinyUSBname) {
+
+    if(tinyUSBtable_orig.tinyUSBname != tinyUSBtable.tinyUSBname)
         settingsDiff++;
-    }
-    if(board.selectedProfile != board.previousProfile) {
+
+    if(board.selectedProfile != board.previousProfile)
         settingsDiff++;
-    }
+
     for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-        if(profilesTable_orig[i].profName != profilesTable[i].profName) {
+        if(profilesTable_orig[i].profName != profilesTable[i].profName)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].topOffset != profilesTable[i].topOffset) {
+
+        if(profilesTable_orig[i].topOffset != profilesTable[i].topOffset)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].bottomOffset != profilesTable[i].bottomOffset) {
+
+        if(profilesTable_orig[i].bottomOffset != profilesTable[i].bottomOffset)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].leftOffset != profilesTable[i].leftOffset) {
+
+        if(profilesTable_orig[i].leftOffset != profilesTable[i].leftOffset)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].rightOffset != profilesTable[i].rightOffset) {
+
+        if(profilesTable_orig[i].rightOffset != profilesTable[i].rightOffset)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].TLled != profilesTable[i].TLled) {
+
+        if(profilesTable_orig[i].TLled != profilesTable[i].TLled)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].TRled != profilesTable[i].TRled) {
+
+        if(profilesTable_orig[i].TRled != profilesTable[i].TRled)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].irSensitivity != profilesTable[i].irSensitivity) {
+
+        if(profilesTable_orig[i].irSensitivity != profilesTable[i].irSensitivity)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].runMode != profilesTable[i].runMode) {
+
+        if(profilesTable_orig[i].runMode != profilesTable[i].runMode)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].layoutType != profilesTable[i].layoutType) {
+
+        if(profilesTable_orig[i].layoutType != profilesTable[i].layoutType)
             settingsDiff++;
-        }
-        if(profilesTable_orig[i].color != profilesTable[i].color) {
+
+        if(profilesTable_orig[i].color != profilesTable[i].color)
             settingsDiff++;
-        }
     }
+
     if(settingsDiff) {
         ui->confirmButton->setText("Save and Send Settings");
         ui->confirmButton->setEnabled(true);
@@ -647,21 +542,21 @@ void guiWindow::DiffUpdate()
 
 void guiWindow::SyncSettings()
 {
-    for(uint8_t i = 0; i < boolTypesCount; i++) {
+    for(int i = 0; i < OF_Const::boolTypesCount; i++)
         boolSettings_orig[i] = boolSettings[i];
-    }
-    if(boolSettings_orig[customPins]) {
+
+    if(boolSettings_orig[OF_Const::customPins])
         inputsMap_orig = inputsMap;
-    } else {
-        for(uint8_t i = 0; i < boardInputsCount-1; i++)
+    else for(int i = 0; i < inputsMap.size(); i++)
         inputsMap_orig[i] = -1;
-    }
-    for(uint8_t i = 0; i < settingsTypesCount; i++) {
+
+    for(int i = 0; i < OF_Const::settingsTypesCount; i++)
         settingsTable_orig[i] = settingsTable[i];
-    }
+
     tinyUSBtable_orig.tinyUSBid = tinyUSBtable.tinyUSBid;
     tinyUSBtable_orig.tinyUSBname = tinyUSBtable.tinyUSBname;
     board.previousProfile = board.selectedProfile;
+
     for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
         profilesTable_orig[i].irSensitivity = profilesTable[i].irSensitivity;
         profilesTable_orig[i].runMode = profilesTable[i].runMode;
@@ -673,7 +568,7 @@ void guiWindow::SyncSettings()
 }
 
 
-QString PrettifyName()
+QString guiWindow::PrettifyName()
 {
     QString name;
 
@@ -684,44 +579,19 @@ QString PrettifyName()
     }
 
     // append name of board to gun name string.
-    switch(board.type) {
-    case nothing:
-        name = "";
-        break;
-    case rpipico:
-        name = name + " | Raspberry Pi Pico";
-        break;
-    case rpipicow:
-        name = name + " | Raspberry Pi Pico W";
-        break;
-    case adafruitItsyRP2040:
-        name = name + " | Adafruit ItsyBitsy RP2040";
-        break;
-    case adafruitKB2040:
-        name = name + " | Adafruit KB2040";
-        break;
-    case arduinoNanoRP2040:
-        name = name + " | Arduino Nano RP2040 Connect";
-        break;
-    case waveshareZero:
-        name = name + " | Waveshare RP2040 Zero";
-        break;
-    case generic:
-        name = name + " | Generic RP2040 Board";
-        break;
-    }
-
-    return name;
+    if(OF_Const::boardNames.contains(board.boardType.toStdString()))
+         return name + " | " + OF_Const::boardNames[board.boardType.toStdString()];
+    else return name + " | " + OF_Const::boardNames["generic"];
 }
 
 
 void guiWindow::PixelsDiff()
 {
-    if(settingsTable[customLEDcount] == settingsTable_orig[customLEDcount] &&
-        settingsTable[customLEDstatic] == settingsTable_orig[customLEDstatic] &&
-        settingsTable[customLEDcolor1] == settingsTable_orig[customLEDcolor1] &&
-        settingsTable[customLEDcolor2] == settingsTable_orig[customLEDcolor2] &&
-        settingsTable[customLEDcolor3] == settingsTable_orig[customLEDcolor3]) {
+    if( settingsTable[OF_Const::customLEDcount]  == settingsTable_orig[OF_Const::customLEDcount]  &&
+        settingsTable[OF_Const::customLEDstatic] == settingsTable_orig[OF_Const::customLEDstatic] &&
+        settingsTable[OF_Const::customLEDcolor1] == settingsTable_orig[OF_Const::customLEDcolor1] &&
+        settingsTable[OF_Const::customLEDcolor2] == settingsTable_orig[OF_Const::customLEDcolor2] &&
+        settingsTable[OF_Const::customLEDcolor3] == settingsTable_orig[OF_Const::customLEDcolor3]) {
         ui->pixelChangeNotice->setVisible(false);
     } else {
         ui->pixelChangeNotice->setVisible(true);
@@ -749,24 +619,20 @@ void guiWindow::on_confirmButton_clicked()
             ui->confirmButton->setEnabled(false);
 
             QStringList serialQueue;
-            for(uint8_t i = 0; i < boolTypesCount; i++) {
+            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++)
                 serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]));
-            }
 
-            if(boolSettings[customPins]) {
-                for(uint8_t i = 0; i < boardInputsCount-1; i++) {
+            if(boolSettings[OF_Const::customPins])
+                for(uint8_t i = 0; i < inputsMap.count(); i++)
                     serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(inputsMap.value(i)));
-                }
-            }
 
-            for(uint8_t i = 0; i < settingsTypesCount; i++) {
+            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
                 serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
-            }
 
             serialQueue.append(QString("Xm.3.0.%1").arg(tinyUSBtable.tinyUSBid));
-            if(!tinyUSBtable.tinyUSBname.isEmpty()) {
+            if(!tinyUSBtable.tinyUSBname.isEmpty())
                 serialQueue.append(QString("Xm.3.1.%1").arg(tinyUSBtable.tinyUSBname));
-            }
+
             for(uint8_t i = 0; i < 4; i++) {
                 serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(profilesTable[i].irSensitivity));
                 serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(profilesTable[i].runMode));
@@ -850,70 +716,32 @@ void guiWindow::aliveTimer_timeout()
 
 void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 {
-    // Indiscriminately clears the board layout views.
-    // yes, every time. goddammit QT.
-    // fuck it, it works until QT provides a better mechanism to remove widgets without deleting them.
-    if(pinBoxes[0]->count() > 0) {
-        for(uint8_t i = 0; i < 30; i++) {
-            pinBoxes[i]->clear();
-            delete pinBoxes[i];
-            delete padding[i];
-            delete pinLabel[i];
-        }
-        delete centerPic;
+    // Clear stale states if any, and unmount old board if mounted.
+    if(testMode) {
+        testMode = false;
+        ui->testView->setEnabled(false);
+        ui->buttonsTestArea->setEnabled(true);
+        ui->testBtn->setText("Enable IR Test Mode");
+        ui->pinsTab->setEnabled(true);
+        ui->settingsTab->setEnabled(true);
+        ui->profilesTab->setEnabled(true);
+        ui->feedbackTestsBox->setEnabled(true);
+        ui->dangerZoneBox->setEnabled(true);
+        serialActive = false;
     }
-
-    delete PinsCenter;
-    delete PinsLeft;
-    delete PinsRight;
-
-    PinsCenter = new QVBoxLayout();
-    PinsCenterSub = new QGridLayout();
-    PinsLeft = new QGridLayout();
-    PinsRight = new QGridLayout();
-
-    ui->PinsTopHalf->addLayout(PinsLeft);
-    ui->PinsTopHalf->addLayout(PinsCenter);
-    ui->PinsTopHalf->addLayout(PinsRight);
-
-    for(uint8_t i = 0; i < 30; i++) {
-        pinBoxes[i] = new QComboBox();
-        pinBoxes[i]->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-        connect(pinBoxes[i], SIGNAL(activated(int)), this, SLOT(pinBoxes_activated(int)));
-        padding[i] = new QWidget();
-        padding[i]->setMinimumHeight(25);
-        // I2C channel coloring
-        if(i & 0b0000010) { pinLabel[i] = new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i)); }
-        else { pinLabel[i] = new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i)); }
-        pinLabel[i]->setEnabled(false);
-        pinLabel[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        pinLabel[i]->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
+    if(serialPort.isOpen()) {
+        serialActive = true;
+        serialPort.write("XE");
+        serialPort.waitForBytesWritten(2000);
+        serialPort.waitForReadyRead(2000);
+        serialPort.readAll();
+        serialPort.close();
+        serialActive = false;
     }
 
     if(index > 0) {
-        qDebug() << "COM port set to" << ui->comPortSelector->currentIndex();
-        // Clear stale states if any, and unmount old board if mounted.
-        if(testMode) {
-            testMode = false;
-            ui->testView->setEnabled(false);
-            ui->buttonsTestArea->setEnabled(true);
-            ui->testBtn->setText("Enable IR Test Mode");
-            ui->pinsTab->setEnabled(true);
-            ui->settingsTab->setEnabled(true);
-            ui->profilesTab->setEnabled(true);
-            ui->feedbackTestsBox->setEnabled(true);
-            ui->dangerZoneBox->setEnabled(true);
-            serialActive = false;
-        }
-        if(serialPort.isOpen()) {
-            serialActive = true;
-            serialPort.write("XE");
-            serialPort.waitForBytesWritten(2000);
-            serialPort.waitForReadyRead(2000);
-            serialPort.readAll();
-            serialPort.close();
-            serialActive = false;
-        }
+        printf("COM port set to %d\n", ui->comPortSelector->currentIndex());
+
         // try to init serial port
         // if returns false, it failed, so just turn the index back to initial.
         if(!SerialInit(index - 1)) {
@@ -921,414 +749,193 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             aliveTimer->stop();
         // else, serial port is online! What do we got?
         } else {
+            // Clears old board layout items
+            if(pinBoxes[0] != nullptr) {
+                for(uint8_t i = 0; i < 30; i++) {
+                    delete pinBoxes[i];
+                    delete padding[i];
+                    delete pinLabel[i];
+                }
+            }
+
+            if(PinsCenter != nullptr) {
+                delete PinsCenter;
+                delete PinsLeft;
+                delete PinsRight;
+                if(PinsCenterSub != nullptr)
+                    delete PinsCenterSub;
+                if(centerPic != nullptr)
+                    delete centerPic;
+            }
+
+            PinsCenter = new QVBoxLayout();
+            PinsCenterSub = new QGridLayout();
+            PinsLeft = new QGridLayout();
+            PinsRight = new QGridLayout();
+
+            ui->PinsTopHalf->addLayout(PinsLeft);
+            ui->PinsTopHalf->addLayout(PinsCenter);
+            ui->PinsTopHalf->addLayout(PinsRight);
+
+            for(uint8_t i = 0; i < 30; i++) {
+                pinBoxes[i] = new QComboBox();
+                pinBoxes[i]->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+                pinBoxes[i]->setProperty("slot", i);
+                pinBoxes[i]->setProperty("prevMapping", OF_Const::btnUnmapped+1);
+                connect(pinBoxes[i], SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
+
+                padding[i] = new QWidget();
+                padding[i]->setMinimumHeight(25);
+
+                // I2C channel coloring
+                if(i & 0b0000010)
+                    pinLabel[i] = new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
+                else pinLabel[i] = new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+
+                pinLabel[i]->setEnabled(false);
+                pinLabel[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+                pinLabel[i]->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
+            }
+
             aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(board.versionNumber, board.versionCodename));
             BoxesFill();
             LabelsUpdate();
 
-            switch(board.type) {
-                case rpipico:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/pico.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
+            ui->boardLabel->setText(PrettifyName());
 
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
-                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
-                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
-                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
-                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
-                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
-                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
-                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
-                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
-                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
-                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
-                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
-                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
-                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
-                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
-                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
-                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
+            // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
+            if(OF_Const::boardsBoxPositions.contains(board.boardType.toStdString())) {
+                centerPic = new QSvgWidget(":/boardPics/" + board.boardType);
+                QSvgRenderer *picRenderer = centerPic->renderer();
+                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                PinsCenter->addWidget(centerPic);
 
-                    // right side
-                    PinsRight->addWidget(padding[5],   0,  1);   // padding
-                    PinsRight->addWidget(padding[6],   1,  1);   // VBUS
-                    PinsRight->addWidget(padding[7],   2,  1);   // VSYS
-                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
-                    PinsRight->addWidget(padding[9],   4,  1);   // 3V3 EN
-                    PinsRight->addWidget(padding[10],  5,  1);   // 3V3 OUT
-                    PinsRight->addWidget(padding[11],  6,  1);   // ADC VREF
-                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
-                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
-                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
-                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
-                    PinsRight->addWidget(padding[13],  11, 1);   // RUN
-                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
-                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
-                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
-                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
-                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
-                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
-                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
+                for(int i = 0; i < PINS_COUNT; i++) {
+                    if(OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
+                        PinsLeft->addWidget(pinBoxes[i],
+                                            OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                            0);
+                        PinsLeft->addWidget(pinLabel[i],
+                                            OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                            1);
+                    } else if(OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
+                        PinsRight->addWidget(pinBoxes[i],
+                                            OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                            1);
+                        PinsRight->addWidget(pinLabel[i],
+                                            OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                            0);
+                    } else if(OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
+                        if(PinsCenterSub->isEmpty())
+                            PinsCenter->addLayout(PinsCenterSub);
 
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    break;
+                        PinsCenterSub->addWidget(pinBoxes[i],
+                                                 1,
+                                                 OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                        PinsCenterSub->addWidget(pinLabel[i],
+                                                 0,
+                                                 OF_Const::boardsBoxPositions.value(board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                    }
                 }
-                case rpipicow:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/picow.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
+            } else {
+                centerPic = new QSvgWidget(":/boardPics/generic");
+                QSvgRenderer *picRenderer = centerPic->renderer();
+                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
 
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
-                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
-                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
-                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
-                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
-                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
-                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
-                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
-                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
-                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
-                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
-                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
-                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
-                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
-                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
-                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
-                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
+                for(int i = 0; i < PINS_COUNT; i++) {
+                    if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posLeft) {
+                        PinsLeft->addWidget(pinBoxes[i],
+                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
+                                            0);
+                        PinsLeft->addWidget(pinLabel[i],
+                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
+                                            1);
+                    } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posRight) {
+                        PinsRight->addWidget(pinBoxes[i],
+                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
+                                             1);
+                        PinsRight->addWidget(pinLabel[i],
+                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
+                                            0);
+                    } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posMiddle) {
+                        if(PinsCenter->isEmpty())
+                            PinsCenter->addLayout(PinsCenterSub);
 
-                    // right side
-                    PinsRight->addWidget(padding[5],   0,  1);   // padding
-                    PinsRight->addWidget(padding[6],   1,  1);   // VBUS
-                    PinsRight->addWidget(padding[7],   2,  1);   // VSYS
-                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
-                    PinsRight->addWidget(padding[9],   4,  1);   // 3V3 EN
-                    PinsRight->addWidget(padding[10],  5,  1);   // 3V3 OUT
-                    PinsRight->addWidget(padding[11],  6,  1);   // ADC VREF
-                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
-                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
-                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
-                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
-                    PinsRight->addWidget(padding[13],  11, 1);   // RUN
-                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
-                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
-                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
-                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
-                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
-                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
-                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    break;
-                }
-                case adafruitItsyRP2040:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/adafruitItsy2040.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
-
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // reset
-                    PinsLeft->addWidget(padding[1],    1,  0);   // 3v3_1
-                    PinsLeft->addWidget(padding[3],    2,  0);   // 3v3_2
-                    PinsLeft->addWidget(padding[4],    3,  0);   // VHi
-                    PinsLeft->addWidget(pinBoxes[26],  4,  0), PinsLeft->addWidget(pinLabel[26], 4,  1);
-                    PinsLeft->addWidget(pinBoxes[27],  5,  0), PinsLeft->addWidget(pinLabel[27], 5,  1);
-                    PinsLeft->addWidget(pinBoxes[28],  6,  0), PinsLeft->addWidget(pinLabel[28], 6,  1);
-                    PinsLeft->addWidget(pinBoxes[29],  7,  0), PinsLeft->addWidget(pinLabel[29], 7,  1);
-                    PinsLeft->addWidget(pinBoxes[24],  8,  0), PinsLeft->addWidget(pinLabel[24], 8,  1);
-                    PinsLeft->addWidget(pinBoxes[25],  9,  0), PinsLeft->addWidget(pinLabel[25], 9,  1);
-                    PinsLeft->addWidget(pinBoxes[18],  10, 0), PinsLeft->addWidget(pinLabel[18], 10, 1);
-                    PinsLeft->addWidget(pinBoxes[19],  11, 0), PinsLeft->addWidget(pinLabel[19], 11, 1);
-                    PinsLeft->addWidget(pinBoxes[20],  12, 0), PinsLeft->addWidget(pinLabel[20], 12, 1);
-                    PinsLeft->addWidget(pinBoxes[12],  13, 0), PinsLeft->addWidget(pinLabel[12], 13, 1);
-                    PinsLeft->addWidget(padding[5],    14, 0);   // bottom padding
-                    PinsLeft->addWidget(padding[6],    14, 0);
-
-                    // right side
-                    PinsRight->addWidget(padding[8],   0,  1);   // battery
-                    PinsRight->addWidget(padding[9],   1,  1);   // gnd
-                    PinsRight->addWidget(padding[10],  2,  1);   // USB power in
-                    PinsRight->addWidget(pinBoxes[11], 3,  1), PinsRight->addWidget(pinLabel[11], 3,  0);
-                    PinsRight->addWidget(pinBoxes[10], 4,  1), PinsRight->addWidget(pinLabel[10], 4,  0);
-                    PinsRight->addWidget(pinBoxes[9],  5,  1), PinsRight->addWidget(pinLabel[9],  5,  0);
-                    PinsRight->addWidget(pinBoxes[8],  6,  1), PinsRight->addWidget(pinLabel[8],  6,  0);
-                    PinsRight->addWidget(pinBoxes[7],  7,  1), PinsRight->addWidget(pinLabel[7],  7,  0);
-                    PinsRight->addWidget(pinBoxes[6],  8,  1), PinsRight->addWidget(pinLabel[6],  8,  0);
-                    PinsRight->addWidget(padding[11],  9,  1);   // 5!
-                    PinsRight->addWidget(pinBoxes[3],  10, 1), PinsRight->addWidget(pinLabel[3],  10, 0);
-                    PinsRight->addWidget(pinBoxes[2],  11, 1), PinsRight->addWidget(pinLabel[2],  11, 0);
-                    PinsRight->addWidget(pinBoxes[0],  12, 1), PinsRight->addWidget(pinLabel[0],  12, 0);
-                    PinsRight->addWidget(pinBoxes[1],  13, 1), PinsRight->addWidget(pinLabel[1],  13, 0);
-                    PinsRight->addWidget(padding[12],  14, 1);   // bottom padding
-                    PinsRight->addWidget(padding[13],  15, 1);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    PinsCenter->addLayout(PinsCenterSub);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    PinsCenterSub->addWidget(pinBoxes[4], 1, 3), PinsCenterSub->addWidget(pinLabel[4], 0, 3);
-                    PinsCenterSub->addWidget(pinBoxes[5], 1, 2), PinsCenterSub->addWidget(pinLabel[5], 0, 2);
-                    break;
-                }
-                case adafruitKB2040:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/adafruitKB2040.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
-
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
-                    PinsLeft->addWidget(padding[1],    1,  0);   // D+
-                    PinsLeft->addWidget(pinBoxes[0],   2,  0), PinsLeft->addWidget(pinLabel[0],   2,  1);
-                    PinsLeft->addWidget(pinBoxes[1],   3,  0), PinsLeft->addWidget(pinLabel[1],   3,  1);
-                    PinsLeft->addWidget(padding[2],    4,  0);   // gnd
-                    PinsLeft->addWidget(padding[3],    5,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[2],   6,  0), PinsLeft->addWidget(pinLabel[2],   6,  1);
-                    PinsLeft->addWidget(pinBoxes[3],   7,  0), PinsLeft->addWidget(pinLabel[3],   7,  1);
-                    PinsLeft->addWidget(pinBoxes[4],   8,  0), PinsLeft->addWidget(pinLabel[4],   8,  1);
-                    PinsLeft->addWidget(pinBoxes[5],   9,  0), PinsLeft->addWidget(pinLabel[5],   9,  1);
-                    PinsLeft->addWidget(pinBoxes[6],   10, 0), PinsLeft->addWidget(pinLabel[6],   10, 1);
-                    PinsLeft->addWidget(pinBoxes[7],   11, 0), PinsLeft->addWidget(pinLabel[7],   11, 1);
-                    PinsLeft->addWidget(pinBoxes[8],   12, 0), PinsLeft->addWidget(pinLabel[8],   12, 1);
-                    PinsLeft->addWidget(pinBoxes[9],   13, 0), PinsLeft->addWidget(pinLabel[9],   13, 1);
-
-                    // right side
-                    PinsRight->addWidget(padding[4],   0,  1);   // padding
-                    PinsRight->addWidget(padding[5],   1,  1);   // D-
-                    PinsRight->addWidget(padding[6],   2,  1);   // RAW
-                    PinsRight->addWidget(padding[7],   3,  1);   // gnd
-                    PinsRight->addWidget(padding[8],   4,  1);   // reset
-                    PinsRight->addWidget(padding[9],   5,  1);   // 3.3v
-                    PinsRight->addWidget(pinBoxes[29], 6,  1), PinsRight->addWidget(pinLabel[29], 6,  0);
-                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
-                    PinsRight->addWidget(pinBoxes[27], 8,  1), PinsRight->addWidget(pinLabel[27], 8,  0);
-                    PinsRight->addWidget(pinBoxes[26], 9,  1), PinsRight->addWidget(pinLabel[26], 9,  0);
-                    PinsRight->addWidget(pinBoxes[18], 10, 1), PinsRight->addWidget(pinLabel[18], 10, 0);
-                    PinsRight->addWidget(pinBoxes[20], 11, 1), PinsRight->addWidget(pinLabel[20], 11, 0);
-                    PinsRight->addWidget(pinBoxes[19], 12, 1), PinsRight->addWidget(pinLabel[19], 12, 0);
-                    PinsRight->addWidget(pinBoxes[10], 13, 1), PinsRight->addWidget(pinLabel[10], 13, 0);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    break;
-                }
-                case arduinoNanoRP2040:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/arduinoNano2040.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    PinsCenter->addWidget(centerPic);
-                    ui->boardLabel->setText(PrettifyName());
-
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // top padding
-                    PinsLeft->addWidget(padding[1],    1,  0);
-                    PinsLeft->addWidget(padding[2],    2,  0);
-                    PinsLeft->addWidget(pinBoxes[6],   3,  0), PinsLeft->addWidget(pinLabel[6],   3,  1);
-                    PinsLeft->addWidget(padding[3],    4,  0);   // 3V3 Out
-                    PinsLeft->addWidget(padding[4],    5,  0);   // AREF
-                    PinsLeft->addWidget(pinBoxes[26],  6,  0), PinsLeft->addWidget(pinLabel[26],  6,  1);
-                    PinsLeft->addWidget(pinBoxes[27],  7,  0), PinsLeft->addWidget(pinLabel[27],  7,  1);
-                    PinsLeft->addWidget(pinBoxes[28],  8,  0), PinsLeft->addWidget(pinLabel[28],  8,  1);
-                    PinsLeft->addWidget(pinBoxes[29],  9,  0), PinsLeft->addWidget(pinLabel[29],  9,  1);
-                    PinsLeft->addWidget(pinBoxes[12],  10, 0), PinsLeft->addWidget(pinLabel[12],  10, 1);
-                    PinsLeft->addWidget(pinBoxes[13],  11, 0), PinsLeft->addWidget(pinLabel[13],  11, 1);
-                    PinsLeft->addWidget(padding[5],    12, 0);   // A6 - unused
-                    PinsLeft->addWidget(padding[6],    13, 0);   // A7 - unused
-                    PinsLeft->addWidget(padding[7],    14, 0);   // 5V OUT
-                    PinsLeft->addWidget(padding[8],    15, 0);   // REC?
-                    PinsLeft->addWidget(padding[9],    16, 0);   // gnd
-                    PinsLeft->addWidget(padding[10],   17, 0);   // 5V IN
-                    PinsLeft->addWidget(padding[11],   18, 0);   // bottom padding
-                    PinsLeft->addWidget(padding[12],   19, 0);
-
-                    // right side
-                    PinsRight->addWidget(padding[13],  0,  1);   // top padding
-                    PinsRight->addWidget(padding[14],  1,  1);   // top padding
-                    PinsRight->addWidget(padding[15],  2,  1);   // top padding
-                    PinsRight->addWidget(pinBoxes[4],  3,  1), PinsRight->addWidget(pinLabel[4],  3,  0);
-                    PinsRight->addWidget(pinBoxes[7],  4,  1), PinsRight->addWidget(pinLabel[7],  4,  0);
-                    PinsRight->addWidget(pinBoxes[5],  5,  1), PinsRight->addWidget(pinLabel[5],  5,  0);
-                    PinsRight->addWidget(pinBoxes[21], 6,  1), PinsRight->addWidget(pinLabel[21], 6,  0);
-                    PinsRight->addWidget(pinBoxes[20], 7,  1), PinsRight->addWidget(pinLabel[20], 7,  0);
-                    PinsRight->addWidget(pinBoxes[19], 8,  1), PinsRight->addWidget(pinLabel[19], 8,  0);
-                    PinsRight->addWidget(pinBoxes[18], 9,  1), PinsRight->addWidget(pinLabel[18], 9,  0);
-                    PinsRight->addWidget(pinBoxes[17], 10, 1), PinsRight->addWidget(pinLabel[17], 10, 0);
-                    PinsRight->addWidget(pinBoxes[16], 11, 1), PinsRight->addWidget(pinLabel[16], 11, 0);
-                    PinsRight->addWidget(pinBoxes[15], 12, 1), PinsRight->addWidget(pinLabel[15], 12, 0);
-                    PinsRight->addWidget(pinBoxes[25], 13, 1), PinsRight->addWidget(pinLabel[25], 13, 0);
-                    PinsRight->addWidget(padding[16],  14, 1);   // gnd
-                    PinsRight->addWidget(padding[17],  15, 1);   // RESET
-                    PinsRight->addWidget(pinBoxes[1],  16, 1), PinsRight->addWidget(pinLabel[1],  16, 0);
-                    PinsRight->addWidget(pinBoxes[0],  17, 1), PinsRight->addWidget(pinLabel[0],  17, 0);
-                    PinsRight->addWidget(padding[18],  18, 1);   // bottom padding
-                    PinsRight->addWidget(padding[19],  19, 1);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    break;
-                }
-                case waveshareZero:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/waveshareZero.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
-
-                    // left side
-                    PinsLeft->addWidget(padding[0],   0,  0);    // 5V OUT
-                    PinsLeft->addWidget(padding[1],   1,  0);    // gnd
-                    PinsLeft->addWidget(padding[2],   2,  0);    // 3V3 OUT
-                    PinsLeft->addWidget(pinBoxes[29], 3,  0),  PinsLeft->addWidget(pinLabel[29], 3,  1);
-                    PinsLeft->addWidget(pinBoxes[28], 4,  0),  PinsLeft->addWidget(pinLabel[28], 4,  1);
-                    PinsLeft->addWidget(pinBoxes[27], 5,  0),  PinsLeft->addWidget(pinLabel[27], 5,  1);
-                    PinsLeft->addWidget(pinBoxes[26], 6,  0),  PinsLeft->addWidget(pinLabel[26], 6,  1);
-                    PinsLeft->addWidget(pinBoxes[15], 7,  0),  PinsLeft->addWidget(pinLabel[15], 7,  1);
-                    PinsLeft->addWidget(pinBoxes[14], 8,  0),  PinsLeft->addWidget(pinLabel[14], 8,  1);
-                    PinsLeft->addWidget(pinBoxes[13], 9,  0),  PinsLeft->addWidget(pinLabel[13], 9,  1);
-                    PinsLeft->addWidget(pinBoxes[12], 10, 0),  PinsLeft->addWidget(pinLabel[12], 10, 1);
-
-                    // right side
-                    PinsRight->addWidget(padding[3],  0,  1);    // padding
-                    PinsRight->addWidget(pinBoxes[0], 1,  1),  PinsRight->addWidget(pinLabel[0], 1,  0);
-                    PinsRight->addWidget(pinBoxes[1], 2,  1),  PinsRight->addWidget(pinLabel[1], 2,  0);
-                    PinsRight->addWidget(pinBoxes[2], 3,  1),  PinsRight->addWidget(pinLabel[2], 3,  0);
-                    PinsRight->addWidget(pinBoxes[3], 4,  1),  PinsRight->addWidget(pinLabel[3], 4,  0);
-                    PinsRight->addWidget(pinBoxes[4], 5,  1),  PinsRight->addWidget(pinLabel[4], 5,  0);
-                    PinsRight->addWidget(pinBoxes[5], 6,  1),  PinsRight->addWidget(pinLabel[5], 6,  0);
-                    PinsRight->addWidget(pinBoxes[6], 7,  1),  PinsRight->addWidget(pinLabel[6], 7,  0);
-                    PinsRight->addWidget(pinBoxes[7], 8,  1),  PinsRight->addWidget(pinLabel[7], 8,  0);
-                    PinsRight->addWidget(pinBoxes[8], 9,  1),  PinsRight->addWidget(pinLabel[8], 9,  0);
-                    PinsRight->addWidget(pinBoxes[9], 10, 1),  PinsRight->addWidget(pinLabel[9], 10, 0);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    PinsCenter->addLayout(PinsCenterSub);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    PinsCenterSub->addWidget(pinBoxes[10], 1, 3), PinsCenterSub->addWidget(pinLabel[10], 0, 3);
-                    PinsCenterSub->addWidget(pinBoxes[11], 1, 2), PinsCenterSub->addWidget(pinLabel[11], 0, 2);
-                    break;
-                }
-                case generic:
-                {
-                    centerPic = new QSvgWidget(":/boardPics/unknown.svg");
-                    QSvgRenderer *picRenderer = centerPic->renderer();
-                    picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                    ui->boardLabel->setText(PrettifyName());
-
-                    // left side
-                    PinsLeft->addWidget(padding[0],    0,  0);   // padding
-                    PinsLeft->addWidget(pinBoxes[0],   1,  0), PinsLeft->addWidget(pinLabel[0],  1,  1);
-                    PinsLeft->addWidget(pinBoxes[1],   2,  0), PinsLeft->addWidget(pinLabel[1],  2,  1);
-                    PinsLeft->addWidget(padding[1],    3,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[2],   4,  0), PinsLeft->addWidget(pinLabel[2],  4,  1);
-                    PinsLeft->addWidget(pinBoxes[3],   5,  0), PinsLeft->addWidget(pinLabel[3],  5,  1);
-                    PinsLeft->addWidget(pinBoxes[4],   6,  0), PinsLeft->addWidget(pinLabel[4],  6,  1);
-                    PinsLeft->addWidget(pinBoxes[5],   7,  0), PinsLeft->addWidget(pinLabel[5],  7,  1);
-                    PinsLeft->addWidget(padding[2],    8,  0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[6],   9,  0), PinsLeft->addWidget(pinLabel[6],  9,  1);
-                    PinsLeft->addWidget(pinBoxes[7],   10, 0), PinsLeft->addWidget(pinLabel[7],  10, 1);
-                    PinsLeft->addWidget(pinBoxes[8],   11, 0), PinsLeft->addWidget(pinLabel[8],  11, 1);
-                    PinsLeft->addWidget(pinBoxes[9],   12, 0), PinsLeft->addWidget(pinLabel[9],  12, 1);
-                    PinsLeft->addWidget(padding[3],    13, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[10],  14, 0), PinsLeft->addWidget(pinLabel[10], 14, 1);
-                    PinsLeft->addWidget(pinBoxes[11],  15, 0), PinsLeft->addWidget(pinLabel[11], 15, 1);
-                    PinsLeft->addWidget(pinBoxes[12],  16, 0), PinsLeft->addWidget(pinLabel[12], 16, 1);
-                    PinsLeft->addWidget(pinBoxes[13],  17, 0), PinsLeft->addWidget(pinLabel[13], 17, 1);
-                    PinsLeft->addWidget(padding[4],    18, 0);   // gnd
-                    PinsLeft->addWidget(pinBoxes[14],  19, 0), PinsLeft->addWidget(pinLabel[14], 19, 1);
-                    PinsLeft->addWidget(pinBoxes[15],  20, 0), PinsLeft->addWidget(pinLabel[15], 20, 1);
-
-                    // right side
-                    PinsRight->addWidget(padding[5],   0,  1);   // padding
-                    PinsRight->addWidget(padding[6],   1,  1);
-                    PinsRight->addWidget(padding[7],   2,  1);
-                    PinsRight->addWidget(padding[8],   3,  1);   // gnd
-                    PinsRight->addWidget(padding[9],   4,  1);
-                    PinsRight->addWidget(padding[10],  5,  1);
-                    PinsRight->addWidget(padding[11],  6,  1);
-                    PinsRight->addWidget(pinBoxes[28], 7,  1), PinsRight->addWidget(pinLabel[28], 7,  0);
-                    PinsRight->addWidget(padding[12],  8,  1);   // gnd
-                    PinsRight->addWidget(pinBoxes[27], 9,  1), PinsRight->addWidget(pinLabel[27], 9,  0);
-                    PinsRight->addWidget(pinBoxes[26], 10, 1), PinsRight->addWidget(pinLabel[26], 10, 0);
-                    PinsRight->addWidget(padding[13],  11, 1);
-                    PinsRight->addWidget(pinBoxes[22], 12, 1), PinsRight->addWidget(pinLabel[22], 12, 0);
-                    PinsRight->addWidget(padding[14],  13, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[21], 14, 1), PinsRight->addWidget(pinLabel[21], 14, 0);
-                    PinsRight->addWidget(pinBoxes[20], 15, 1), PinsRight->addWidget(pinLabel[20], 15, 0);
-                    PinsRight->addWidget(pinBoxes[19], 16, 1), PinsRight->addWidget(pinLabel[19], 16, 0);
-                    PinsRight->addWidget(pinBoxes[18], 17, 1), PinsRight->addWidget(pinLabel[18], 17, 0);
-                    PinsRight->addWidget(padding[17],  18, 1);   // gnd
-                    PinsRight->addWidget(pinBoxes[17], 19, 1), PinsRight->addWidget(pinLabel[17], 19, 0);
-                    PinsRight->addWidget(pinBoxes[16], 20, 1), PinsRight->addWidget(pinLabel[16], 20, 0);
-
-                    // center
-                    PinsCenter->addWidget(centerPic);
-                    centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-                    break;
+                        PinsCenterSub->addWidget(pinBoxes[i],
+                                                 1,
+                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
+                        PinsCenterSub->addWidget(pinLabel[i],
+                                                 0,
+                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
+                    }
                 }
             }
 
+            int prevPadCount;
+            for(int i = 1, padCount = 0; i < PinsLeft->rowCount(); i++) {
+                if(PinsLeft->itemAtPosition(i, 0) == nullptr) {
+                    PinsLeft->addWidget(padding[padCount], i, 0);
+                    padCount++;
+                    prevPadCount = padCount;
+                }
+            }
+            for(int i = 1, padCount = prevPadCount; i < PinsRight->rowCount(); i++) {
+                if(PinsRight->itemAtPosition(i, 0) == nullptr) {
+                    PinsRight->addWidget(padding[padCount], i, 0);
+                    padCount++;
+                }
+            }
+
+            centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+
             ui->tabWidget->setEnabled(true);
-            ui->customPinsEnabled->setChecked(boolSettings[customPins]);
+            ui->customPinsEnabled->setChecked(boolSettings[OF_Const::customPins]);
 
-            if(inputsMap[rumblePin-1] >= 0) { ui->rumbleToggle->setEnabled(true), ui->rumbleFFToggle->setEnabled(true); } else { ui->rumbleToggle->setEnabled(false), ui->rumbleFFToggle->setEnabled(false); }
-            ui->rumbleToggle->setChecked(boolSettings[rumble]);
+            if(inputsMap.value(OF_Const::rumblePin) >= 0)
+                 ui->rumbleToggle->setEnabled(true),  ui->rumbleFFToggle->setEnabled(true);
+            else ui->rumbleToggle->setEnabled(false), ui->rumbleFFToggle->setEnabled(false);
+            ui->rumbleToggle->setChecked(boolSettings[OF_Const::rumble]);
 
-            if(inputsMap[solenoidPin-1] >= 0) { ui->solenoidToggle->setEnabled(true); } else { ui->solenoidToggle->setEnabled(false); }
-            ui->solenoidToggle->setChecked(boolSettings[solenoid]);
+            if(inputsMap.value(OF_Const::solenoidPin) >= 0)
+                 ui->solenoidToggle->setEnabled(true);
+            else ui->solenoidToggle->setEnabled(false);
+            ui->solenoidToggle->setChecked(boolSettings[OF_Const::solenoid]);
 
-            if((boolSettings[rumble] && boolSettings[rumbleFF]) || boolSettings[solenoid]) { ui->autofireToggle->setEnabled(true); } else { ui->autofireToggle->setEnabled(false); }
-            ui->autofireToggle->setChecked(boolSettings[autofire]);
+            if((boolSettings[OF_Const::rumble] && boolSettings[OF_Const::rumbleFF]) || boolSettings[OF_Const::solenoid])
+                ui->autofireToggle->setEnabled(true);
+            else ui->autofireToggle->setEnabled(false);
+            ui->autofireToggle->setChecked(boolSettings[OF_Const::autofire]);
 
-            ui->simplePauseToggle->setChecked(boolSettings[simplePause]);
-            ui->holdToPauseToggle->setChecked(boolSettings[holdToPause]);
+            ui->simplePauseToggle->setChecked(boolSettings[OF_Const::simplePause]);
+            ui->holdToPauseToggle->setChecked(boolSettings[OF_Const::holdToPause]);
 
-            if(inputsMap[ledR-1] >= 0 && inputsMap[ledG-1] >= 0 && inputsMap[ledB-1] >= 0) { ui->commonAnodeToggle->setEnabled(true); } else { ui->commonAnodeToggle->setEnabled(false); }
-            ui->commonAnodeToggle->setChecked(boolSettings[commonAnode]);
-            ui->lowButtonsToggle->setChecked(boolSettings[lowButtonsMode]);
-            ui->rumbleFFToggle->setChecked(boolSettings[rumbleFF]);
-            ui->rumbleIntensityBox->setEnabled(boolSettings[rumble]),          ui->rumbleIntensityBox->setValue(settingsTable[rumbleStrength]);
-            ui->rumbleLengthBox->setEnabled(boolSettings[rumble]),             ui->rumbleLengthBox->setValue(settingsTable[rumbleInterval]);
-            ui->holdToPauseLengthBox->setEnabled(boolSettings[holdToPause]),   ui->holdToPauseLengthBox->setValue(settingsTable[holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setEnabled(boolSettings[solenoid]), ui->solenoidNormalIntervalBox->setValue(settingsTable[solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setEnabled(boolSettings[solenoid]),   ui->solenoidFastIntervalBox->setValue(settingsTable[solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setEnabled(boolSettings[solenoid]),     ui->solenoidHoldLengthBox->setValue(settingsTable[solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(boolSettings[autofire]),     ui->autofireWaitFactorBox->setValue(settingsTable[autofireWaitFactor]);
+            if(inputsMap.value(OF_Const::ledR) >= 0 && inputsMap.value(OF_Const::ledG) >= 0 && inputsMap.value(OF_Const::ledB) >= 0)
+                 ui->commonAnodeToggle->setEnabled(true);
+            else ui->commonAnodeToggle->setEnabled(false);
+            ui->commonAnodeToggle->setChecked(boolSettings[OF_Const::commonAnode]);
+
+            ui->lowButtonsToggle->setChecked(boolSettings[OF_Const::lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(boolSettings[OF_Const::rumbleFF]);
+            ui->rumbleIntensityBox->setEnabled(boolSettings[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(settingsTable[OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setEnabled(boolSettings[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(settingsTable[OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setEnabled(boolSettings[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(settingsTable[OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setEnabled(boolSettings[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(settingsTable[OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setEnabled(boolSettings[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(settingsTable[OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setEnabled(boolSettings[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(settingsTable[OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(boolSettings[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(settingsTable[OF_Const::autofireWaitFactor]);
+
             ui->productIdInput->setText(tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(tinyUSBtable.tinyUSBname);
-            if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
-            ui->neopixelStrandLengthBox->setValue(settingsTable[customLEDcount]);
-            ui->customLEDstaticSpinbox->setValue(settingsTable[customLEDstatic]);
-            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor1], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor2], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(settingsTable[customLEDcolor3], 6, 16, QLatin1Char('0')));
+
+            if(inputsMap.value(OF_Const::neoPixel) >= 0)
+                 ui->neopixelGroupBox->setEnabled(true);
+            else ui->neopixelGroupBox->setEnabled(false);
+            ui->neopixelStrandLengthBox->setValue(settingsTable[OF_Const::customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(settingsTable[OF_Const::customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
             switch(tinyUSBtable.tinyUSBid.toInt()) {
             case 1:
@@ -1402,44 +1009,40 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 void guiWindow::BoxesFill()
 {
     // update box types
-    for(uint8_t i = 0; i < 30; i++) {
-        pinBoxes[i]->addItems(valuesNameList);
+    for(uint8_t i = 0; i < PINS_COUNT; i++) {
+        pinBoxes[i]->addItems(OF_Const::valuesNameList);
         // clear out analog options for digital pins (< GPIO26)
+        // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
         if(i < 26) {
-            pinBoxes[i]->removeItem(tempPin);
-            pinBoxes[i]->removeItem(analogY);
-            pinBoxes[i]->removeItem(analogX);
+            pinBoxes[i]->removeItem(OF_Const::tempPin+1);
+            pinBoxes[i]->removeItem(OF_Const::analogY+1);
+            pinBoxes[i]->removeItem(OF_Const::analogX+1);
         }
         // filter out SCL/SDA if possible.
+        // TODO: don't add separators, just disable them instead. see Nero code
         if(i & 1) {
-            pinBoxes[i]->removeItem(camSDA);
-            pinBoxes[i]->insertSeparator(camSDA);
-            pinBoxes[i]->removeItem(periphSDA);
-            pinBoxes[i]->insertSeparator(periphSDA);
+            pinBoxes[i]->removeItem(OF_Const::camSDA+1);
+            pinBoxes[i]->insertSeparator(OF_Const::camSDA+1);
+            pinBoxes[i]->removeItem(OF_Const::periphSDA+1);
+            pinBoxes[i]->insertSeparator(OF_Const::periphSDA+1);
         } else {
-            pinBoxes[i]->removeItem(camSCL);
-            pinBoxes[i]->insertSeparator(camSCL);
-            pinBoxes[i]->removeItem(periphSCL);
-            pinBoxes[i]->insertSeparator(periphSCL);
+            pinBoxes[i]->removeItem(OF_Const::camSCL+1);
+            pinBoxes[i]->insertSeparator(OF_Const::camSCL+1);
+            pinBoxes[i]->removeItem(OF_Const::periphSCL+1);
+            pinBoxes[i]->insertSeparator(OF_Const::periphSCL+1);
         }
     }
+
     ui->presetsBox->clear();
-    if(boardCustomPresetsCount[board.type]) {
+
+    if(OF_Const::boardsAltPresets.count(board.boardType.toStdString())) {
         ui->presetsBox->setHidden(false);
-        switch(board.type) {
-        case rpipico:
-        case rpipicow:
-            ui->presetsBox->setEnabled(true);
-            ui->presetsBox->addItems(rpipicoPresetsList);
-            break;
-        case adafruitItsyRP2040:
-            ui->presetsBox->setEnabled(true);
-            ui->presetsBox->addItems(adafruitItsyBitsyRP2040PresetsList);
-            break;
-        default:
-            ui->presetsBox->setEnabled(false);
-        }
+        ui->presetsBox->setEnabled(true);
+        QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(board.boardType.toStdString());
+        for(auto &entry : altPresets)
+            ui->presetsBox->addItem(entry.name);
     } else {
+        ui->presetsBox->setEnabled(false);
         ui->presetsBox->setHidden(true);
     }
     BoxesUpdate();
@@ -1451,15 +1054,15 @@ void guiWindow::LabelsUpdate()
     // because inputsMap uses pin no. starting from 0
     for(uint8_t i = 0; i < 16; i++) {
         if(i < 14) {
-            if(inputsMap[i] >= 0) {
-                testLabel[i]->setText(valuesNameList[i+1]);
+            if(inputsMap.value(i) >= 0) {
+                testLabel[i]->setText(OF_Const::valuesNameList[i+1]);
                 testLabel[i]->setEnabled(true);
             } else {
-                testLabel[i]->setText(valuesNameList[i+1] + " (N/C)");
+                testLabel[i]->setText(OF_Const::valuesNameList[i+1] + " (N/C)");
                 testLabel[i]->setEnabled(false);
             }
         } else if(i == 14) {
-            if(inputsMap[tempPin-1] >= 0) {
+            if(inputsMap.value(OF_Const::tempPin) >= 0) {
                 testLabel[i]->setText("Temp Read...");
                 testLabel[i]->setEnabled(true);
             } else {
@@ -1468,7 +1071,7 @@ void guiWindow::LabelsUpdate()
             }
             testLabel[i]->setStyleSheet("");
         } else if(i == 15) {
-            if(inputsMap[analogX-1] >=0 && inputsMap[analogY-1] >= 0) {
+            if(inputsMap.value(OF_Const::analogX) >=0 && inputsMap.value(OF_Const::analogY) >= 0) {
                 testLabel[i]->setText("Analog");
                 testLabel[i]->setEnabled(true);
             } else {
@@ -1478,114 +1081,127 @@ void guiWindow::LabelsUpdate()
             testLabel[i]->setStyleSheet("");
         }
     }
-    if(inputsMap[ledR-1] >= 0) { ui->redLedTestBtn->setEnabled(true); } else { ui->redLedTestBtn->setEnabled(false); }
-    if(inputsMap[ledG-1] >= 0) { ui->greenLedTestBtn->setEnabled(true); } else { ui->greenLedTestBtn->setEnabled(false); }
-    if(inputsMap[ledB-1] >= 0) { ui->blueLedTestBtn->setEnabled(true); } else { ui->blueLedTestBtn->setEnabled(false); }
+    if(inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
+    if(inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
+    if(inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
 }
 
-void guiWindow::pinBoxes_activated(int index)
+void guiWindow::pinBoxes_currentIndexChanged(int index)
 {
-    // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-    uint8_t pin;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == pinBoxes[i]) {
-                pin = i;
-                break;
-            }
-    }
+    // using comboboxes' "slot" property to figure caller,
+    // and "prevMapping" to get previous index, as this method immediately overwrites what it was mapped to.
+    // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
-    if(ui->presetsBox->currentIndex() > -1) {
+    if(index >= 0 && index < inputsMap.size()) {
+        //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
+    } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
+
+    // reset presets box, as it's no longer accurate for this layout
+    if(ui->presetsBox->currentIndex() > -1)
         ui->presetsBox->setCurrentIndex(-1);
-    }
 
     // if it's being set to 0 (unmapped), unmap this pin without question.
-    if(!index) {
-        inputsMap[currentPins.value(pin) - 1] = -1;
-        currentPins[pin] = btnUnmapped;
+    if(index <= 0) {
+        if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1) {
+            inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
+            sender()->setProperty("prevMapping", OF_Const::btnUnmapped+1);
+        }
+
     // else, it's a function, so check for duplicates
-    } else if(currentPins[pin] != index) {
+    } else if(sender()->property("prevMapping").toInt() != index) {
         int8_t btnRequest = index - 1;
 
-        // Scorched Earth approach, clear anything that matches so that it's unmapped.
-        inputsMap[btnRequest] = -1;
-        // only reset if current pin was already mapped.
-        if(currentPins.value(pin) > 0) {
-            inputsMap[currentPins.value(pin) - 1] = -1;
-        }
+        // Remove whatever pin mapping that this function belonged to, if it was mapped
+        if(inputsMap.value(btnRequest) > OF_Const::btnUnmapped)
+            pinBoxes[inputsMap.value(btnRequest)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+
+        // unmap pinbox's previous function, if mapped to any
+        if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1)
+            pinBoxes[inputsMap.value(sender()->property("prevMapping").toInt()-1)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+
         // if function is I2C, check for other things
-        if(index == camSDA) {
+        if(btnRequest == OF_Const::camSDA) {
             // if it's mapped, check that cam clock pin isn't mapped to the opposite I2C channel
-            if(inputsMap[camSCL-1] > -1 && (pin & 0b00000010) != (inputsMap[camSCL-1] & 0b00000010)) {
+            if(inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                currentPins[inputsMap[camSCL-1]] = btnUnmapped;
-                pinBoxes[inputsMap[camSCL-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::camSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral data isn't mapped to this I2C channel
-            } else if(inputsMap[periphSDA-1] > -1 && (pin & 0b00000010) == (inputsMap[periphSDA-1] & 0b00000010)) {
+            } else if(inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels matched, unmap peripheral data
-                currentPins[inputsMap[periphSDA-1]] = btnUnmapped;
-                pinBoxes[inputsMap[periphSDA-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::periphSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral Data.", 10000);
             }
-        } else if(index == camSCL) {
-            // if it's mapped, check that current cam clock pin isn't mapped to the opposite I2C channel
-            if(inputsMap[camSDA-1] > -1 && (pin & 0b00000010) != (inputsMap[camSDA-1] & 0b00000010)) {
+        } else if(btnRequest == OF_Const::camSCL) {
+            // if it's mapped, check that cam clock pin isn't mapped to the opposite I2C channel
+            if(inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                currentPins[inputsMap[camSDA-1]] = btnUnmapped;
-                pinBoxes[inputsMap[camSDA-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::camSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral clock isn't mapped to this I2C channel
-            } else if(inputsMap[periphSCL-1] > -1 && (pin & 0b00000010) == (inputsMap[periphSCL-1] & 0b00000010)) {
+            } else if(inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels matched, unmap peripheral clock
-                currentPins[inputsMap[periphSCL-1]] = btnUnmapped;
-                pinBoxes[inputsMap[periphSCL-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::periphSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Clock pins clashed! Please remap Peripheral Clock.", 10000);
             }
-        } else if(index == periphSDA) {
+        } else if(btnRequest == OF_Const::periphSDA) {
             // if it's mapped, check that current peripheral clock pin isn't mapped to the opposite I2C channel
-            if(inputsMap[periphSCL-1] > -1 && (pin & 0b00000010) != (inputsMap[periphSCL-1] & 0b00000010)) {
+            if(inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                currentPins[inputsMap[periphSCL-1]] = btnUnmapped;
-                pinBoxes[inputsMap[periphSCL-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::periphSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam data isn't mapped to this I2C channel
-            } else if(inputsMap[camSDA-1] > -1 && (pin & 0b00000010) == (inputsMap[camSDA-1] & 0b00000010)) {
+            } else if(inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels matched, unmap cam data
-                currentPins[inputsMap[camSDA-1]] = btnUnmapped;
-                pinBoxes[inputsMap[camSDA-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::camSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Data.", 10000);
             }
-        } else if(index == periphSCL) {
+        } else if(btnRequest == OF_Const::periphSCL) {
             // if it's mapped, check that current peripheral data pin isn't mapped to the opposite I2C channel
-            if(inputsMap[periphSDA-1] > -1 && (pin & 0b00000010) != (inputsMap[periphSDA-1] & 0b00000010)) {
+            if(inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                currentPins[inputsMap[periphSDA-1]] = btnUnmapped;
-                pinBoxes[inputsMap[periphSDA-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::periphSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam clock isn't mapped to this I2C channel
-            } else if(inputsMap[camSCL-1] > -1 && (pin & 0b00000010) == (inputsMap[camSCL-1] & 0b00000010)) {
+            } else if(inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels matched, unmap cam clock
-                currentPins[inputsMap[camSCL-1]] = btnUnmapped;
-                pinBoxes[inputsMap[camSCL-1]]->setCurrentIndex(btnUnmapped);
+                pinBoxes[inputsMap.value(OF_Const::camSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Clock.", 10000);
             }
         }
-        QList<uint8_t> foundList = currentPins.keys(index);
-        for(uint8_t i = 0; i < foundList.length(); i++) {
-            currentPins[foundList[i]] = btnUnmapped;
-            pinBoxes[foundList[i]]->setCurrentIndex(btnUnmapped);
-        }
-        // Then map the thing.
-        currentPins[pin] = index;
-        inputsMap[btnRequest] = pin;
+
+        // Then map the thing, and sync this change to the property value
+        inputsMap[btnRequest] = sender()->property("slot").toInt();
+        sender()->setProperty("prevMapping", index);
     }
 
-    // update settings panel to reflect pins map changes
-    if(inputsMap[rumblePin-1] >= 0) { ui->rumbleToggle->setEnabled(true), ui->rumbleFFToggle->setEnabled(true); } else { ui->rumbleToggle->setChecked(false), ui->rumbleToggle->setEnabled(false), ui->rumbleFFToggle->setChecked(false), ui->rumbleFFToggle->setEnabled(false); }
-    if(inputsMap[solenoidPin-1] >= 0) { ui->solenoidToggle->setEnabled(true); } else { ui->solenoidToggle->setChecked(false), ui->solenoidToggle->setEnabled(false); }
-    if(inputsMap[neoPixel-1] >= 0) { ui->neopixelGroupBox->setEnabled(true); } else { ui->neopixelGroupBox->setEnabled(false); }
-    if(inputsMap[ledR-1] >= 0 && inputsMap[ledG-1] >= 0 && inputsMap[ledB-1] >= 0) { ui->commonAnodeToggle->setEnabled(true); } else { ui->commonAnodeToggle->setEnabled(false); }
+    // update settings panel to reflect pins map changes and prevent illegal values/combinations
+    if(inputsMap.value(OF_Const::rumblePin) >= 0)
+        ui->rumbleToggle->setEnabled(true), ui->rumbleFFToggle->setEnabled(true);
+    else {
+        ui->rumbleToggle->setChecked(false),   ui->rumbleToggle->setEnabled(false),
+        ui->rumbleFFToggle->setChecked(false), ui->rumbleFFToggle->setEnabled(false);
+    }
+
+    if(inputsMap.value(OF_Const::solenoidPin) >= 0)
+        ui->solenoidToggle->setEnabled(true);
+    else ui->solenoidToggle->setChecked(false), ui->solenoidToggle->setEnabled(false);
+
+    if(inputsMap.value(OF_Const::neoPixel) >= 0)
+        ui->neopixelGroupBox->setEnabled(true);
+    else ui->neopixelGroupBox->setEnabled(false);
+
+    if(inputsMap.value(OF_Const::ledR) >= 0 && inputsMap.value(OF_Const::ledG) >= 0 && inputsMap.value(OF_Const::ledB) >= 0)
+        ui->commonAnodeToggle->setEnabled(true);
+    else ui->commonAnodeToggle->setEnabled(false);
 
     DiffUpdate();
 }
@@ -1628,21 +1244,11 @@ void guiWindow::runModeBoxes_activated(int index)
 
 void guiWindow::renameBoxes_clicked()
 {
-    // Demultiplexing to figure out which box we're using.
-    uint8_t slot;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == renameBtn[i]) {
-            slot = i;
-            break;
-        }
-    }
-
     // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
-    QString newLabel = QInputDialog::getText(this, "Input Name", QString("Set name for profile %1").arg(slot+1));
+    QString newLabel = QInputDialog::getText(this, "Input Name", QString("Set name for profile %1").arg(sender()->property("slot").toInt()+1));
     if(!newLabel.isEmpty()) {
-        selectedProfile[slot]->setText(newLabel.left(15));
-        profilesTable[slot].profName = newLabel.left(15);
+        selectedProfile[sender()->property("slot").toInt()]->setText(newLabel.left(15));
+        profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
     }
     DiffUpdate();
 }
@@ -1650,17 +1256,7 @@ void guiWindow::renameBoxes_clicked()
 
 void guiWindow::colorBoxes_clicked()
 {
-    // Demultiplexing to figure out which box we're using.
-    uint8_t slot;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == color[i]) {
-            slot = i;
-            break;
-        }
-    }
-
-    QColor colorPick = QColorDialog::getColor(profilesTable[slot].color);
+    QColor colorPick = QColorDialog::getColor(profilesTable[sender()->property("slot").toInt()].color);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1670,8 +1266,8 @@ void guiWindow::colorBoxes_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        profilesTable[slot].color = packedColor;
-        color[slot]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        profilesTable[sender()->property("slot").toInt()].color = packedColor;
+        color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
         DiffUpdate();
     }
 }
@@ -1696,15 +1292,17 @@ void guiWindow::layoutBoxes_activated(int arg1)
 
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
-    boolSettings[customPins] = arg1;
+    boolSettings[OF_Const::customPins] = arg1;
     BoxesUpdate();
-    if(inputsMap[solenoidPin-1] >= 0) {
+
+    if(inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
         ui->solenoidToggle->setEnabled(true);
     } else {
         ui->solenoidToggle->setEnabled(false);
         ui->solenoidToggle->setChecked(false);
     }
-    if(inputsMap[rumblePin-1] >= 0) {
+
+    if(inputsMap.value(OF_Const::rumblePin) > OF_Const::btnUnmapped) {
         ui->rumbleToggle->setEnabled(true);
         ui->rumbleFFToggle->setEnabled(true);
     } else {
@@ -1713,6 +1311,7 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
         ui->rumbleFFToggle->setEnabled(false);
         ui->rumbleFFToggle->setChecked(false);
     }
+
     DiffUpdate();
 }
 
@@ -1720,33 +1319,19 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 void guiWindow::on_presetsBox_currentIndexChanged(int index)
 {
     if(index > -1) {
-        if(!ui->customPinsEnabled->isChecked()) { ui->customPinsEnabled->setChecked(true); }
-        for(uint8_t i = 0; i < 30; i++) {
-            pinBoxes[i]->setCurrentIndex(btnUnmapped);
-            currentPins[i] = btnUnmapped;
-        }
-        for(uint8_t i = 0; i < boardInputsCount-1; i++) {
-            switch(board.type) {
-            case rpipico:
-            case rpipicow:
-                if(rpipicoPresets[index][i] > -1) {
-                    pinBoxes[rpipicoPresets[index][i]]->setCurrentIndex(i+1);
-                    currentPins[rpipicoPresets[index][i]] = i+1;
-                }
-                inputsMap[i] = rpipicoPresets[index][i];
-                break;
-            case adafruitItsyRP2040:
-                if(adafruitItsyBitsyRP2040Presets[index][i] > -1) {
-                    pinBoxes[adafruitItsyBitsyRP2040Presets[index][i]]->setCurrentIndex(i+1);
-                    currentPins[adafruitItsyBitsyRP2040Presets[index][i]] = i+1;
-                }
-                inputsMap[i] = adafruitItsyBitsyRP2040Presets[index][i];
-                break;
-            default:
-                // lol wut
-                break;
-            }
-        }
+        // presets are inherently custom layouts
+        if(!ui->customPinsEnabled->isChecked())
+            ui->customPinsEnabled->setChecked(true);
+
+        // clear pinBoxes to be safe
+        for(uint8_t i = 0; i < PINS_COUNT; i++)
+            pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+
+        // set pinboxes to alt preset values (and let the index changed signal handle the rest)
+        QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(board.boardType.toStdString());
+        for(int i = 0; i < PINS_COUNT; i++)
+            pinBoxes[i]->setCurrentIndex(altPresets.at(index).pin[i]+1);
+
         DiffUpdate();
     }
 }
@@ -1754,7 +1339,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
-    boolSettings[rumble] = arg1;
+    boolSettings[OF_Const::rumble] = arg1;
     if(!arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->rumbleFFToggle->setEnabled(false);
@@ -1767,7 +1352,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
         ui->rumbleLengthBox->setEnabled(true);
         ui->rumbleTestBtn->setEnabled(true);
     }
-    if(!(arg1 && boolSettings[rumbleFF]) && !boolSettings[solenoid]) {
+    if(!(arg1 && boolSettings[OF_Const::rumbleFF]) && !boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1779,7 +1364,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
-    boolSettings[solenoid] = arg1;
+    boolSettings[OF_Const::solenoid] = arg1;
     if(arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->solenoidNormalIntervalBox->setEnabled(true);
@@ -1792,7 +1377,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->solenoidHoldLengthBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
     }
-    if(!arg1 && !(boolSettings[rumble] && boolSettings[rumbleFF])) {
+    if(!arg1 && !(boolSettings[OF_Const::rumble] && boolSettings[OF_Const::rumbleFF])) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1804,7 +1389,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 
 void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
-    boolSettings[autofire] = arg1;
+    boolSettings[OF_Const::autofire] = arg1;
     if(arg1) { ui->autofireWaitFactorBox->setEnabled(true); } else { ui->autofireWaitFactorBox->setEnabled(false); }
     DiffUpdate();
 }
@@ -1812,14 +1397,14 @@ void guiWindow::on_autofireToggle_stateChanged(int arg1)
 
 void guiWindow::on_simplePauseToggle_stateChanged(int arg1)
 {
-    boolSettings[simplePause] = arg1;
+    boolSettings[OF_Const::simplePause] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 {
-    boolSettings[holdToPause] = arg1;
+    boolSettings[OF_Const::holdToPause] = arg1;
     if(arg1) { ui->holdToPauseLengthBox->setEnabled(true); }
     else { ui->holdToPauseLengthBox->setEnabled(false); }
     DiffUpdate();
@@ -1828,23 +1413,23 @@ void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 
 void guiWindow::on_commonAnodeToggle_stateChanged(int arg1)
 {
-    boolSettings[commonAnode] = arg1;
+    boolSettings[OF_Const::commonAnode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 {
-    boolSettings[lowButtonsMode] = arg1;
+    boolSettings[OF_Const::lowButtonsMode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
-    boolSettings[rumbleFF] = arg1;
+    boolSettings[OF_Const::rumbleFF] = arg1;
     if(arg1) { ui->solenoidToggle->setChecked(false); }
-    if(!(arg1 && boolSettings[rumble]) && !boolSettings[solenoid]) {
+    if(!(arg1 && boolSettings[OF_Const::rumble]) && !boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1856,49 +1441,49 @@ void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 
 void guiWindow::on_rumbleIntensityBox_valueChanged(int arg1)
 {
-    settingsTable[rumbleStrength] = arg1;
+    settingsTable[OF_Const::rumbleStrength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleLengthBox_valueChanged(int arg1)
 {
-    settingsTable[rumbleInterval] = arg1;
+    settingsTable[OF_Const::rumbleInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 {
-    settingsTable[holdToPauseLength] = arg1;
+    settingsTable[OF_Const::holdToPauseLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
-    settingsTable[solenoidNormalInterval] = arg1;
+    settingsTable[OF_Const::solenoidNormalInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
 {
-    settingsTable[solenoidFastInterval] = arg1;
+    settingsTable[OF_Const::solenoidFastInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 {
-    settingsTable[solenoidHoldLength] = arg1;
+    settingsTable[OF_Const::solenoidHoldLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 {
-    settingsTable[autofireWaitFactor] = arg1;
+    settingsTable[OF_Const::autofireWaitFactor] = arg1;
     DiffUpdate();
 }
 
@@ -2043,8 +1628,8 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
 
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
-    settingsTable[customLEDcount] = arg1;
-    if(arg1 < settingsTable[customLEDstatic]) {
+    settingsTable[OF_Const::customLEDcount] = arg1;
+    if(arg1 < settingsTable[OF_Const::customLEDstatic]) {
         ui->customLEDstaticSpinbox->setValue(arg1);
     }
 
@@ -2057,10 +1642,10 @@ void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 {
-    if(arg1 > settingsTable[customLEDcount]) { ui->customLEDstaticSpinbox->setValue(settingsTable[customLEDcount]); }
-    else { settingsTable[customLEDstatic] = arg1; }
-    if(customLEDstatic) {
-        switch(settingsTable[customLEDstatic]) {
+    if(arg1 > settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(settingsTable[OF_Const::customLEDcount]); }
+    else { settingsTable[OF_Const::customLEDstatic] = arg1; }
+    if(OF_Const::customLEDstatic) {
+        switch(settingsTable[OF_Const::customLEDstatic]) {
         case 1:
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(false);
@@ -2093,7 +1678,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticBtn1_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor1]);
+    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor1]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -2103,7 +1688,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[customLEDcolor1] = packedColor;
+        settingsTable[OF_Const::customLEDcolor1] = packedColor;
         ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -2116,7 +1701,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
 
 void guiWindow::on_customLEDstaticBtn2_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor2]);
+    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor2]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -2126,7 +1711,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[customLEDcolor2] = packedColor;
+        settingsTable[OF_Const::customLEDcolor2] = packedColor;
         ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -2139,7 +1724,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
 
 void guiWindow::on_customLEDstaticBtn3_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[customLEDcolor3]);
+    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor3]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -2149,7 +1734,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[customLEDcolor3] = packedColor;
+        settingsTable[OF_Const::customLEDcolor3] = packedColor;
         ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -2160,42 +1745,52 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 }
 
 // TODO: cali should use a fullscreen window depicting target graphics w/ hidden cursor. This should be its own method and activated when "Cali:" is detected in the serial stream.
+// TODO TODO: move this to appcali subwindow
 void guiWindow::on_calib1Btn_clicked()
 {
     serialPort.write("XC1C");
-    if(serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Calibrating Profile 1.", "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\nYou can exit without saving changes by pressing either Button A/B/C.\n\nAfter the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.", "Calibration", 2);
-    }
+    if(serialPort.waitForBytesWritten(1000))
+        QMessageBox::information(this, "Calibrating Profile 1",
+                                       "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
+                                       "You can exit without saving changes by pressing either Button A/B/C.\n\n"
+                                       "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
 }
 
 
 void guiWindow::on_calib2Btn_clicked()
 {
     serialPort.write("XC2C");
-    if(serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Calibrating Profile 2.", "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\nYou can exit without saving changes by pressing either Button A/B/C.\n\nAfter the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.", "Calibration", 2);
-    }
+    if(serialPort.waitForBytesWritten(1000))
+        QMessageBox::information(this,  "Calibrating Profile 2",
+                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
+                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
+                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
 }
 
 
 void guiWindow::on_calib3Btn_clicked()
 {
     serialPort.write("XC3C");
-    if(serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Calibrating Profile 3.", "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\nYou can exit without saving changes by pressing either Button A/B/C.\n\nAfter the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.", "Calibration", 2);
-    }
+    if(serialPort.waitForBytesWritten(1000))
+        QMessageBox::information(this,  "Calibrating Profile 3",
+                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
+                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
+                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
 }
 
 
 void guiWindow::on_calib4Btn_clicked()
 {
     serialPort.write("XC4C");
-    if(serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Calibrating Profile 4.", "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\nYou can exit without saving changes by pressing either Button A/B/C.\n\nAfter the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.", "Calibration", 2);
-    }
+    if(serialPort.waitForBytesWritten(1000))
+        QMessageBox::information(this,  "Calibrating Profile 4",
+                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
+                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
+                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
 }
 
 // WARNING: make sure "serialActive" is set ON for important operations, or this will eat the fucker
+// TODO: move to appserial
 void guiWindow::serialPort_readyRead()
 {
     if(!serialActive) {
@@ -2297,52 +1892,40 @@ void guiWindow::serialPort_readyRead()
 void guiWindow::on_rumbleTestBtn_clicked()
 {
     serialPort.write("Xtr");
-    if(!serialPort.waitForBytesWritten(1000)) { PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4); }
-    else { ui->statusBar->showMessage("Sent a rumble test pulse.", 2500); }
+    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    else ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
 }
 
 
 void guiWindow::on_solenoidTestBtn_clicked()
 {
     serialPort.write("Xts");
-    if(!serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
-    } else {
-        ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
-    }
+    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    else ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
 }
 
 
 void guiWindow::on_redLedTestBtn_clicked()
 {
     serialPort.write("XtR");
-    if(!serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
-    } else {
-        ui->statusBar->showMessage("Set LED to Red.", 2500);
-    }
+    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    else ui->statusBar->showMessage("Set LED to Red.", 2500);
 }
 
 
 void guiWindow::on_greenLedTestBtn_clicked()
 {
     serialPort.write("XtG");
-    if(!serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
-    } else {
-        ui->statusBar->showMessage("Set LED to Green.", 2500);
-    }
+    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    else ui->statusBar->showMessage("Set LED to Green.", 2500);
 }
 
 
 void guiWindow::on_blueLedTestBtn_clicked()
 {
     serialPort.write("XtB");
-    if(!serialPort.waitForBytesWritten(1000)) {
-        PopupWindow("Lost connection!", "Somehow this happened I guess???", "Oops!", 4);
-    } else {
-        ui->statusBar->showMessage("Set LED to Blue.", 2500);
-    }
+    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    else ui->statusBar->showMessage("Set LED to Blue.", 2500);
 }
 
 
@@ -2412,14 +1995,12 @@ void guiWindow::on_clearEepromBtn_clicked()
                     serialPort.close();
                     serialActive = false;
                     ui->comPortSelector->setCurrentIndex(0);
-                    PopupWindow("Cleared storage.", "Please unplug the board and reinsert it into the PC.", "Clear Finished", 1);
+                    QMessageBox::information(this, "Cleared storage.",
+                                                   "Please unplug the board and reinsert it into the PC.");
                 }
             }
         }
-    } else {
-        //qDebug() << "Clear operation canceled.";
-        ui->statusBar->showMessage("Clear operation canceled.", 3000);
-    }
+    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
 
 

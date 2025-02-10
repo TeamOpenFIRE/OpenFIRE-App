@@ -1,13 +1,4 @@
 <RCC>
-    <qresource prefix="/boardPics">
-        <file alias="pico.svg">builtinBoardPics/pico.svg</file>
-        <file alias="adafruitItsy2040.svg">builtinBoardPics/adafruitItsy2040.svg</file>
-        <file alias="arduinoNano2040.svg">builtinBoardPics/arduinoNano2040.svg</file>
-        <file alias="unknown.svg">builtinBoardPics/unknown.svg</file>
-        <file alias="adafruitKB2040.svg">builtinBoardPics/adafruitKB2040.svg</file>
-        <file alias="waveshareZero.svg">builtinBoardPics/waveshareZero.svg</file>
-        <file alias="picow.svg">builtinBoardPics/picow.svg</file>
-    </qresource>
     <qresource prefix="/icon">
         <file alias="icon.png">ico/openfire.png</file>
         <file alias="edit.png">ico/edit.png</file>
