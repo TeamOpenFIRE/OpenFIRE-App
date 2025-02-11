@@ -18,33 +18,61 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#include <QMainWindow>
+#include <QString>
+#include <QVector>
+#include <QMap>
 
-typedef struct boardInfo_t {
-    uint8_t selectedProfile;
-    uint8_t previousProfile;
-    QString boardType;
-    QString versionNumber;
-    QString versionCodename;
-} boardInfo_s;
+class App_Const
+{
+public:
+    typedef struct boardInfo_t {
+        uint8_t selectedProfile;
+        uint8_t previousProfile;
+        QString boardType;
+        QString versionNumber;
+        QString versionCodename;
+    } boardInfo_s;
 
-typedef struct tinyUSBtable_t {
-    QString tinyUSBid;
-    QString tinyUSBname;
-} tinyUSBtable_s;
+    typedef struct tinyUSBtable_t {
+        QString tinyUSBid;
+        QString tinyUSBname;
+    } tinyUSBtable_s;
 
-typedef struct profilesTable_t {
-    uint16_t topOffset;
-    uint16_t bottomOffset;
-    uint16_t leftOffset;
-    uint16_t rightOffset;
-    uint16_t TLled;
-    uint16_t TRled;
-    uint8_t irSensitivity;
-    uint8_t runMode;
-    bool layoutType;
-    uint32_t color;
-    QString profName;
-} profilesTable_s;
+    typedef struct profilesTable_t {
+        uint16_t topOffset;
+        uint16_t bottomOffset;
+        uint16_t leftOffset;
+        uint16_t rightOffset;
+        uint16_t TLled;
+        uint16_t TRled;
+        uint8_t irSensitivity;
+        uint8_t runMode;
+        bool layoutType;
+        uint32_t color;
+        QString profName;
+    } profilesTable_s;
+
+    // Currently loaded board object
+    static inline boardInfo_s board;
+
+    // Currently loaded board's TinyUSB identifier info
+    static inline tinyUSBtable_s tinyUSBtable;
+    // TinyUSB ident, as loaded from the board
+    static inline tinyUSBtable_s tinyUSBtable_orig;
+
+    // Current calibration profiles
+    static inline QVector<profilesTable_s> profilesTable;
+    // Calibration profiles, as loaded from the board
+    static inline QVector<profilesTable_s> profilesTable_orig;
+
+    // Map of what inputs are put where,
+    // Key = button/output, Value = pin number occupying, if any.
+    // Value of -1 means unmapped.
+    // Key order based on boardInputs_e, minus 1
+    // Map functions used in deduplication
+    static inline QMap<uint8_t, int8_t> inputsMap;
+    // Inputs map, as loaded from the board
+    static inline QMap<uint8_t, int8_t> inputsMap_orig;
+};
 
 #endif // CONSTANTS_H

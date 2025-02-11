@@ -18,10 +18,17 @@
 #ifndef APPMAINWINDOW_H
 #define APPMAINWINDOW_H
 
-// Amount of profiles to read in (TODO: could just be made a flexible number)
+// Maximum amount of GPIO that the RP2040 microcontroller has available
+#define PINS_COUNT 30
+
+// Default maximum amount of profiles to read in (TODO: could just be made a flexible number)
 #define PROFILES_COUNT 4
 
+// Interval of the aliveTimer object that probes the board to ensure it's connected
+#define ALIVE_TIMER 5000
+
 #include "constants.h"
+#include "appcali.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMainWindow>
 #include <QSerialPort>
@@ -30,6 +37,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QStandardItemModel>
 #include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
@@ -50,10 +58,6 @@ public:
     guiWindow(QWidget *parent = nullptr);
     ~guiWindow();
 
-    QSerialPort serialPort;
-
-    bool serialActive = false;
-
 private slots:
     void aliveTimer_timeout();
 
@@ -61,9 +65,9 @@ private slots:
 
     void on_confirmButton_clicked();
 
-    void serialPort_readyRead();
-
     void pinBoxes_currentIndexChanged(int index);
+
+    void serialPort_readyRead();
 
     void renameBoxes_clicked();
 
@@ -167,119 +171,135 @@ private slots:
 
     void on_actionOpenFIRE_Serial_Usage_triggered();
 
+    void on_actionOpen_IR_Emitter_Alignment_Assistant_triggered();
+
+    void CaliWindowExiting(const int &);
+
+    void on_actionImport_Custom_Layout_triggered();
+
+    void on_actionExport_Custom_Layout_triggered();
+
 private:
     Ui::guiWindow *ui;
 
-    // Submethod that fills contents of boxes with OF_Const::valuesNamesList
+    /// @brief      Calibration window pointer
+    /// @details    Only one of these should be up at a time
+    AppCaliWindow *caliWindow = nullptr;
+
+    /// @brief      Submethod that fills contents of boxes with OF_Const::valuesNamesList
+    /// @details
     void BoxesFill();
 
-    // what does this do again? lol
+    /// @brief      Mass update all pinboxes with certain sets of values
+    /// @details    Used when toggling custom pins, initial load, and setting presets
     void BoxesUpdate();
 
-    // Updates board view labels/prettifies labels
+    /// @brief      Updates boards layout header
+    /// @details    Also invokes name prettification
     void LabelsUpdate();
 
-    // Checks for differences in current staging settings, enables "send to board" button
+    /// @brief      Converts system name to display name, provided in OF_Const::boardNames
+    QString PrettifyName();
+
+    /// @brief      Checks for differences in current staging settings
+    /// @details    Controls enablement of "send to board" button
     void DiffUpdate();
-    // The same, but for NeoPixels specifically
+
+    /// @brief      Checks for differences in NeoPixels settings
+    /// @details    Controls enablement of certain settings in the NeoPixels section of settings
     void PixelsDiff();
 
-    // Search ports (TODO: move to appserial)
+    /// @brief      Search for available serial port devices
+    /// @details    Filters for OpenFIRE devices specifically
+    // (TODO: move to appserial)
     void PortsSearch();
 
-    void SelectionUpdate(uint8_t newSelection);
-
-    // TODO: move to appserial
+    /// @brief      Pair serial device to portNum device, and start grabbing its info
+    /// @returns    True if device could be initiated, false if syncing failed
     bool SerialInit(int portNum);
+
+    /// @brief      Grab firmware settings from serial device
+    /// @details    Currently only called by the success route of SerialInit
     void SerialLoad();
+
+    /// @brief      Sync current settings from app to board
+    /// @details    If successful, current settings get copied to "orig" settings tables
     void SyncSettings();
-    QString PrettifyName();
+
+    /// @brief      Disables given setting of a combobox
+    /// @arg        Combobox item, index number to toggle, enable state to set to
+    void SetComboBoxItemEnabled(QComboBox * comboBox, const int index, const bool enabled) {
+        auto * model = qobject_cast<QStandardItemModel*>(comboBox->model());
+        auto * item = model->item(index);
+        item->setEnabled(enabled);
+    }
 
     // ^^^---Methods---^^^
     //
     // vvv---Internal Values---vvv
 
-    // List of serial port objects that were found in PortsSearch()
+    QSerialPort serialPort;
+
+    bool serialActive = false;
+
+    /// @brief      List of serial port objects that were found in PortsSearch()
     QList<QSerialPortInfo> serialFoundList;
-    // Extracted COM paths, as provided from serialFoundList
+
+    /// @brief      Extracted COM paths, as provided from serialFoundList
     QStringList usbName;
 
-    // Tracks the amount of differences between current config and loaded config.
-    // Resets after every call to DiffUpdate()
-    uint8_t settingsDiff;
-
-    // Current array of booleans, meant to be used as a bitmask
+    /// @brief      Current array of booleans
+    /// @details    Meant for toggle/on-off type settings specifically
     bool boolSettings[OF_Const::boolTypesCount];
-    // Array of booleans, as loaded from the gun firmware
+
+    /// @brief      Array of booleans last synced from the microcontroller
+    /// @details    This is only updated on saving and loading settings successfully
     bool boolSettings_orig[OF_Const::boolTypesCount];
 
-    // Current table of tunable settings
+    /// @brief      Current array of tunable settings
     uint32_t settingsTable[OF_Const::settingsTypesCount];
-    // Table of tunables, as loaded from gun firmware
+
+    /// @brief      Array of tunables last synced from the microcontroller
+    /// @details    This is only updated on saving and loading settings successfully
     uint32_t settingsTable_orig[OF_Const::settingsTypesCount];
 
+    /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
     // TODO: add this to settingsTable (5.1?)
     uint8_t tempWarning = 35;
     uint8_t tempShutoff = 42;
 
-    // Indexed array map of the current physical layout of the board;
-    // Also doubles as combobox sanity check.
-    // Key = pin number, Value = pin function
-    // Values: -2 = N/A, -1 = reserved, 0 = available, unused
-    //QMap<uint8_t, int8_t> currentPins;
-
-    // Indicator if the test window is activated (to block potentially sending noise)
+    /// @brief      Indicator if the test window is activated (to block potentially sending noise)
     bool testMode = false;
 
-    // Timer that probes the board if it's still plugged in
+    /// @brief      Timer that probes the board if it's still plugged in
+    /// @details    Timer interval is provided in ms by ALIVE_TIMER
     QTimer *aliveTimer;
-    // For AliveTimer that probes the board if it's still plugged in
-    bool boardIsAlive = false;
 
     // ^^^---Internal Values---^^^
-    //
-    // vvv---GUI Objects---vvv
-
-    // Currently loaded board object
-    boardInfo_s board;
-
-    // Currently loaded board's TinyUSB identifier info
-    tinyUSBtable_s tinyUSBtable;
-    // TinyUSB ident, as loaded from the board
-    tinyUSBtable_s tinyUSBtable_orig;
-
-    // Current calibration profiles
-    QVector<profilesTable_s> profilesTable;
-    // Calibration profiles, as loaded from the board
-    QVector<profilesTable_s> profilesTable_orig;
-
-    // Map of what inputs are put where,
-    // Key = button/output, Value = pin number occupying, if any.
-    // Value of -1 means unmapped.
-    // Key order based on boardInputs_e, minus 1
-    // Map functions used in deduplication
-    QMap<uint8_t, int8_t> inputsMap;
-    // Inputs map, as loaded from the board
-    QMap<uint8_t, int8_t> inputsMap_orig;
-
-    // ^^^-----Typedefs up there:----^^^
     //
     // vvv---UI Objects down here:---vvv
 
     // Always remember to nullptr your fresh pointers, kids!
     // or else release mode undefined behavior will bite your ass :)
+
+    /// @brief      Layouts that makes up the board view tab
+    /// @details    Gets deleted whenever the board view is updated (i.e. board changes)
     QVBoxLayout *PinsCenter = nullptr;
     QGridLayout *PinsCenterSub = nullptr;
     QGridLayout *PinsLeft = nullptr;
     QGridLayout *PinsRight = nullptr;
+    QSvgWidget *centerPic = nullptr;
 
+    /// @brief      Objects that makes up the elements of the board view tab
+    /// @details    Pinboxes stores the state of each pin to one function
     QComboBox *pinBoxes[30] = {nullptr};
     QLabel *pinLabel[30] = {nullptr};
     QWidget *padding[30] = {nullptr};
 
-    // buttons in the test screen
+    /// @brief      Test "Buttons" in the test screen representing each button
     QLabel *testLabel[16];
 
+    /// @brief      Objects that makes up the elements of the profiles tab
     QRadioButton *selectedProfile[PROFILES_COUNT];
     QLabel *topOffset[PROFILES_COUNT];
     QLabel *bottomOffset[PROFILES_COUNT];
@@ -292,25 +312,5 @@ private:
     QComboBox *layoutMode[PROFILES_COUNT];
     QPushButton *color[PROFILES_COUNT];
     QPushButton *renameBtn[PROFILES_COUNT];
-
-    QSvgWidget *centerPic = nullptr;
-    QGraphicsScene *testScene = nullptr;
-#define ALIVE_TIMER 5000
-
-    // Test Mode screen points & colors
-    QGraphicsEllipseItem testPointTL;
-    QGraphicsEllipseItem testPointTR;
-    QGraphicsEllipseItem testPointBL;
-    QGraphicsEllipseItem testPointBR;
-    QGraphicsEllipseItem testPointMed;
-    QGraphicsEllipseItem testPointD;
-    QGraphicsPolygonItem testBox;
-
-    QPen testPointTLPen;
-    QPen testPointTRPen;
-    QPen testPointBLPen;
-    QPen testPointBRPen;
-    QPen testPointMedPen;
-    QPen testPointDPen;
 };
 #endif // GUIWINDOW_H

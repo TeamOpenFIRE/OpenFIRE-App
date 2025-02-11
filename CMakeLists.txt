@@ -24,6 +24,9 @@ set(PROJECT_SOURCES
         src/appmainwindow.ui
         src/appserial.h
         src/appserial.cpp
+        src/appcali.h
+        src/appcali.cpp
+        src/appcali.ui
         src/about.ui
         img/vectors.qrc
         boards/boardPics/boards.qrc

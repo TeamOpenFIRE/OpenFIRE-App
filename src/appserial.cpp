@@ -2,4 +2,7 @@
 
 AppSerialDevice::AppSerialDevice(QObject *parent)
     : QObject{parent}
-{}
+{
+
+}
+

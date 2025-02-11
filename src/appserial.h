@@ -2,6 +2,7 @@
 #define APPSERIAL_H
 
 #include <QObject>
+#include <QSerialPort>
 
 class AppSerialDevice : public QObject
 {
@@ -9,12 +10,11 @@ class AppSerialDevice : public QObject
 public:
     explicit AppSerialDevice(QObject *parent = nullptr);
 
-
-
 private:
 
 
 signals:
+
 
 };
 

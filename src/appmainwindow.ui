@@ -23,7 +23,7 @@
    <string>OpenFIRE App - Tsuzura [v2.2]</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="vectors.qrc">
+   <iconset resource="../img/vectors.qrc">
     <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -38,7 +38,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,0">
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -46,7 +46,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>0</width>
           <height>20</height>
          </size>
         </property>
@@ -133,9 +133,52 @@
        <attribute name="title">
         <string>Board Layout</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0">
         <item>
-         <layout class="QHBoxLayout" name="PinsTopHalf"/>
+         <widget class="QScrollArea" name="pinsScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::Shape::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Shadow::Plain</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>610</width>
+             <height>732</height>
+            </rect>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <layout class="QHBoxLayout" name="PinsTopHalf"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="PinsBottomHalf">
@@ -167,6 +210,29 @@
             </property>
             <property name="text">
              <string>Use Custom Pins</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_14">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QToolButton" name="customLayoutToolBtn">
+            <property name="text">
+             <string>User Layouts</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
             </property>
            </widget>
           </item>
@@ -832,7 +898,7 @@
         <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -1125,7 +1191,7 @@
              <item row="0" column="3">
               <widget class="Line" name="line_4">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1142,7 +1208,7 @@
              <item row="0" column="19">
               <widget class="Line" name="line_9">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1169,14 +1235,14 @@
              <item row="0" column="11">
               <widget class="Line" name="line_10">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
              <item row="0" column="15">
               <widget class="Line" name="line_8">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1203,7 +1269,7 @@
              <item row="0" column="17">
               <widget class="Line" name="line_3">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1239,21 +1305,21 @@
              <item row="0" column="7">
               <widget class="Line" name="line_6">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
              <item row="0" column="9">
               <widget class="Line" name="line_7">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
              <item row="0" column="5">
               <widget class="Line" name="line_5">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1300,7 +1366,7 @@
              <item row="0" column="13">
               <widget class="Line" name="line_11">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1344,7 +1410,7 @@
         <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -1363,7 +1429,7 @@
        <attribute name="title">
         <string>Gun Tests</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1,0,0">
         <item>
          <widget class="QGroupBox" name="buttonsTestArea">
           <property name="title">
@@ -1425,71 +1491,24 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="testBox">
-          <property name="title">
-           <string>IR Test Area</string>
+         <widget class="QPushButton" name="testBtn">
+          <property name="text">
+           <string>Open IR Camera Tester...</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QGraphicsView" name="testView">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::Shape::Box</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Sunken</enum>
-             </property>
-             <property name="lineWidth">
-              <number>3</number>
-             </property>
-             <property name="verticalScrollBarPolicy">
-              <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-             </property>
-             <property name="horizontalScrollBarPolicy">
-              <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-             </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
-             </property>
-             <property name="backgroundBrush">
-              <brush brushstyle="NoBrush">
-               <color alpha="255">
-                <red>70</red>
-                <green>70</green>
-                <blue>70</blue>
-               </color>
-              </brush>
-             </property>
-             <property name="interactive">
-              <bool>false</bool>
-             </property>
-             <property name="sceneRect">
-              <rectf>
-               <x>0.000000000000000</x>
-               <y>0.000000000000000</y>
-               <width>0.000000000000000</width>
-               <height>0.000000000000000</height>
-              </rectf>
-             </property>
-             <property name="resizeAnchor">
-              <enum>QGraphicsView::ViewportAnchor::AnchorViewCenter</enum>
-             </property>
-             <property name="optimizationFlags">
-              <set>QGraphicsView::OptimizationFlag::DontAdjustForAntialiasing|QGraphicsView::OptimizationFlag::DontSavePainterState</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="testBtn">
-             <property name="text">
-              <string>Enable IR Test Mode</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <widget class="Line" name="line_2">
@@ -1524,9 +1543,6 @@
           </layout>
          </widget>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
-        </item>
        </layout>
       </widget>
      </widget>
@@ -1549,7 +1565,7 @@
      <x>0</x>
      <y>0</y>
      <width>650</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAbout">
@@ -1562,6 +1578,8 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionOpen_IR_Emitter_Alignment_Assistant"/>
+    <addaction name="separator"/>
     <addaction name="actionOpenFIRE_Documentation"/>
     <addaction name="actionOpenFIRE_Serial_Usage"/>
    </widget>
@@ -1594,9 +1612,30 @@
     <string>Alt+S</string>
    </property>
   </action>
+  <action name="actionOpen_IR_Emitter_Alignment_Assistant">
+   <property name="text">
+    <string>Open IR Emitter Alignment Assistant</string>
+   </property>
+  </action>
+  <action name="actionImport_Custom_Layout">
+   <property name="text">
+    <string>Import Custom Layout...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="actionExport_Custom_Layout">
+   <property name="text">
+    <string>Export Custom Layout...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="vectors.qrc"/>
+  <include location="../img/vectors.qrc"/>
  </resources>
  <connections/>
 </ui>
