@@ -27,6 +27,7 @@
 #include <QProgressBar>
 #include <QProcess>
 //#include <QStorageInfo>
+#include <QDebug>
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QInputDialog>
@@ -2131,8 +2132,11 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
         if(fileIn.open(QFile::ReadOnly)) {
             if(fileIn.readLine().trimmed() == App_Const::board.boardType) {
                 for(int i = 0; i < PINS_COUNT; i++)
+                    pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+
+                for(int i = 0; i < PINS_COUNT; i++)
                     if(!fileIn.atEnd())
-                        pinBoxes[i]->setCurrentIndex(fileIn.read(1).toInt()+1);
+                        pinBoxes[i]->setCurrentIndex(fileIn.read(1).toHex().toInt(nullptr, 16));
                     else break;
 
                 fileIn.close();
@@ -2162,7 +2166,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
             fileOut.write(QString("%1\n").arg(App_Const::board.boardType).toLocal8Bit());
 
             for(int i = 0; i < PINS_COUNT; i++)
-                fileOut.write(QString(pinBoxes[i]->currentIndex()-1).toLocal8Bit());
+                fileOut.putChar(pinBoxes[i]->currentIndex());
 
             fileOut.close();
             ui->statusBar->showMessage("Custom layout export successful!", 5000);
