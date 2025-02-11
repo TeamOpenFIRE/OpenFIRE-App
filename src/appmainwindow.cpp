@@ -64,7 +64,7 @@ guiWindow::guiWindow(QWidget *parent)
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
 
-    // These can actually stay, tho.
+    // TODO: profiles view should use LISTS of items, rather than fixed size arrays
     for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
         renameBtn[i] = new QPushButton();
         renameBtn[i]->setFlat(true);
@@ -89,18 +89,15 @@ guiWindow::guiWindow(QWidget *parent)
         rightOffset[i]->setAlignment(Qt::AlignCenter);
         TLled[i]->setAlignment(Qt::AlignCenter);
         TRled[i]->setAlignment(Qt::AlignCenter);
-        irSens[i]->addItem("Default");
-        irSens[i]->addItem("Higher");
-        irSens[i]->addItem("Highest");
+        irSens[i]->addItems({"Default", "Higher, Highest"});
         connect(irSens[i], SIGNAL(activated(int)), this, SLOT(irBoxes_activated(int)));
-        runMode[i]->addItem("Normal");
-        runMode[i]->addItem("1-Frame Avg");
-        runMode[i]->addItem("2-Frame Avg");
+        runMode[i]->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
         layoutMode[i]->addItems({"Square", "Diamond"});
         connect(layoutMode[i], SIGNAL(activated(int)), this, SLOT(layoutBoxes_activated(int)));
         connect(runMode[i], SIGNAL(activated(int)), this, SLOT(runModeBoxes_activated(int)));
         color[i]->setFixedWidth(32);
         connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
+
         ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
         ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
         ui->profilesArea->addWidget(topOffset[i], i+1, 2, 1, 1);
@@ -145,7 +142,7 @@ guiWindow::guiWindow(QWidget *parent)
     ui->buttonsTestLayout->setRowMinimumHeight(2, 32);
     ui->buttonsTestLayout->setRowMinimumHeight(3, 32);
 
-    // hiding tUSB elements by default since this can't be done from default
+    // hiding tUSB elements by default since this can't be done from the off
     ui->tUSBLayoutAdvanced->setVisible(false);
 
     // set hidden by default until a board with presets is loaded
@@ -440,20 +437,17 @@ void guiWindow::BoxesUpdate()
     // disabling custom pins, reset to presets
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
-        for(int i = 0; i < App_Const::inputsMap.size(); i++)
-            App_Const::inputsMap[i] = OF_Const::btnUnmapped;
+        for(int i = 0; i < PINS_COUNT; i++)
+            pinBoxes[i]->setEnabled(false), pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // copy preset layout to pinboxes
         if(OF_Const::boardsPresetsMap.count(App_Const::board.boardType.toStdString()))
-            for(int i = 0; i < PINS_COUNT; i++) {
-                pinBoxes[i]->setEnabled(false);
+            for(int i = 0; i < PINS_COUNT; i++)
                 pinBoxes[i]->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i]+1);
-            }
+
         // generics don't come with mappings
-        else for(int i = 0; i < PINS_COUNT; i++) {
-            pinBoxes[i]->setEnabled(false);
+        else for(int i = 0; i < PINS_COUNT; i++)
             pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
-        }
 
         return;
     }
@@ -562,15 +556,10 @@ void guiWindow::SyncSettings()
 }
 
 
-QString guiWindow::PrettifyName()
+QString guiWindow::PrettifyName(QString name)
 {
-    QString name;
-
-    if(!App_Const::tinyUSBtable.tinyUSBname.isEmpty()) {
-        name = App_Const::tinyUSBtable.tinyUSBname;
-    } else {
+    if(name.isEmpty())
         name = "Unnamed Device";
-    }
 
     // append name of board to gun name string.
     if(OF_Const::boardNames.contains(App_Const::board.boardType.toStdString()))
@@ -680,7 +669,7 @@ void guiWindow::on_confirmButton_clicked()
                 SyncSettings();
                 PixelsDiff();
                 DiffUpdate();
-                ui->boardLabel->setText(PrettifyName());
+                ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
             }
 
             serialActive = false;
@@ -745,7 +734,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
         } else {
             // Clears old board layout items
             if(pinBoxes[0] != nullptr) {
-                for(uint8_t i = 0; i < 30; i++) {
+                for(uint8_t i = 0; i < PINS_COUNT; i++) {
                     delete pinBoxes[i];
                     delete padding[i];
                     delete pinLabel[i];
@@ -774,7 +763,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->PinsTopHalf->setStretch(1,1);
             ui->PinsTopHalf->setStretch(2,0);
 
-            for(uint8_t i = 0; i < 30; i++) {
+            for(uint8_t i = 0; i < PINS_COUNT; i++) {
                 pinBoxes[i] = new QComboBox();
                 pinBoxes[i]->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
                 pinBoxes[i]->setProperty("slot", i);
@@ -799,7 +788,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             BoxesFill();
             LabelsUpdate();
 
-            ui->boardLabel->setText(PrettifyName());
+            ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
             if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {

@@ -199,7 +199,7 @@ private:
     void LabelsUpdate();
 
     /// @brief      Converts system name to display name, provided in OF_Const::boardNames
-    QString PrettifyName();
+    QString PrettifyName(QString);
 
     /// @brief      Checks for differences in current staging settings
     /// @details    Controls enablement of "send to board" button
@@ -292,9 +292,9 @@ private:
 
     /// @brief      Objects that makes up the elements of the board view tab
     /// @details    Pinboxes stores the state of each pin to one function
-    QComboBox *pinBoxes[30] = {nullptr};
-    QLabel *pinLabel[30] = {nullptr};
-    QWidget *padding[30] = {nullptr};
+    QComboBox *pinBoxes[PINS_COUNT] = {nullptr};
+    QLabel *pinLabel[PINS_COUNT] = {nullptr};
+    QWidget *padding[PINS_COUNT] = {nullptr};
 
     /// @brief      Test "Buttons" in the test screen representing each button
     QLabel *testLabel[16];
