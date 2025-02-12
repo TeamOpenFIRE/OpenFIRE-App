@@ -15,9 +15,8 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
     connect(&scene, &AppCaliGraphicsScene::sceneMouseEvent, this, &AppCaliWindow::sceneEventReceiver);
     connect(&scene, &AppCaliGraphicsScene::sceneKeyCloseSignal, this, &AppCaliWindow::sceneKeyCloseReceiver);
 
-    qDebug() << ui->graphicsView->scene();
-
     ui->graphicsView->setScene(&scene);
+
     // limit scale to screen size
     // (lightgun only functions properly on a single screen anyways, so no need to worry I think)
     scene.setSceneRect(QApplication::primaryScreen()->geometry());
