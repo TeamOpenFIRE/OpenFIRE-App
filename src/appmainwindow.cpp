@@ -439,18 +439,18 @@ void guiWindow::BoxesUpdate()
     if(boolSettings[OF_Const::customPins]) {
         // enable pinboxes
         for(int i = 0; i < PINS_COUNT; i++)
-            pinBoxes[i]->setEnabled(true);
+            pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
         if(boolSettings_orig[OF_Const::customPins]) {
             // reset pinboxes
             for(int i = 0; i < PINS_COUNT; i++)
-                pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
             for(int i = 0; i < App_Const::inputsMap_orig.count(); i++)
                 if(App_Const::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Const::inputsMap_orig.value(i) < PINS_COUNT)
-                    pinBoxes[App_Const::inputsMap_orig.value(i)]->setCurrentIndex(i+1);
+                    pinBoxes.at(App_Const::inputsMap_orig.value(i))->setCurrentIndex(i+1);
 
         // else, if the board *was using default maps* before switching to custom (no need to re-set pinboxes)
         } else {
@@ -473,16 +473,16 @@ void guiWindow::BoxesUpdate()
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
         for(int i = 0; i < PINS_COUNT; i++)
-            pinBoxes[i]->setEnabled(false), pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+            pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // copy preset layout to pinboxes
         if(OF_Const::boardsPresetsMap.count(App_Const::board.boardType.toStdString()))
             for(int i = 0; i < PINS_COUNT; i++)
-                pinBoxes[i]->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i]+1);
+                pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i]+1);
 
         // generics don't come with mappings
         else for(int i = 0; i < PINS_COUNT; i++)
-            pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+            pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         return;
     }
@@ -770,11 +770,11 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             // Clears old board layout items
             if(pinBoxes.count()) {
                 for(uint8_t i = 0; i < pinBoxes.count(); i++)
-                    delete pinBoxes[i];
+                    delete pinBoxes.at(i);
                 for(uint8_t i = 0; i < padding.count(); i++)
-                    delete padding[i];
+                    delete padding.at(i);
                 for(uint8_t i = 0; i < pinLabel.count(); i++)
-                    delete pinLabel[i];
+                    delete pinLabel.at(i);
 
                 pinBoxes.clear();
                 padding.clear();
@@ -810,7 +810,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
                 pinBoxes.at(i)->setProperty("prevMapping", OF_Const::btnUnmapped+1);
-                connect(pinBoxes[i], SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
+                connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
                 padding << new QWidget();
                 padding.at(i)->setMinimumHeight(25);
@@ -905,14 +905,14 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             int prevPadCount;
             for(int i = 1, padCount = 0; i < PinsLeft->rowCount(); i++) {
                 if(PinsLeft->itemAtPosition(i, 0) == nullptr) {
-                    PinsLeft->addWidget(padding[padCount], i, 0);
+                    PinsLeft->addWidget(padding.at(padCount), i, 0);
                     padCount++;
                     prevPadCount = padCount;
                 }
             }
             for(int i = 1, padCount = prevPadCount; i < PinsRight->rowCount(); i++) {
                 if(PinsRight->itemAtPosition(i, 0) == nullptr) {
-                    PinsRight->addWidget(padding[padCount], i, 0);
+                    PinsRight->addWidget(padding.at(padCount), i, 0);
                     padCount++;
                 }
             }
@@ -1042,21 +1042,21 @@ void guiWindow::BoxesFill()
 {
     // update box types
     for(uint8_t i = 0; i < PINS_COUNT; i++) {
-        pinBoxes[i]->addItems(OF_Const::valuesNameList);
+        pinBoxes.at(i)->addItems(OF_Const::valuesNameList);
         // clear out analog options for digital pins (< GPIO26)
         // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
         if(i < 26) {
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::analogX+1, false);
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::analogY+1, false);
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::tempPin+1, false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
         }
         // filter out SCL/SDA if possible.
         if(i & 1) {
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::camSDA+1,     false);
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::periphSDA+1,  false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
         } else {
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::camSCL+1,     false);
-            SetComboBoxItemEnabled(pinBoxes[i], OF_Const::periphSCL+1,  false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
         }
     }
 
@@ -1143,11 +1143,11 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 
         // Remove whatever pin mapping that this function belonged to, if it was mapped
         if(App_Const::inputsMap.value(btnRequest) > OF_Const::btnUnmapped)
-            pinBoxes[App_Const::inputsMap.value(btnRequest)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+            pinBoxes.at(App_Const::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // unmap pinbox's previous function, if mapped to any
         if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1)
-            pinBoxes[App_Const::inputsMap.value(sender()->property("prevMapping").toInt()-1)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+            pinBoxes.at(App_Const::inputsMap.value(sender()->property("prevMapping").toInt()-1))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if function is I2C, check for other things
         if(btnRequest == OF_Const::camSDA) {
@@ -1155,13 +1155,13 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             if(App_Const::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
                (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes[App_Const::inputsMap.value(OF_Const::camSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral data isn't mapped to this I2C channel
             } else if(App_Const::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
                       (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels matched, unmap peripheral data
-                pinBoxes[App_Const::inputsMap.value(OF_Const::periphSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral Data.", 10000);
             }
         } else if(btnRequest == OF_Const::camSCL) {
@@ -1169,13 +1169,13 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             if(App_Const::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
                (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes[App_Const::inputsMap.value(OF_Const::camSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral clock isn't mapped to this I2C channel
             } else if(App_Const::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
                       (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels matched, unmap peripheral clock
-                pinBoxes[App_Const::inputsMap.value(OF_Const::periphSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Clock pins clashed! Please remap Peripheral Clock.", 10000);
             }
         } else if(btnRequest == OF_Const::periphSDA) {
@@ -1183,13 +1183,13 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             if(App_Const::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
                (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes[App_Const::inputsMap.value(OF_Const::periphSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam data isn't mapped to this I2C channel
             } else if(App_Const::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
                       (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels matched, unmap cam data
-                pinBoxes[App_Const::inputsMap.value(OF_Const::camSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Data.", 10000);
             }
         } else if(btnRequest == OF_Const::periphSCL) {
@@ -1197,13 +1197,13 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             if(App_Const::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
                (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes[App_Const::inputsMap.value(OF_Const::periphSDA)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam clock isn't mapped to this I2C channel
             } else if(App_Const::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
                       (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels matched, unmap cam clock
-                pinBoxes[App_Const::inputsMap.value(OF_Const::camSCL)]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Clock.", 10000);
             }
         }
@@ -1330,12 +1330,12 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 
         // clear pinBoxes to be safe
         for(uint8_t i = 0; i < PINS_COUNT; i++)
-            pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+            pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
         QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Const::board.boardType.toStdString());
         for(int i = 0; i < PINS_COUNT; i++)
-            pinBoxes[i]->setCurrentIndex(altPresets.at(index).pin[i]+1);
+            pinBoxes.at(i)->setCurrentIndex(altPresets.at(index).pin[i]+1);
 
         DiffUpdate();
     }
@@ -2097,11 +2097,11 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
         if(fileIn.open(QFile::ReadOnly)) {
             if(fileIn.readLine().trimmed() == App_Const::board.boardType) {
                 for(int i = 0; i < PINS_COUNT; i++)
-                    pinBoxes[i]->setCurrentIndex(OF_Const::btnUnmapped+1);
+                    pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
                 for(int i = 0; i < PINS_COUNT; i++)
                     if(!fileIn.atEnd())
-                        pinBoxes[i]->setCurrentIndex(fileIn.read(1).toHex().toInt(nullptr, 16));
+                        pinBoxes.at(i)->setCurrentIndex(fileIn.read(1).toHex().toInt(nullptr, 16));
                     else break;
 
                 fileIn.close();
@@ -2131,7 +2131,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
             fileOut.write(QString("%1\n").arg(App_Const::board.boardType).toLocal8Bit());
 
             for(int i = 0; i < PINS_COUNT; i++)
-                fileOut.putChar(pinBoxes[i]->currentIndex());
+                fileOut.putChar(pinBoxes.at(i)->currentIndex());
 
             fileOut.close();
             ui->statusBar->showMessage("Custom layout export successful!", 5000);
