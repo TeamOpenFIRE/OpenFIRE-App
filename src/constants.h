@@ -25,6 +25,13 @@
 class App_Const
 {
 public:
+    enum {
+        pBoxIRsens = 0,
+        pBoxRunMode,
+        pBoxLayout,
+        pBoxAR
+    } profileBoxesTypes_e;
+
     typedef struct boardInfo_t {
         uint8_t selectedProfile;
         uint8_t previousProfile;
@@ -39,17 +46,17 @@ public:
     } tinyUSBtable_s;
 
     typedef struct profilesTable_t {
-        uint16_t topOffset;
-        uint16_t bottomOffset;
-        uint16_t leftOffset;
-        uint16_t rightOffset;
-        uint16_t TLled;
-        uint16_t TRled;
-        uint8_t irSensitivity;
-        uint8_t runMode;
-        bool layoutType;
-        uint32_t color;
-        QString profName;
+        uint16_t topOffset      = 0;
+        uint16_t bottomOffset   = 0;
+        uint16_t leftOffset     = 0;
+        uint16_t rightOffset    = 0;
+        uint16_t TLled          = 0;
+        uint16_t TRled          = 0;
+        uint8_t irSensitivity   = 0;
+        uint8_t runMode         = 0;
+        uint8_t layoutType      = false;
+        uint32_t color          = 0;
+        QString profName        = "";
     } profilesTable_s;
 
     // Currently loaded board object

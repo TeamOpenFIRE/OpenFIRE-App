@@ -64,54 +64,6 @@ guiWindow::guiWindow(QWidget *parent)
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
 
-    // TODO: profiles view should use LISTS of items, rather than fixed size arrays
-    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-        renameBtn[i] = new QPushButton();
-        renameBtn[i]->setFlat(true);
-        renameBtn[i]->setFixedWidth(20);
-        renameBtn[i]->setIcon(QIcon(":/icon/edit.png"));
-        connect(renameBtn[i], SIGNAL(clicked()), this, SLOT(renameBoxes_clicked()));
-        selectedProfile[i] = new QRadioButton(QString("%1.").arg(i+1));
-        connect(selectedProfile[i], SIGNAL(toggled(bool)), this, SLOT(selectedProfile_isChecked(bool)));
-        topOffset[i] = new QLabel("0");
-        bottomOffset[i] = new QLabel("0");
-        leftOffset[i] = new QLabel("0");
-        rightOffset[i] = new QLabel("0");
-        TLled[i] = new QLabel("0");
-        TRled[i] = new QLabel("0");
-        irSens[i] = new QComboBox();
-        runMode[i] = new QComboBox();
-        layoutMode[i] = new QComboBox();
-        color[i] = new QPushButton();
-        topOffset[i]->setAlignment(Qt::AlignCenter);
-        bottomOffset[i]->setAlignment(Qt::AlignCenter);
-        leftOffset[i]->setAlignment(Qt::AlignCenter);
-        rightOffset[i]->setAlignment(Qt::AlignCenter);
-        TLled[i]->setAlignment(Qt::AlignCenter);
-        TRled[i]->setAlignment(Qt::AlignCenter);
-        irSens[i]->addItems({"Default", "Higher", "Highest"});
-        connect(irSens[i], SIGNAL(activated(int)), this, SLOT(irBoxes_activated(int)));
-        runMode[i]->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
-        layoutMode[i]->addItems({"Square", "Diamond"});
-        connect(layoutMode[i], SIGNAL(activated(int)), this, SLOT(layoutBoxes_activated(int)));
-        connect(runMode[i], SIGNAL(activated(int)), this, SLOT(runModeBoxes_activated(int)));
-        color[i]->setFixedWidth(32);
-        connect(color[i], SIGNAL(clicked()), this, SLOT(colorBoxes_clicked()));
-
-        ui->profilesArea->addWidget(renameBtn[i], i+1, 0, 1, 1);
-        ui->profilesArea->addWidget(selectedProfile[i], i+1, 1, 1, 1);
-        ui->profilesArea->addWidget(topOffset[i], i+1, 2, 1, 1);
-        ui->profilesArea->addWidget(bottomOffset[i], i+1, 4, 1, 1);
-        ui->profilesArea->addWidget(leftOffset[i], i+1, 6, 1, 1);
-        ui->profilesArea->addWidget(rightOffset[i], i+1, 8, 1, 1);
-        ui->profilesArea->addWidget(TLled[i], i+1, 10, 1, 1);
-        ui->profilesArea->addWidget(TRled[i], i+1, 12, 1, 1);
-        ui->profilesArea->addWidget(irSens[i], i+1, 14, 1, 1);
-        ui->profilesArea->addWidget(runMode[i], i+1, 16, 1, 1);
-        ui->profilesArea->addWidget(layoutMode[i], i+1, 18, 1, 1);
-        ui->profilesArea->addWidget(color[i], i+1, 20, 1, 1);
-    }
-
     // Setup test screen buttons
     for(uint8_t i = 0; i < 16; i++) {
         testLabel[i] = new QLabel;
@@ -128,13 +80,13 @@ guiWindow::guiWindow(QWidget *parent)
         testLabel[i]->setFrameStyle(QFrame::Box | QFrame::Raised);
 
         // analog stick
-        if(i == 15)      ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3, 1, 1);
+        if(i == 15)      ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3);
         // temp sensor
-        else if(i == 14) ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1, 1, 1);
+        else if(i == 14) ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1);
         // third/second/first row of buttons
-        else if(i > 9)   ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10, 1, 1);
-        else if(i > 4)   ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5, 1, 1);
-        else             ui->buttonsTestLayout->addWidget(testLabel[i], 0, i, 1, 1);
+        else if(i > 9)   ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10);
+        else if(i > 4)   ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5);
+        else             ui->buttonsTestLayout->addWidget(testLabel[i], 0, i);
     }
 
     ui->buttonsTestLayout->setRowMinimumHeight(0, 32);
@@ -231,7 +183,6 @@ bool guiWindow::SerialInit(int portNum)
 
                     App_Const::board.selectedProfile = buffer[4].toInt();
                     App_Const::board.previousProfile = App_Const::board.selectedProfile;
-                    selectedProfile[App_Const::board.selectedProfile]->setChecked(true);
 
                     serialPort.write("Xli");
                     serialPort.waitForReadyRead(1000);
@@ -284,9 +235,10 @@ void guiWindow::SerialLoad()
     serialPort.write("Xlb");
     if(serialPort.waitForBytesWritten(2000)) {
         if(serialPort.waitForReadyRead(2000)) {
-            // booleans
             QString bufStr = serialPort.readLine().trimmed();
             QStringList buffer = bufStr.split(',');
+
+            // booleans
             for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
                 if(!buffer.isEmpty()) {
                     boolSettings[i] = buffer[i].toInt();
@@ -329,59 +281,142 @@ void guiWindow::SerialLoad()
             }
 
             // profiles
-            App_Const::profilesTable.resize(4), App_Const::profilesTable_orig.resize(4);
+            for(int i = 0; i < App_Const::profilesTable.count(); i++) {
+                delete topOffset.at(i);
+                delete bottomOffset.at(i);
+                delete leftOffset.at(i);
+                delete rightOffset.at(i);
+                delete TLled.at(i);
+                delete TRled.at(i);
+                delete renameBtn.at(i);
+                delete selectedProfile.at(i);
+                delete irSens.at(i);
+                delete runMode.at(i);
+                delete layoutMode.at(i);
+                delete color.at(i);
+                delete caliBtn.at(i);
+            }
+
+            topOffset.clear();
+            bottomOffset.clear();
+            leftOffset.clear();
+            rightOffset.clear();
+            TLled.clear();
+            TRled.clear();
+            renameBtn.clear();
+            selectedProfile.clear();
+            irSens.clear();
+            runMode.clear();
+            layoutMode.clear();
+            color.clear();
+            caliBtn.clear();
+
+            App_Const::profilesTable.clear(), App_Const::profilesTable_orig.clear();
+
+            // TODO: don't think we NEED to limit reading only to profiles count?
+            // perhaps just stop at the first invalid response from the board
+            int caliBtnRow;
             for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+                caliBtnRow = i/4;
                 serialPort.clear();
                 serialPort.write(QString("XlP%1").arg(i).toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
-                if(serialPort.waitForReadyRead(2000)) {
-                    // TODO (in fw): needs to be a loooot safer than it is tbh. We make a lot of assumptions here that could get hairy.
+                if(serialPort.waitForReadyRead(1000)) {
+                    // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
                     bufStr = serialPort.readLine().trimmed();
                     buffer = bufStr.split(',');
 
-                    topOffset[i]->setText(buffer[0]),
-                        App_Const::profilesTable[i].topOffset = buffer[0].toInt(),
-                        App_Const::profilesTable_orig[i].topOffset = App_Const::profilesTable[i].topOffset;
+                    App_Const::profilesTable << App_Const::profilesTable_s(), App_Const::profilesTable_orig << App_Const::profilesTable_s();
 
-                    bottomOffset[i]->setText(buffer[1]),
-                        App_Const::profilesTable[i].bottomOffset = buffer[1].toInt(),
-                        App_Const::profilesTable_orig[i].bottomOffset = App_Const::profilesTable[i].bottomOffset;
+                    // copy settings
+                    App_Const::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
+                    App_Const::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
+                    App_Const::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].runMode = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
+                    App_Const::profilesTable[i].color = buffer.takeFirst().toLong(),
+                    App_Const::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
 
-                    leftOffset[i]->setText(buffer[2]),
-                        App_Const::profilesTable[i].leftOffset = buffer[2].toInt(),
-                        App_Const::profilesTable_orig[i].leftOffset = App_Const::profilesTable[i].leftOffset;
+                    App_Const::profilesTable_orig[i] = App_Const::profilesTable.at(i);
 
-                    rightOffset[i]->setText(buffer[3]),
-                        App_Const::profilesTable[i].rightOffset = buffer[3].toInt(),
-                        App_Const::profilesTable_orig[i].rightOffset = App_Const::profilesTable[i].rightOffset;
+                    // create new assets for this profile
+                    renameBtn << new QPushButton();
+                    renameBtn.at(i)->setFlat(true);
+                    renameBtn.at(i)->setFixedWidth(20);
+                    renameBtn.at(i)->setIcon(QIcon(":/icon/edit.png"));
+                    renameBtn.at(i)->setProperty("slot", i);
+                    connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                    TLled[i]->setText(buffer[4]),
-                        App_Const::profilesTable[i].TLled = buffer[4].toFloat(),
-                        App_Const::profilesTable_orig[i].TLled = App_Const::profilesTable[i].TLled;
+                    selectedProfile << new QRadioButton(QString("%1.").arg(i+1));
+                    if(i == App_Const::board.selectedProfile)
+                        selectedProfile.at(i)->setChecked(true);
+                    selectedProfile.at(i)->setText(App_Const::profilesTable.at(i).profName);
+                    selectedProfile.at(i)->setProperty("slot", i);
+                    connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
-                    TRled[i]->setText(buffer[5]),
-                        App_Const::profilesTable[i].TRled = buffer[5].toFloat(),
-                        App_Const::profilesTable_orig[i].TRled = App_Const::profilesTable[i].TRled;
+                    topOffset       << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).topOffset      ));
+                    bottomOffset    << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).bottomOffset   ));
+                    leftOffset      << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).leftOffset     ));
+                    rightOffset     << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).rightOffset    ));
+                    TLled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TLled          ));
+                    TRled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TRled          ));
 
-                    App_Const::profilesTable[i].irSensitivity = buffer[6].toInt(),
-                        App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity,
-                        irSens[i]->setCurrentIndex(App_Const::profilesTable[i].irSensitivity);
+                    irSens << new QComboBox();
+                    irSens.at(i)->addItems({"Default", "Higher", "Highest"});
+                    irSens.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).irSensitivity);
+                    irSens.at(i)->setProperty("slot", i);
+                    irSens.at(i)->setProperty("type", App_Const::pBoxIRsens);
+                    connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
-                    App_Const::profilesTable[i].runMode = buffer[7].toInt(),
-                        App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode,
-                        runMode[i]->setCurrentIndex(App_Const::profilesTable[i].runMode);
+                    runMode << new QComboBox();
+                    runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
+                    runMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).runMode);
+                    runMode.at(i)->setProperty("slot", i);
+                    runMode.at(i)->setProperty("type", App_Const::pBoxRunMode);
+                    connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
-                    layoutMode[i]->setCurrentIndex(buffer[8].toInt()),
-                        App_Const::profilesTable[i].layoutType = buffer[8].toInt(),
-                        App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
+                    layoutMode << new QComboBox();
+                    layoutMode.at(i)->addItems({"Square", "Diamond"});
+                    layoutMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).layoutType);
+                    layoutMode.at(i)->setProperty("slot", i);
+                    layoutMode.at(i)->setProperty("type", App_Const::pBoxLayout);
+                    connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
-                    color[i]->setStyleSheet(QString("background-color: #%1").arg(buffer[9].toLong(), 6, 16, QLatin1Char('0'))),
-                        App_Const::profilesTable[i].color = buffer[9].toLong(),
-                        App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
+                    color << new QPushButton();
+                    color.at(i)->setFixedWidth(32);
+                    color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Const::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
+                    color.at(i)->setProperty("slot", i);
+                    connect(color.at(i), &QPushButton::clicked, this, &guiWindow::colorBoxes_clicked);
 
-                    selectedProfile[i]->setText(buffer[10]),
-                        App_Const::profilesTable[i].profName = buffer[10].toLocal8Bit(),
-                        App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
+                    caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
+                    caliBtn.at(i)->setProperty("slot", i);
+                    connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
+
+                    topOffset.at(i)     ->setAlignment(Qt::AlignCenter);
+                    bottomOffset.at(i)  ->setAlignment(Qt::AlignCenter);
+                    leftOffset.at(i)    ->setAlignment(Qt::AlignCenter);
+                    rightOffset.at(i)   ->setAlignment(Qt::AlignCenter);
+                    TLled.at(i)         ->setAlignment(Qt::AlignCenter);
+                    TRled.at(i)         ->setAlignment(Qt::AlignCenter);
+
+                    ui->profilesArea->addWidget(renameBtn.at(i),       i+1, 0);
+                    ui->profilesArea->addWidget(selectedProfile.at(i), i+1, 1);
+                    ui->profilesArea->addWidget(topOffset.at(i),       i+1, 2);
+                    ui->profilesArea->addWidget(bottomOffset.at(i),    i+1, 4);
+                    ui->profilesArea->addWidget(leftOffset.at(i),      i+1, 6);
+                    ui->profilesArea->addWidget(rightOffset.at(i),     i+1, 8);
+                    ui->profilesArea->addWidget(TLled.at(i),           i+1, 10);
+                    ui->profilesArea->addWidget(TRled.at(i),           i+1, 12);
+                    ui->profilesArea->addWidget(irSens.at(i),          i+1, 14);
+                    ui->profilesArea->addWidget(runMode.at(i),         i+1, 16);
+                    ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 18);
+                    ui->profilesArea->addWidget(color.at(i),           i+1, 20);
+
+                    ui->caliBtnsLayout->addWidget(caliBtn.at(i), caliBtnRow, i);
 
                 } else break;
             }
@@ -462,7 +497,6 @@ void guiWindow::DiffUpdate()
         settingsDiff++;
 
     if(boolSettings[OF_Const::customPins])
-        // TODO: why is App_Const::inputsMap getting an entry @ key 255???
         if(App_Const::inputsMap_orig != App_Const::inputsMap)
             settingsDiff++;
 
@@ -730,17 +764,25 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
         if(!SerialInit(index - 1)) {
             ui->comPortSelector->setCurrentIndex(0);
             aliveTimer->stop();
+
         // else, serial port is online! What do we got?
         } else {
             // Clears old board layout items
-            if(pinBoxes[0] != nullptr) {
-                for(uint8_t i = 0; i < PINS_COUNT; i++) {
+            if(pinBoxes.count()) {
+                for(uint8_t i = 0; i < pinBoxes.count(); i++)
                     delete pinBoxes[i];
+                for(uint8_t i = 0; i < padding.count(); i++)
                     delete padding[i];
+                for(uint8_t i = 0; i < pinLabel.count(); i++)
                     delete pinLabel[i];
-                }
+
+                pinBoxes.clear();
+                padding.clear();
+                pinLabel.clear();
             }
 
+            // TODO: we don't need to delete all of these, just the objects in the layouts.
+            // to remove layout objects, use .takeAt(index)
             if(PinsCenter != nullptr) {
                 delete PinsCenter;
                 delete PinsLeft;
@@ -764,23 +806,23 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->PinsTopHalf->setStretch(2,0);
 
             for(uint8_t i = 0; i < PINS_COUNT; i++) {
-                pinBoxes[i] = new QComboBox();
-                pinBoxes[i]->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-                pinBoxes[i]->setProperty("slot", i);
-                pinBoxes[i]->setProperty("prevMapping", OF_Const::btnUnmapped+1);
+                pinBoxes << new QComboBox();
+                pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+                pinBoxes.at(i)->setProperty("slot", i);
+                pinBoxes.at(i)->setProperty("prevMapping", OF_Const::btnUnmapped+1);
                 connect(pinBoxes[i], SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
-                padding[i] = new QWidget();
-                padding[i]->setMinimumHeight(25);
+                padding << new QWidget();
+                padding.at(i)->setMinimumHeight(25);
 
                 // I2C channel coloring
                 if(i & 0b0000010)
-                    pinLabel[i] = new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                else pinLabel[i] = new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+                    pinLabel  << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
+                else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
 
-                pinLabel[i]->setEnabled(false);
-                pinLabel[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-                pinLabel[i]->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
+                pinLabel.at(i)->setEnabled(false);
+                pinLabel.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+                pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
             aliveTimer->start(ALIVE_TIMER);
@@ -801,27 +843,27 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
-                        PinsLeft->addWidget(pinBoxes[i],
+                        PinsLeft->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                             0);
-                        PinsLeft->addWidget(pinLabel[i],
+                        PinsLeft->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                             1);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
-                        PinsRight->addWidget(pinBoxes[i],
+                        PinsRight->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                             1);
-                        PinsRight->addWidget(pinLabel[i],
+                        PinsRight->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                             0);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
                         if(PinsCenterSub->isEmpty())
                             PinsCenter->addLayout(PinsCenterSub);
 
-                        PinsCenterSub->addWidget(pinBoxes[i],
+                        PinsCenterSub->addWidget(pinBoxes.at(i),
                                                  1,
                                                  OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
-                        PinsCenterSub->addWidget(pinLabel[i],
+                        PinsCenterSub->addWidget(pinLabel.at(i),
                                                  0,
                                                  OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                     }
@@ -833,27 +875,27 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posLeft) {
-                        PinsLeft->addWidget(pinBoxes[i],
+                        PinsLeft->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
                                             0);
-                        PinsLeft->addWidget(pinLabel[i],
+                        PinsLeft->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
                                             1);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posRight) {
-                        PinsRight->addWidget(pinBoxes[i],
+                        PinsRight->addWidget(pinBoxes.at(i),
                                              OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
                                              1);
-                        PinsRight->addWidget(pinLabel[i],
+                        PinsRight->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
                                             0);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posMiddle) {
                         if(PinsCenter->isEmpty())
                             PinsCenter->addLayout(PinsCenterSub);
 
-                        PinsCenterSub->addWidget(pinBoxes[i],
+                        PinsCenterSub->addWidget(pinBoxes.at(i),
                                                  1,
                                                  OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
-                        PinsCenterSub->addWidget(pinLabel[i],
+                        PinsCenterSub->addWidget(pinLabel.at(i),
                                                  0,
                                                  OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
                     }
@@ -1009,7 +1051,6 @@ void guiWindow::BoxesFill()
             SetComboBoxItemEnabled(pinBoxes[i], OF_Const::tempPin+1, false);
         }
         // filter out SCL/SDA if possible.
-        // TODO: don't add separators, just disable them instead. see Nero code
         if(i & 1) {
             SetComboBoxItemEnabled(pinBoxes[i], OF_Const::camSDA+1,     false);
             SetComboBoxItemEnabled(pinBoxes[i], OF_Const::periphSDA+1,  false);
@@ -1195,37 +1236,21 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     DiffUpdate();
 }
 
-void guiWindow::irBoxes_activated(int index)
+void guiWindow::profileBoxes_activated(int index)
 {
-    // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-    uint8_t slot;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == irSens[i]) {
-            slot = i;
-            break;
-        }
+    switch(sender()->property("type").toInt()) {
+    case App_Const::pBoxIRsens:
+        App_Const::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
+        break;
+    case App_Const::pBoxRunMode:
+        App_Const::profilesTable[sender()->property("slot").toInt()].runMode = index;
+        break;
+    case App_Const::pBoxLayout:
+        App_Const::profilesTable[sender()->property("slot").toInt()].layoutType = index;
+        break;
+    default:
+        break;
     }
-
-    App_Const::profilesTable[slot].irSensitivity = index;
-
-    DiffUpdate();
-}
-
-
-void guiWindow::runModeBoxes_activated(int index)
-{
-    // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-    uint8_t slot;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == runMode[i]) {
-            slot = i;
-            break;
-        }
-    }
-
-    App_Const::profilesTable[slot].runMode = index;
 
     DiffUpdate();
 }
@@ -1234,11 +1259,15 @@ void guiWindow::runModeBoxes_activated(int index)
 void guiWindow::renameBoxes_clicked()
 {
     // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
-    QString newLabel = QInputDialog::getText(this, "Input Name", QString("Set name for profile %1").arg(sender()->property("slot").toInt()+1));
+    QString newLabel = QInputDialog::getText(this,
+                                             "Input Name",
+                                             QString("Set name for profile %1").arg(sender()->property("slot").toInt()+1));
+
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(newLabel.left(15));
         App_Const::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
     }
+
     DiffUpdate();
 }
 
@@ -1259,23 +1288,6 @@ void guiWindow::colorBoxes_clicked()
         color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
         DiffUpdate();
     }
-}
-
-
-void guiWindow::layoutBoxes_activated(int arg1)
-{
-    // Demultiplexing to figure out which box we're using.
-    uint8_t slot;
-    QObject* obj = sender();
-    for(uint8_t i = 0;;i++) {
-        if(obj == layoutMode[i]) {
-            slot = i;
-            break;
-        }
-    }
-
-    App_Const::profilesTable[slot].layoutType = arg1;
-    DiffUpdate();
 }
 
 
@@ -1602,17 +1614,9 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
     // apparently we get two signals at once? So just filter for the on.
     if(isChecked && !serialActive) {
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-        uint8_t slot;
-        QObject* obj = sender();
-        for(uint8_t i = 0;;i++) {
-            if(obj == selectedProfile[i]) {
-                slot = i;
-                break;
-            }
-        }
-        if(slot != App_Const::board.selectedProfile) {
-            serialPort.write(QString("XC%1").arg(slot+1).toLocal8Bit());
-            App_Const::board.selectedProfile = slot;
+        if(sender()->property("slot").toInt() != App_Const::board.selectedProfile) {
+            serialPort.write(QString("XC%1").arg(sender()->property("slot").toInt()+1).toLocal8Bit());
+            App_Const::board.selectedProfile = sender()->property("slot").toInt();
             DiffUpdate();
         }
     }
@@ -1738,52 +1742,19 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 }
 
 // TODO TODO: move this to appcali subwindow
-// TODO TODO TODO: this should probably be a list of buttons, so everything uses one method (using "slot" parameter to determine command and stuff)
-void guiWindow::on_calib1Btn_clicked()
+void guiWindow::caliBtns_clicked()
 {
     caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
     connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
 
     caliWindow->showFullScreen();
 
-    serialPort.write("XC1C");
+    serialPort.write(QString("XC%1C").arg(sender()->property("slot").toInt()+1).toLocal8Bit());
     if(!serialPort.waitForBytesWritten(1000)) {
         ui->statusBar->showMessage("Could not send calibration request.");
     }
 }
 
-
-void guiWindow::on_calib2Btn_clicked()
-{
-    serialPort.write("XC2C");
-    if(serialPort.waitForBytesWritten(1000))
-        QMessageBox::information(this,  "Calibrating Profile 2",
-                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
-                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
-                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
-}
-
-
-void guiWindow::on_calib3Btn_clicked()
-{
-    serialPort.write("XC3C");
-    if(serialPort.waitForBytesWritten(1000))
-        QMessageBox::information(this,  "Calibrating Profile 3",
-                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
-                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
-                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
-}
-
-
-void guiWindow::on_calib4Btn_clicked()
-{
-    serialPort.write("XC4C");
-    if(serialPort.waitForBytesWritten(1000))
-        QMessageBox::information(this,  "Calibrating Profile 4",
-                                        "Aim the gun at the cursor in the center of the display and pull the trigger, then shoot at the four edges of the display that the mouse moves to.\n"
-                                        "You can exit without saving changes by pressing either Button A/B/C.\n\n"
-                                        "After the final center target, verify that the new calibration is to your liking; press the trigger to confirm, Button A/B to restart calibration, or Button C to exit calibration without any changes.");
-}
 
 // WARNING: make sure "serialActive" is set ON for important operations, or this will eat the fucker
 // TODO: move to appserial
@@ -1851,6 +1822,8 @@ void guiWindow::serialPort_readyRead()
                 App_Const::board.selectedProfile = selection;
 
                 // TODO: ummmm this seems very unsafe. :/
+                // also the hope is that we update profile info as part of cali,
+                // and the cali window cleanup is what updates profile info
                 serialPort.waitForReadyRead(2000);
                 topOffset[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
@@ -1976,7 +1949,7 @@ void guiWindow::CaliWindowExiting(const int &mode)
 {
     switch(mode) {
     case AppCaliWindow::modeCalibrate:
-        // TODO: add stuff here, lol
+        // TODO: add stuff here for profile info cleanup
         break;
     case AppCaliWindow::modeIRTest:
         if(serialPort.isOpen()) {
@@ -2007,10 +1980,8 @@ void guiWindow::CaliWindowExiting(const int &mode)
     // for some reason, caliWindow has a lingering pointer???
     // so make sure it's deleted.
     caliWindow->close();
-    if(caliWindow != nullptr) {
-        //delete caliWindow;
+    if(caliWindow != nullptr)
         caliWindow = nullptr;
-    }
 }
 
 

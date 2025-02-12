@@ -73,11 +73,7 @@ private slots:
 
     void colorBoxes_clicked();
 
-    void layoutBoxes_activated(int arg1);
-
-    void irBoxes_activated(int index);
-
-    void runModeBoxes_activated(int index);
+    void profileBoxes_activated(int arg1);
 
     void on_customPinsEnabled_stateChanged(int arg1);
 
@@ -133,13 +129,7 @@ private slots:
 
     void selectedProfile_isChecked(bool isChecked);
 
-    void on_calib1Btn_clicked();
-
-    void on_calib2Btn_clicked();
-
-    void on_calib3Btn_clicked();
-
-    void on_calib4Btn_clicked();
+    void caliBtns_clicked();
 
     void on_actionAbout_UI_triggered();
 
@@ -171,13 +161,13 @@ private slots:
 
     void on_actionOpenFIRE_Serial_Usage_triggered();
 
-    void on_actionOpen_IR_Emitter_Alignment_Assistant_triggered();
-
-    void CaliWindowExiting(const int &);
-
     void on_actionImport_Custom_Layout_triggered();
 
     void on_actionExport_Custom_Layout_triggered();
+
+    void on_actionOpen_IR_Emitter_Alignment_Assistant_triggered();
+
+    void CaliWindowExiting(const int &);
 
 private:
     Ui::guiWindow *ui;
@@ -292,25 +282,26 @@ private:
 
     /// @brief      Objects that makes up the elements of the board view tab
     /// @details    Pinboxes stores the state of each pin to one function
-    QComboBox *pinBoxes[PINS_COUNT] = {nullptr};
-    QLabel *pinLabel[PINS_COUNT] = {nullptr};
-    QWidget *padding[PINS_COUNT] = {nullptr};
+    QVector<QComboBox*> pinBoxes;
+    QVector<QLabel*> pinLabel;
+    QVector<QWidget*> padding;
 
     /// @brief      Test "Buttons" in the test screen representing each button
     QLabel *testLabel[16];
 
     /// @brief      Objects that makes up the elements of the profiles tab
-    QRadioButton *selectedProfile[PROFILES_COUNT];
-    QLabel *topOffset[PROFILES_COUNT];
-    QLabel *bottomOffset[PROFILES_COUNT];
-    QLabel *leftOffset[PROFILES_COUNT];
-    QLabel *rightOffset[PROFILES_COUNT];
-    QLabel *TLled[PROFILES_COUNT];
-    QLabel *TRled[PROFILES_COUNT];
-    QComboBox *irSens[PROFILES_COUNT];
-    QComboBox *runMode[PROFILES_COUNT];
-    QComboBox *layoutMode[PROFILES_COUNT];
-    QPushButton *color[PROFILES_COUNT];
-    QPushButton *renameBtn[PROFILES_COUNT];
+    QVector<QRadioButton*> selectedProfile;
+    QVector<QLabel*> topOffset;
+    QVector<QLabel*> bottomOffset;
+    QVector<QLabel*> leftOffset;
+    QVector<QLabel*> rightOffset;
+    QVector<QLabel*> TLled;
+    QVector<QLabel*> TRled;
+    QVector<QComboBox*> irSens;
+    QVector<QComboBox*> runMode;
+    QVector<QComboBox*> layoutMode;
+    QVector<QPushButton*> color;
+    QVector<QPushButton*> renameBtn;
+    QVector<QPushButton*> caliBtn;
 };
 #endif // GUIWINDOW_H

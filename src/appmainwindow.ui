@@ -1376,36 +1376,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QPushButton" name="calib1Btn">
-            <property name="text">
-             <string>Calibrate Profile 1</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="calib2Btn">
-            <property name="text">
-             <string>Calibrate Profile 2</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="calib3Btn">
-            <property name="text">
-             <string>Calibrate Profile 3</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="calib4Btn">
-            <property name="text">
-             <string>Calibrate Profile 4</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QGridLayout" name="caliBtnsLayout"/>
         </item>
         <item>
          <spacer name="verticalSpacer_2">
