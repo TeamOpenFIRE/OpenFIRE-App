@@ -91,6 +91,9 @@ private:
     /// @brief      What mode this window was opened as
     int mode = -1;
 
+    /// @brief      Indicator that mouse tracking is allowed
+    bool mouseCanBeTracked = false;
+
     /// @brief      The cali screen renderer itself
     /// @details    Subclass was needed to implement specific mouse capture and key event listening
     AppCaliGraphicsScene scene;
@@ -98,16 +101,27 @@ private:
     /// @brief      The crosshair used in calibration UX
     QGraphicsSvgItem *crosshairItem;
 
-    /// @brief      Main text item, usef for primary info strings
-    /// @details    Weh
+    /// @brief      Main top text item, used for primary info strings
+    /// @details    For cali, this displays tutorial text to the user
     QGraphicsTextItem *headerText;
 
     /// @brief      Text used for showing current profile data during calibration
     /// @details    In order: Top Offset, Bottom Offset, Left Offset, Right Offset, Top Left LED, Top Right LED
     QGraphicsTextItem *profileText[6];
 
-    /// @brief      Text used for showing instructions for current calibration stage to the user
+    /// @brief      Bottom text used for showing how to exit calibration (or other button related instructions) to the user
     QGraphicsTextItem *tutorialText;
+
+    /// @brief      Objects used to construct the look of the alignment view
+    /// @details    Two sets of differently colored boxes for Square and Diamond IR layouts,
+    ///             And two polygons that connects these together.
+    QGraphicsRectItem *alignmentBoxesSquare[4];
+    QGraphicsRectItem *alignmentBoxesDiamond[4];
+    QGraphicsPolygonItem *alignmentLines[2];
+
+    /// @brief      Side text used for alignment view information
+    QGraphicsTextItem *alignmentTextLeft;
+    QGraphicsTextItem *alignmentTextRight;
 
     /// @brief      Test Mode screen points
     QGraphicsEllipseItem *testPoints[testPointsCount];
@@ -123,15 +137,15 @@ private slots:
     /// @details    Crosshair image is offset (adjusted by crosshair scale) to center it to the mouse's hotspot,
     ///             as otherwise it wouldn't be accurate at all.
     void sceneEventReceiver(const QPointF &currentPos) {
-        crosshairItem->setPos(
-            currentPos.x()-(crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
-            currentPos.y()-(crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
+        if(mouseCanBeTracked) crosshairItem->setPos(
+                                    currentPos.x()-(crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
+                                    currentPos.y()-(crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
     }
 
+    /// @brief      Key listener, which only listens for ESC keypresses and exits when pressed in not Cali mode
     void sceneKeyCloseReceiver() {
         if(mode != modeCalibrate) {
             emit WindowExiting(mode);
-            AppCaliWindow::close();
         }
     }
 

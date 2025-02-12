@@ -257,8 +257,8 @@
        <attribute name="title">
         <string>Gun Settings</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item alignment="Qt::AlignmentFlag::AlignTop">
+       <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0,0,1,0">
+        <item>
          <widget class="QGroupBox" name="TogglesGroup">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -449,7 +449,7 @@
           </layout>
          </widget>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignTop">
+        <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="enabled">
            <bool>true</bool>
@@ -700,7 +700,7 @@
           </layout>
          </widget>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignTop">
+        <item>
          <widget class="QGroupBox" name="neopixelGroupBox">
           <property name="title">
            <string>NeoPixels</string>
@@ -903,12 +903,12 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>40</height>
+            <height>0</height>
            </size>
           </property>
          </spacer>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignBottom">
+        <item>
          <widget class="QGroupBox" name="tinyUSBGroupboxNew">
           <property name="title">
            <string>TinyUSB Identifier</string>
@@ -1169,7 +1169,7 @@
        <attribute name="title">
         <string>Saved Profiles</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,1">
         <item alignment="Qt::AlignmentFlag::AlignTop">
          <widget class="QGroupBox" name="profilesBox">
           <property name="title">
@@ -1614,7 +1614,7 @@
   </action>
   <action name="actionOpen_IR_Emitter_Alignment_Assistant">
    <property name="text">
-    <string>Open IR Emitter Alignment Assistant</string>
+    <string>Open &amp;IR Emitter Alignment Assistant</string>
    </property>
   </action>
   <action name="actionImport_Custom_Layout">

@@ -5,4 +5,7 @@
         <file alias="openfire.png">ico/typeface.png</file>
         <file alias="donate.svg">ico/donate.svg</file>
     </qresource>
+    <qresource prefix="/cali">
+        <file alias="crosshair.svg">cali/crosshair.svg</file>
+    </qresource>
 </RCC>

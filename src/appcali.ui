@@ -10,8 +10,9 @@
     <height>240</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
+  <property name="windowIcon">
+   <iconset resource="../img/vectors.qrc">
+    <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -33,9 +34,6 @@
     <widget class="QGraphicsView" name="graphicsView">
      <property name="cursor" stdset="0">
       <cursorShape>BlankCursor</cursorShape>
-     </property>
-     <property name="mouseTracking">
-      <bool>true</bool>
      </property>
      <property name="frameShape">
       <enum>QFrame::Shape::NoFrame</enum>
@@ -65,6 +63,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../img/vectors.qrc"/>
+ </resources>
  <connections/>
 </ui>

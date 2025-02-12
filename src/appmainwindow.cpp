@@ -89,7 +89,7 @@ guiWindow::guiWindow(QWidget *parent)
         rightOffset[i]->setAlignment(Qt::AlignCenter);
         TLled[i]->setAlignment(Qt::AlignCenter);
         TRled[i]->setAlignment(Qt::AlignCenter);
-        irSens[i]->addItems({"Default", "Higher, Highest"});
+        irSens[i]->addItems({"Default", "Higher", "Highest"});
         connect(irSens[i], SIGNAL(activated(int)), this, SLOT(irBoxes_activated(int)));
         runMode[i]->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
         layoutMode[i]->addItems({"Square", "Diamond"});
@@ -792,6 +792,8 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
             if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {
+                // TODO: perhaps we should be using QGraphicsScene+QGraphicsSvgItem for the board image
+                // as this would allow us to define pin holes and highlight them when hovering.
                 centerPic = new QSvgWidget(":/boardPics/" + App_Const::board.boardType);
                 QSvgRenderer *picRenderer = centerPic->renderer();
                 picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
@@ -1735,20 +1737,18 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
     }
 }
 
-// TODO: cali should use a fullscreen window depicting target graphics w/ hidden cursor. This should be its own method and activated when "Cali:" is detected in the serial stream.
 // TODO TODO: move this to appcali subwindow
 // TODO TODO TODO: this should probably be a list of buttons, so everything uses one method (using "slot" parameter to determine command and stuff)
 void guiWindow::on_calib1Btn_clicked()
 {
+    caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
+    connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+
+    caliWindow->showFullScreen();
+
     serialPort.write("XC1C");
-    if(serialPort.waitForBytesWritten(1000)) {
-        if(caliWindow != nullptr)
-            delete caliWindow;
-
-        caliWindow = new AppCaliWindow(this, AppCaliWindow::modeCalibrate);
-        connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-
-        caliWindow->showFullScreen();
+    if(!serialPort.waitForBytesWritten(1000)) {
+        ui->statusBar->showMessage("Could not send calibration request.");
     }
 }
 
@@ -1878,9 +1878,11 @@ void guiWindow::serialPort_readyRead()
                 DiffUpdate();
 
             } else if(idleBuffer.contains("CalStage: ")) {
-                if(caliWindow != nullptr)
-                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
+                if(caliWindow != nullptr) {
+                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate) {
                         caliWindow->CaliModeSet(idleBuffer.trimmed().rightRef(1).toInt());
+                    }
+                }
             }
         }
 
@@ -1942,17 +1944,17 @@ void guiWindow::on_testBtn_clicked()
         serialActive = true;
         aliveTimer->stop();
 
+        if(caliWindow != nullptr)
+            delete caliWindow;
+
+        caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
+        connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+
         serialPort.write("XT");
         serialPort.waitForBytesWritten(1000);
         serialPort.waitForReadyRead(1000);
 
         if(serialPort.readLine().trimmed() == "Entering Test Mode...") {
-            if(caliWindow != nullptr)
-                delete caliWindow;
-
-            caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
-            connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-
             caliWindow->showFullScreen();
 
             testMode = true;
@@ -1965,10 +1967,6 @@ void guiWindow::on_testBtn_clicked()
             ui->profilesTab->setEnabled(false);
             ui->feedbackTestsBox->setEnabled(false);
             ui->dangerZoneBox->setEnabled(false);
-
-        } else {
-            if(caliWindow != nullptr)
-                delete caliWindow;
         }
     }
 }
@@ -1976,7 +1974,6 @@ void guiWindow::on_testBtn_clicked()
 
 void guiWindow::CaliWindowExiting(const int &mode)
 {
-    printf("%d", mode);
     switch(mode) {
     case AppCaliWindow::modeCalibrate:
         // TODO: add stuff here, lol
@@ -2005,6 +2002,14 @@ void guiWindow::CaliWindowExiting(const int &mode)
     case AppCaliWindow::modeAlignment:
     default:
         break;
+    }
+
+    // for some reason, caliWindow has a lingering pointer???
+    // so make sure it's deleted.
+    caliWindow->close();
+    if(caliWindow != nullptr) {
+        //delete caliWindow;
+        caliWindow = nullptr;
     }
 }
 
@@ -2099,13 +2104,13 @@ void guiWindow::on_actionOpenFIRE_Serial_Usage_triggered()
 
 void guiWindow::on_actionOpen_IR_Emitter_Alignment_Assistant_triggered()
 {
-    if(caliWindow != nullptr)
-        delete caliWindow;
+    if(caliWindow == nullptr) {
+        caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeAlignment);
+        connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+        caliWindow->setAttribute(Qt::WA_DeleteOnClose);
 
-    caliWindow = new AppCaliWindow(this, AppCaliWindow::modeAlignment);
-    connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-
-    caliWindow->showFullScreen();
+        caliWindow->showFullScreen();
+    }
 }
 
 
