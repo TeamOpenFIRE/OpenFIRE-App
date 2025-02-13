@@ -61,8 +61,38 @@ guiWindow::guiWindow(QWidget *parent)
 
     connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
 
+    this->setWindowTitle("OpenFIRE App - Tokinomiya [v3.0-dev]");
+
+    // get all fixed interactable elements marked to use event filter:
+    for(const auto child : this->findChildren<QPushButton*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+    }
+    for(const auto child : this->findChildren<QCheckBox*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+        //if(!child->property("isFor").isNull()) connect(child, &QCheckBox::stateChanged, this, &NeroPrefixSettingsWindow::OptionSet);
+    }
+    for(const auto child : this->findChildren<QLineEdit*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+        //if(!child->property("isFor").isNull()) connect(child, &QLineEdit::textEdited, this, &NeroPrefixSettingsWindow::OptionSet);
+    }
+    for(const auto child : this->findChildren<QSpinBox*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+        // QSpinboxes' "valueChanged" signal isn't new syntax friendly?
+        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(valueChanged(int)), this, SLOT(OptionSet()));
+    }
+    for(const auto child : this->findChildren<QComboBox*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+        // QComboboxes aren't new syntax friendly?
+        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(activated(int)), this, SLOT(OptionSet()));
+    }
+
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
+
+    // Add center board pic (and reorder PinsCenterSub so it's below board pic)
+    ui->PinsCenter->addWidget(&boardPic);
+    ui->PinsCenter->removeItem(ui->PinsCenterSub);
+    ui->PinsCenter->addLayout(ui->PinsCenterSub);
 
     // Setup test screen buttons
     for(uint8_t i = 0; i < 16; i++) {
@@ -123,6 +153,41 @@ guiWindow::~guiWindow()
         serialPort.close();
     }
     delete ui;
+}
+
+
+bool guiWindow::eventFilter(QObject* object, QEvent* event)
+{
+    if(event->type() == QEvent::Enter) {
+        switch(object->property("trackable").toInt()) {
+        case App_Const::trackPinbox:
+        {
+            // Copy and modify board pic array to change opacity of selected pin element, if existing.
+            highlightBoardPic = origBoardPicFile;
+            highlightBoardPic.replace(QString("id=\"OF_pin%1\"\nstyle=\"opacity:0").arg(object->property("slot").toInt()),
+                                      QString("id=\"OF_pin%1\"\nstyle=\"opacity:1").arg(object->property("slot").toInt()));
+
+            boardPic.load(highlightBoardPic.toLocal8Bit());
+            boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
+            break;
+        }
+        case App_Const::trackSettingsItem:
+            ui->settingsDescBox->setTitle(object->property("accessibleName").toString());
+            ui->settingsDescText->setText(object->property("whatsThis").toString());
+            break;
+        case App_Const::trackProfileItem:
+            break;
+        case App_Const::trackTestItem:
+            break;
+        }
+    } else if(event->type() == QEvent::Leave) {
+        if(object->property("trackable").toInt() == App_Const::trackPinbox) {
+            boardPic.load(origBoardPicFile);
+            boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
+        }
+    }
+
+    return QWidget::eventFilter(object, event);
 }
 
 
@@ -663,9 +728,7 @@ void guiWindow::on_confirmButton_clicked()
             bool success = true;
 
             // throw out whatever's in the buffer if there's anything there.
-            while(!serialPort.atEnd()) {
-                serialPort.readLine();
-            }
+            serialPort.clear();
 
             for(uint8_t i = 0; i < serialQueue.length(); i++) {
                 serialPort.write(serialQueue[i].toLocal8Bit());
@@ -781,35 +844,13 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 pinLabel.clear();
             }
 
-            // TODO: we don't need to delete all of these, just the objects in the layouts.
-            // to remove layout objects, use .takeAt(index)
-            if(PinsCenter != nullptr) {
-                delete PinsCenter;
-                delete PinsLeft;
-                delete PinsRight;
-                if(PinsCenterSub != nullptr)
-                    delete PinsCenterSub;
-                if(centerPic != nullptr)
-                    delete centerPic;
-            }
-
-            PinsCenter = new QVBoxLayout();
-            PinsCenterSub = new QGridLayout();
-            PinsLeft = new QGridLayout();
-            PinsRight = new QGridLayout();
-
-            ui->PinsTopHalf->addLayout(PinsLeft);
-            ui->PinsTopHalf->addLayout(PinsCenter);
-            ui->PinsTopHalf->addLayout(PinsRight);
-            ui->PinsTopHalf->setStretch(0,0);
-            ui->PinsTopHalf->setStretch(1,1);
-            ui->PinsTopHalf->setStretch(2,0);
-
             for(uint8_t i = 0; i < PINS_COUNT; i++) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
                 pinBoxes.at(i)->setProperty("prevMapping", OF_Const::btnUnmapped+1);
+                pinBoxes.at(i)->setProperty("trackable", App_Const::trackPinbox);
+                pinBoxes.at(i)->installEventFilter(this);
                 connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
                 padding << new QWidget();
@@ -834,90 +875,82 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
             if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {
-                // TODO: perhaps we should be using QGraphicsScene+QGraphicsSvgItem for the board image
-                // as this would allow us to define pin holes and highlight them when hovering.
-                centerPic = new QSvgWidget(":/boardPics/" + App_Const::board.boardType);
-                QSvgRenderer *picRenderer = centerPic->renderer();
-                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
-                PinsCenter->addWidget(centerPic);
+                QFile resource(":/boardPics/" + App_Const::board.boardType);
+                resource.open(QIODevice::ReadOnly);
+                origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
-                        PinsLeft->addWidget(pinBoxes.at(i),
+                        ui->PinsLeft->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                             0);
-                        PinsLeft->addWidget(pinLabel.at(i),
+                        ui->PinsLeft->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                             1);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
-                        PinsRight->addWidget(pinBoxes.at(i),
+                        ui->PinsRight->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                             1);
-                        PinsRight->addWidget(pinLabel.at(i),
+                        ui->PinsRight->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                             0);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
-                        if(PinsCenterSub->isEmpty())
-                            PinsCenter->addLayout(PinsCenterSub);
-
-                        PinsCenterSub->addWidget(pinBoxes.at(i),
+                        ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                  1,
                                                  OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
-                        PinsCenterSub->addWidget(pinLabel.at(i),
+                        ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                  0,
                                                  OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                     }
                 }
             } else {
-                centerPic = new QSvgWidget(":/boardPics/generic");
-                QSvgRenderer *picRenderer = centerPic->renderer();
-                picRenderer->setAspectRatioMode(Qt::KeepAspectRatio);
+                QFile resource(":/boardPics/generic");
+                resource.open(QIODevice::ReadOnly);
+                origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posLeft) {
-                        PinsLeft->addWidget(pinBoxes.at(i),
+                        ui->PinsLeft->addWidget(pinBoxes.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
                                             0);
-                        PinsLeft->addWidget(pinLabel.at(i),
+                        ui->PinsLeft->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
                                             1);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posRight) {
-                        PinsRight->addWidget(pinBoxes.at(i),
+                        ui->PinsRight->addWidget(pinBoxes.at(i),
                                              OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
                                              1);
-                        PinsRight->addWidget(pinLabel.at(i),
+                        ui->PinsRight->addWidget(pinLabel.at(i),
                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
                                             0);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posMiddle) {
-                        if(PinsCenter->isEmpty())
-                            PinsCenter->addLayout(PinsCenterSub);
-
-                        PinsCenterSub->addWidget(pinBoxes.at(i),
+                        ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                  1,
                                                  OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
-                        PinsCenterSub->addWidget(pinLabel.at(i),
+                        ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                  0,
                                                  OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
                     }
                 }
             }
 
+            boardPic.load(origBoardPicFile);
+            boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
+
             int prevPadCount;
-            for(int i = 1, padCount = 0; i < PinsLeft->rowCount(); i++) {
-                if(PinsLeft->itemAtPosition(i, 0) == nullptr) {
-                    PinsLeft->addWidget(padding.at(padCount), i, 0);
+            for(int i = 1, padCount = 0; i < ui->PinsLeft->rowCount(); i++) {
+                if(ui->PinsLeft->itemAtPosition(i, 0) == nullptr) {
+                    ui->PinsLeft->addWidget(padding.at(padCount), i, 0);
                     padCount++;
                     prevPadCount = padCount;
                 }
             }
-            for(int i = 1, padCount = prevPadCount; i < PinsRight->rowCount(); i++) {
-                if(PinsRight->itemAtPosition(i, 0) == nullptr) {
-                    PinsRight->addWidget(padding.at(padCount), i, 0);
+            for(int i = 1, padCount = prevPadCount; i < ui->PinsRight->rowCount(); i++) {
+                if(ui->PinsRight->itemAtPosition(i, 0) == nullptr) {
+                    ui->PinsRight->addWidget(padding.at(padCount), i, 0);
                     padCount++;
                 }
             }
-
-            centerPic->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
 
             ui->tabWidget->setEnabled(true);
             ui->customPinsEnabled->setChecked(boolSettings[OF_Const::customPins]);

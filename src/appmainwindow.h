@@ -172,6 +172,8 @@ private slots:
 private:
     Ui::guiWindow *ui;
 
+    bool eventFilter(QObject* object, QEvent* event) override;
+
     /// @brief      Calibration window pointer
     /// @details    Only one of these should be up at a time
     AppCaliWindow *caliWindow = nullptr;
@@ -272,13 +274,13 @@ private:
     // Always remember to nullptr your fresh pointers, kids!
     // or else release mode undefined behavior will bite your ass :)
 
-    /// @brief      Layouts that makes up the board view tab
-    /// @details    Gets deleted whenever the board view is updated (i.e. board changes)
-    QVBoxLayout *PinsCenter = nullptr;
-    QGridLayout *PinsCenterSub = nullptr;
-    QGridLayout *PinsLeft = nullptr;
-    QGridLayout *PinsRight = nullptr;
-    QSvgWidget *centerPic = nullptr;
+    /// @brief      Renderer that makes up the centerpiece of the board view tab
+    QSvgWidget boardPic;
+
+    /// @brief      Current board picture's byte array representation
+    /// @details    Used to quickly copy/modify for board view highlights
+    QByteArray origBoardPicFile;
+    QString highlightBoardPic;
 
     /// @brief      Objects that makes up the elements of the board view tab
     /// @details    Pinboxes stores the state of each pin to one function

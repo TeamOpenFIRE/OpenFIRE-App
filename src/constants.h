@@ -32,6 +32,17 @@ public:
         pBoxAR
     } profileBoxesTypes_e;
 
+    /// @brief      Types of objects that can be made interactive
+    /// @details    These are required for mouse over interactivity.
+    ///             Different types distinguish which tab it's made for,
+    ///             to activate or modify the appropriate things.
+    enum {
+        trackPinbox = 0,
+        trackSettingsItem,
+        trackProfileItem,
+        trackTestItem
+    } uiTrackableObjects_e;
+
     typedef struct boardInfo_t {
         uint8_t selectedProfile;
         uint8_t previousProfile;
