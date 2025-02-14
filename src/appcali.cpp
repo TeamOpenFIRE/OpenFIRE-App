@@ -22,8 +22,8 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
     scene.setSceneRect(QApplication::primaryScreen()->geometry());
 
     // every mode at least has a header line
-    headerText = new QGraphicsTextItem();
-    headerText->setFont(QFont("Monospace", 18));
+    headerBitmap = new QGraphicsPixmapItem();
+    headerBitmap->setScale(4);
 
     switch(windowMode) {
     case modeCalibrate:
@@ -38,9 +38,9 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         tutorialText->setFont(QFont("Monospace", 16));
 
         // add items to scene
-        scene.addItem(crosshairItem);
-        scene.addItem(headerText);
+        scene.addItem(headerBitmap);
         scene.addItem(tutorialText);
+        scene.addItem(crosshairItem);
         crosshairItem->setVisible(false);
 
         // set scale, then set crosshair just offscreen at startup
@@ -173,6 +173,41 @@ AppCaliWindow::~AppCaliWindow()
     delete ui;
 }
 
+QPixmap AppCaliWindow::GenerateText(const QStringList &strings)
+{
+    QVector<QPixmap> imageBuffer;
+    int maxWidth = 0;
+
+    // used to copy data from resources bitmaps to individual images.
+    QPainter painter;
+
+    for(auto const &line : strings) {
+        imageBuffer << QPixmap(8*line.length(), 8);
+        // init with transparent color
+        imageBuffer.last().fill(QColor(0,0,0,0));
+        painter.begin(&imageBuffer.last());
+
+        if(maxWidth < imageBuffer.last().width()) maxWidth = imageBuffer.last().width();
+
+        for(int i = 0; i < line.length(); i++)
+            if(line.at(i) >= '!' && line.at(i) <= '~')
+                painter.drawPixmap(QPoint(8*i, 0), QPixmap(QString(":/testFont/testFont/%1").arg(line.at(i).unicode()), "PNG"));
+
+        painter.end();
+    }
+
+    QPixmap combinedBuffer(maxWidth, 8*strings.count());
+    combinedBuffer.fill(QColor(0,0,0,0));
+
+    painter.begin(&combinedBuffer);
+    for(int i = 0; i < imageBuffer.count(); i++)
+        painter.drawPixmap(QPoint(0,8*i), imageBuffer.at(i));
+
+    painter.end();
+
+    return combinedBuffer;
+}
+
 void AppCaliWindow::CaliModeSet(const int &caliStage)
 {
     switch(caliStage) {
@@ -185,9 +220,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerText->setPlainText("Shoot at the target to start calibration.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        headerBitmap->setPixmap(GenerateText({"Shoot at the target to start calibration."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
 
         tutorialText->setHtml("<p align=\"center\">Calibration can be exited without changes by pressing<br>"
                               "either <i>Button A,</i> <i>Button B,</i> or <i>Button C (if available).</i></p>");
@@ -198,9 +233,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().top() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerText->setPlainText("Shoot at the top edge of the screen.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        headerBitmap->setPixmap(GenerateText({"Shoot at the top edge of the screen."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
 
         tutorialText->setHtml("<p align=\"center\">The calibration process can be reset by pressing<br>"
                               "either <i>Button A</i> or <i>Button B,</i><br>"
@@ -211,34 +246,34 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
     case Cali_Bottom:
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().bottom() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
-
-        headerText->setPlainText("Shoot at the bottom edge of the screen.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        
+        headerBitmap->setPixmap(GenerateText({"Shoot at the bottom edge of the screen."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
         break;
     case Cali_Left:
         crosshairItem->setPos(scene.sceneRect().left() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerText->setPlainText("Shoot at the left edge of the screen.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        headerBitmap->setPixmap(GenerateText({"Shoot at the left edge of the screen."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
         break;
     case Cali_Right:
         crosshairItem->setPos(scene.sceneRect().right() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerText->setPlainText("Shoot at the right edge of the screen.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        headerBitmap->setPixmap(GenerateText({"Shoot at the right edge of the screen."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
         break;
     case Cali_Center:
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerText->setPlainText("Shoot at the final target in the center.");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        headerBitmap->setPixmap(GenerateText({"Shoot at the final target in the center."}));
+        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
+                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
         break;
     case Cali_Verify:
         ui->graphicsView->setMouseTracking(true);

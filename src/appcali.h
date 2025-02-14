@@ -88,7 +88,12 @@ signals:
 private:
     Ui::AppCaliWindow *ui;
 
+    /// @brief      Generates input from text into a bitmap representation using the app's builtin "test" typeface
+    /// @returns    Pixmap of the string list provided.
+    QPixmap GenerateText(const QStringList &);
+
     /// @brief      What mode this window was opened as
+    /// @returns    A value of AppCaliStates_e
     int mode = -1;
 
     /// @brief      Indicator that mouse tracking is allowed
@@ -100,6 +105,15 @@ private:
 
     /// @brief      The crosshair used in calibration UX
     QGraphicsSvgItem *crosshairItem;
+
+    /// @brief      Text bitmaps generated from test font files
+    QGraphicsPixmapItem *headerBitmap;
+    QGraphicsPixmapItem *profileBitmaps[6];
+    QGraphicsPixmapItem *tutorialBitmap;
+    QGraphicsPixmapItem *alignmentBitmapLeft;
+    QGraphicsPixmapItem *alignmentBitmapRight;
+
+    // TODO: replace text items here with bitmap Pixmaps
 
     /// @brief      Main top text item, used for primary info strings
     /// @details    For cali, this displays tutorial text to the user
