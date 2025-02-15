@@ -85,6 +85,11 @@ guiWindow::guiWindow(QWidget *parent)
         // QComboboxes aren't new syntax friendly?
         //if(!child->property("isFor").isNull()) connect(child, SIGNAL(activated(int)), this, SLOT(OptionSet()));
     }
+    for(const auto child : this->findChildren<QRadioButton*>()) {
+        if(!child->property("trackable").isNull()) child->installEventFilter(this);
+        // QComboboxes aren't new syntax friendly?
+        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(activated(int)), this, SLOT(OptionSet()));
+    }
 
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
@@ -175,6 +180,8 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
             ui->settingsDescText->setText(object->property("whatsThis").toString());
             break;
         case App_Const::trackProfileItem:
+            ui->profilesDescBox->setTitle(object->property("accessibleName").toString());
+            ui->profilesDescText->setText(object->property("whatsThis").toString());
             break;
         case App_Const::trackTestItem:
             break;
@@ -414,13 +421,18 @@ void guiWindow::SerialLoad()
                     renameBtn.at(i)->setFlat(true);
                     renameBtn.at(i)->setFixedWidth(20);
                     renameBtn.at(i)->setIcon(QIcon(":/icon/edit.png"));
+                    renameBtn.at(i)->installEventFilter(this);
                     renameBtn.at(i)->setProperty("slot", i);
+                    renameBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    renameBtn.at(i)->setAccessibleName(QString("Rename Profile %1").arg(i+1));
+                    renameBtn.at(i)->setWhatsThis("<p>Click to rename this Calibration Profile.</p>"
+                                                  "<p>Aside from differentiating between different profiles for different displays, "
+                                                  "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
                     connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                    selectedProfile << new QRadioButton(QString("%1.").arg(i+1));
+                    selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Const::profilesTable.at(i).profName));
                     if(i == App_Const::board.selectedProfile)
                         selectedProfile.at(i)->setChecked(true);
-                    selectedProfile.at(i)->setText(App_Const::profilesTable.at(i).profName);
                     selectedProfile.at(i)->setProperty("slot", i);
                     connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
@@ -434,32 +446,72 @@ void guiWindow::SerialLoad()
                     irSens << new QComboBox();
                     irSens.at(i)->addItems({"Default", "Higher", "Highest"});
                     irSens.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).irSensitivity);
+                    irSens.at(i)->installEventFilter(this);
                     irSens.at(i)->setProperty("slot", i);
                     irSens.at(i)->setProperty("type", App_Const::pBoxIRsens);
+                    irSens.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    irSens.at(i)->setAccessibleName(QString("Camera Sensitivity for Profile %1").arg(i+1));
+                    irSens.at(i)->setWhatsThis("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
+                                               "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
+                                               "adjusting this setting higher might fix issues with tracking.<br>"
+                                               "Conversely, setting sensitivity too high may cause indirect IR sources "
+                                               "(such as sunlight or IR bouncing off of reflective surfaces) "
+                                               "to be picked up instead, causing the cursor to jitter or erratically jump across the screen.</p>");
                     connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                     runMode << new QComboBox();
                     runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
                     runMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).runMode);
+                    runMode.at(i)->installEventFilter(this);
                     runMode.at(i)->setProperty("slot", i);
                     runMode.at(i)->setProperty("type", App_Const::pBoxRunMode);
+                    runMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    runMode.at(i)->setAccessibleName(QString("Camera Position Averaging Mode for Profile %1").arg(i+1));
+                    runMode.at(i)->setWhatsThis("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
+                                                "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
+                                                "at the cost of a small increase in latency; conversely, disabling this position averaging can "
+                                                "reduce latency, at the cost of some added jitter in mouse movement.</p>"
+                                                "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>");
                     connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                     layoutMode << new QComboBox();
                     layoutMode.at(i)->addItems({"Square", "Diamond"});
                     layoutMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).layoutType);
+                    layoutMode.at(i)->installEventFilter(this);
                     layoutMode.at(i)->setProperty("slot", i);
                     layoutMode.at(i)->setProperty("type", App_Const::pBoxLayout);
+                    layoutMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    layoutMode.at(i)->setAccessibleName(QString("IR Emitter Layout for Profile %1").arg(i+1));
+                    layoutMode.at(i)->setWhatsThis("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
+                                                   "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
+                                                   "which uses two pairs of emitters on the top and bottom, and <i>Diamond Layout,</i> "
+                                                   "which uses one emitter at the center of each side of the display.</p>"
+                                                   "<p><i>Square Layout</i> generally has much higher accuracy at any angle and allows for "
+                                                   "playing closer to the screen or using external Fish Eye lenses without viewport distortion, "
+                                                   "while <i>Diamond Layout</i> is for screen compatibility with certain legacy lightgun systems "
+                                                   "(allowing OpenFIRE guns to play with such other lightgun systems on the same display).</p>"
+                                                   "<p>If unsure, use <b>Square Layout</b> "
+                                                   "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>");
                     connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                     color << new QPushButton();
                     color.at(i)->setFixedWidth(32);
                     color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Const::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
+                    color.at(i)->installEventFilter(this);
                     color.at(i)->setProperty("slot", i);
+                    color.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    color.at(i)->setAccessibleName(QString("Profile Menu Color for Cali Profile %1").arg(i+1));
+                    color.at(i)->setWhatsThis("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
+                                              "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
+                                              "which is emitted by a 4-pin RGB LED and/or an active NeoPixel strand.</p>");
                     connect(color.at(i), &QPushButton::clicked, this, &guiWindow::colorBoxes_clicked);
 
                     caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
+                    caliBtn.at(i)->installEventFilter(this);
                     caliBtn.at(i)->setProperty("slot", i);
+                    caliBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                    caliBtn.at(i)->setAccessibleName(QString("Open Calibration Window for Cali Profile %1").arg(i+1));
+                    caliBtn.at(i)->setWhatsThis("Click to start the calibration process for this profile.");
                     connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
 
                     topOffset.at(i)     ->setAlignment(Qt::AlignCenter);
@@ -488,7 +540,7 @@ void guiWindow::SerialLoad()
             }
             serialActive = false;
         } else {
-            QMessageBox::warning(this,  "Sync Error: Data hasn't arrived!!",    "Device was detected, but settings request wasn't received in time!\n"
+            QMessageBox::warning(this, "Sync Error: Data hasn't arrived!!", "Device was detected, but settings request wasn't received in time!\n"
                                                                             "This can happen if the app was closed in the middle of an operation.\n\n"
                                                                             "Try selecting the device again.");
             //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
