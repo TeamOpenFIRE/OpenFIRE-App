@@ -22,8 +22,14 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
     scene.setSceneRect(QApplication::primaryScreen()->geometry());
 
     // every mode at least has a header line
-    headerBitmap = new QGraphicsPixmapItem();
-    headerBitmap->setScale(4);
+    // set a global scale/point size for headers
+    if(bitmapText) {
+        headerBitmap = new QGraphicsPixmapItem();
+        headerBitmap->setScale(GetTextScale(TextHeading));
+    } else {
+        headerText = new QGraphicsTextItem();
+        headerText->setFont(QFont("Monospace", GetTextScale(TextHeading)));
+    }
 
     switch(windowMode) {
     case modeCalibrate:
@@ -34,17 +40,30 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         // this is supposed to work, but doesn't, so we just offset every setPos command by the center point of the SVG, mult'd by scale
         //crosshairItem->setTransformOriginPoint(crosshairItem->boundingRect().center());
 
-        tutorialText = new QGraphicsTextItem();
-        tutorialText->setFont(QFont("Monospace", 16));
-
         // add items to scene
-        scene.addItem(headerBitmap);
-        scene.addItem(tutorialText);
-        scene.addItem(crosshairItem);
-        crosshairItem->setVisible(false);
+        if(bitmapText) {
+            caliStageBitmap = new QGraphicsPixmapItem();
+            caliStageBitmap->setScale(GetTextScale(TextHeading));
+            tutorialBitmap = new QGraphicsPixmapItem();
+            tutorialBitmap->setScale(GetTextScale(TextSub));
 
-        // set scale, then set crosshair just offscreen at startup
-        crosshairItem->setScale(3);
+            scene.addItem(headerBitmap);
+            scene.addItem(caliStageBitmap);
+            scene.addItem(tutorialBitmap);
+        } else {
+            caliStageText = new QGraphicsTextItem();
+            caliStageText->setFont(QFont("Monospace", GetTextScale(TextHeading)));
+            tutorialText = new QGraphicsTextItem();
+            tutorialText->setFont(QFont("Monospace", GetTextScale(TextSub)));
+
+            scene.addItem(headerText);
+            scene.addItem(caliStageText);
+            scene.addItem(tutorialText);
+        }
+
+        crosshairItem->setVisible(false);
+        crosshairItem->setScale(GetTextScale(Crosshair));
+        scene.addItem(crosshairItem);
 
         ui->graphicsView->setMouseTracking(false);
 
@@ -54,30 +73,70 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         this->setWindowTitle("Alignment Assistant");
         ui->graphicsView->setBackgroundBrush(QBrush(QColor("darkslategray")));
 
-        headerText->setHtml("<p align=\"justify\">Depending on your desired layout,<br>"
-                            "your IR Emitters should be aligned<br>"
-                            "to either one of the two sets of colored boxes:</p>");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().height() * 0.25) - headerText->boundingRect().center().y());
+        if(bitmapText) {
+            headerBitmap->setPixmap(GenerateText({"       Depending on your desired layout,       ",
+                                                  "      your IR emitters should be aligned       ",
+                                                  "to either one of the two sets of colored boxes:"}));
+            headerBitmap->setPos(scene.sceneRect().center().x()     - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 scene.sceneRect().height() * 0.15  - (headerBitmap->boundingRect().center().y() * headerBitmap->scale()));
 
-        alignmentTextLeft = new QGraphicsTextItem();
-        alignmentTextLeft->setHtml("<p align=\"justify\">For <b>Square Layout,</b> the emitters should<br>"
-                                   "be placed at the top and bottom<br>"
-                                   "of the display; each one being aligned to the"
-                                   "<p style=\"color: tomato\">Red-colored boxes.</p></p>");
-        alignmentTextLeft->setFont(QFont("Monospace", 14));
-        alignmentTextLeft->setPos(scene.sceneRect().width() * 0.075,
-                                  (scene.sceneRect().height() * 0.3) + alignmentTextLeft->boundingRect().center().y());
+            alignmentBitmapLeft = new QGraphicsPixmapItem(GenerateText({"      For Square Layout,     ",
+                                                                        "    the emitters should be   ",
+                                                                        "    placed at the top and    ",
+                                                                        "    bottom of the display;   ",
+                                                                        "each one being aligned to the",
+                                                                        "      Red-colored boxes.     "}));
+            alignmentBitmapLeft->setScale(GetTextScale(TextSmall));
+            alignmentBitmapLeft->setPos(scene.sceneRect().width() * 0.05,
+                                        (scene.sceneRect().height() * 0.3) + (alignmentBitmapLeft->boundingRect().center().y() * alignmentBitmapLeft->scale()));
 
-        alignmentTextRight = new QGraphicsTextItem();
-        alignmentTextRight->setHtml("<p align=\"justify\">For <b>Diamond Layout,</b> the emitters should<br>"
-                                    "be placed at the center of the four edges<br>"
-                                    "of the display; each one being aligned to the</p>"
-                                    "<p style=\"color: palegreen\">Green-colored boxes.</p>");
-        alignmentTextRight->setFont(QFont("Monospace", 14));
-        alignmentTextRight->setPos(scene.sceneRect().width() * 0.70,
-                                   (scene.sceneRect().height() * 0.3) + alignmentTextRight->boundingRect().center().y());
+            alignmentBitmapRight = new QGraphicsPixmapItem(GenerateText({"     For Diamond Layout,     ",
+                                                                         "the emitters should be placed",
+                                                                         "  at the center of the four  ",
+                                                                         "    edges of the display;    ",
+                                                                         "each one being aligned to the",
+                                                                         "     Green-colored boxes.    "}));
+            alignmentBitmapRight->setScale(GetTextScale(TextSmall));
+            alignmentBitmapRight->setPos(scene.sceneRect().width()   * 0.96   - (alignmentBitmapRight->boundingRect().width()      * alignmentBitmapRight->scale()),
+                                         (scene.sceneRect().height() * 0.275) + (alignmentBitmapRight->boundingRect().center().y() * alignmentBitmapRight->scale()));
 
+            tutorialBitmap = new QGraphicsPixmapItem(GenerateText({"Press ESC to exit alignment tool."}));
+            tutorialBitmap->setScale(GetTextScale(TextSub));
+            tutorialBitmap->setPos(scene.sceneRect().width() * 0.05,
+                                   (scene.sceneRect().bottom() * 0.9) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+        } else {
+            headerText->setHtml("<p align=\"justify\">Depending on your desired layout,<br>"
+                                "your IR Emitters should be aligned<br>"
+                                "to either one of the two sets of colored boxes:</p>");
+            headerText->setPos(scene.sceneRect().center().x()      - headerText->boundingRect().center().x(),
+                               (scene.sceneRect().height() * 0.25) - headerText->boundingRect().center().y());
+
+            alignmentTextLeft = new QGraphicsTextItem();
+            alignmentTextLeft->setHtml("<p align=\"justify\">For <b>Square Layout,</b> the emitters should<br>"
+                                       "be placed at the top and bottom<br>"
+                                       "of the display; each one being aligned to the"
+                                       "<p style=\"color: tomato\">Red-colored boxes.</p></p>");
+            alignmentTextLeft->setFont(QFont("Monospace", GetTextScale(TextSub)));
+            alignmentTextLeft->setPos(scene.sceneRect().width() * 0.075,
+                                      (scene.sceneRect().height() * 0.3) + alignmentTextLeft->boundingRect().center().y());
+
+            alignmentTextRight = new QGraphicsTextItem();
+            alignmentTextRight->setHtml("<p align=\"justify\">For <b>Diamond Layout,</b> the emitters should<br>"
+                                        "be placed at the center of the four edges<br>"
+                                        "of the display; each one being aligned to the</p>"
+                                        "<p style=\"color: palegreen\">Green-colored boxes.</p>");
+            alignmentTextRight->setFont(QFont("Monospace", TextSub));
+            alignmentTextRight->setPos(scene.sceneRect().width() * 0.70,
+                                       (scene.sceneRect().height() * 0.3) + alignmentTextRight->boundingRect().center().y());
+
+            tutorialText = new QGraphicsTextItem();
+            tutorialText->setPlainText("Press ESC to exit alignment tool.");
+            tutorialText->setFont(QFont("Monospace", TextSub));
+            tutorialText->setPos(scene.sceneRect().width() * 0.05,
+                                 (scene.sceneRect().bottom() * 0.9) - tutorialText->boundingRect().center().y());
+        }
+
+        // Construct scene with shapes + lines
         for(int i = 0; i < 4; i++) {
             alignmentBoxesSquare[i] = new QGraphicsRectItem();
             alignmentBoxesSquare[i]->setBrush(QBrush(QColor("firebrick")));
@@ -123,31 +182,50 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         for(int i = 0; i < 2; i++)
             scene.addItem(alignmentLines[i]);
 
-        tutorialText = new QGraphicsTextItem();
-        tutorialText->setPlainText("Press ESC to exit alignment tool.");
-        tutorialText->setFont(QFont("Monospace", 14));
-        tutorialText->setPos(scene.sceneRect().left()+100, scene.sceneRect().bottom() * 0.8);
-        scene.addItem(tutorialText);
-        scene.addItem(alignmentTextLeft);
-        scene.addItem(alignmentTextRight);
-        scene.addItem(headerText);
+        if(bitmapText) {
+            scene.addItem(tutorialBitmap);
+            scene.addItem(alignmentBitmapLeft);
+            scene.addItem(alignmentBitmapRight);
+            scene.addItem(headerBitmap);
+        } else {
+            scene.addItem(tutorialText);
+            scene.addItem(alignmentTextLeft);
+            scene.addItem(alignmentTextRight);
+            scene.addItem(headerText);
+        }
 
         break;
     case modeIRTest:
         this->setWindowTitle("IR Emitters Test");
         ui->graphicsView->setBackgroundBrush(QBrush(QColor("midnightblue")));
 
-        headerText->setHtml("<p align=justify>The array of shapes onscreen represents the emitters that the camera can see.<br>"
-                            "The points should move opposite to your aim, with the gray circle representing line-of-sight.</p>");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.1) - headerText->boundingRect().center().y());
-        scene.addItem(headerText);
+        if(bitmapText) {
+            headerBitmap->setPixmap(GenerateText({"  The array of shapes displayed onscreen represents    ",
+                                                  "         the emitters that the camera can see.         ",
+                                                  "  The colored points should move opposite to your aim, ",
+                                                  "and the gray circle should line up with your gun sight."}));
+            headerBitmap->setPos(scene.sceneRect().center().x()     - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 (scene.sceneRect().bottom() * 0.1) - (headerBitmap->boundingRect().center().y() * headerBitmap->scale()));
+            scene.addItem(headerBitmap);
 
-        tutorialText = new QGraphicsTextItem();
-        tutorialText->setPlainText("Press ESC to exit alignment tool.");
-        tutorialText->setFont(QFont("Monospace", 14));
-        tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(), scene.sceneRect().bottom() * 0.85);
-        scene.addItem(tutorialText);
+            tutorialBitmap = new QGraphicsPixmapItem(GenerateText({"Press ESC to exit test mode."}));
+            tutorialBitmap->setScale(GetTextScale(TextSub));
+            tutorialBitmap->setPos(scene.sceneRect().center().x() - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                   scene.sceneRect().bottom() * 0.85);
+            scene.addItem(tutorialBitmap);
+        } else {
+            headerText->setHtml("<p align=justify>The array of shapes onscreen represents the emitters that the camera can see.<br>"
+                                "The points should move opposite to your aim, with the gray circle representing line-of-sight.</p>");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               (scene.sceneRect().bottom() * 0.1) - headerText->boundingRect().center().y());
+            scene.addItem(headerText);
+
+            tutorialText = new QGraphicsTextItem();
+            tutorialText->setPlainText("Press ESC to exit test mode.");
+            tutorialText->setFont(QFont("Monospace", GetTextScale(TextSub)));
+            tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(), scene.sceneRect().bottom() * 0.85);
+            scene.addItem(tutorialText);
+        }
 
         for(int i = 0; i < testPointsCount; i++) {
             testPoints[i] = new QGraphicsEllipseItem();
@@ -171,6 +249,65 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
 AppCaliWindow::~AppCaliWindow()
 {
     delete ui;
+}
+
+int AppCaliWindow::GetTextScale(const int &type)
+{
+    if(scale == -1) {
+        if(scene.sceneRect().height() >= 1440)
+                scale = ScaleHiDPI;
+        else if(scene.sceneRect().height() >= 1080)
+                scale = ScaleBig;
+        else    scale = ScaleSmall;
+    }
+
+    switch(scale) {
+    case ScaleHiDPI:
+        switch(type) {
+        case TextHeading:
+            if(bitmapText) return 5;
+            else return 20;
+        case TextSub:
+            if(bitmapText) return 4;
+            else return 18;
+        case TextSmall:
+            if(bitmapText) return 3;
+            else return 16;
+        case Crosshair:
+            return 3;
+        }
+    case ScaleBig:
+        switch(type) {
+        case TextHeading:
+            if(bitmapText) return 4;
+            else return 18;
+        case TextSub:
+            if(bitmapText) return 3;
+            else return 16;
+        case TextSmall:
+            if(bitmapText) return 2;
+            else return 14;
+        case Crosshair:
+            return 2;
+        }
+    case ScaleSmall:
+        switch(type) {
+        case TextHeading:
+            if(bitmapText) return 3;
+            else return 16;
+        case TextSub:
+            if(bitmapText) return 2;
+            else return 14;
+        case TextSmall:
+            if(bitmapText) return 2;
+            else return 12;
+        case Crosshair:
+            return 1;
+        }
+    }
+
+    // Shouldn't be possible to reach this, otherwise something horrible's gone wrong.
+    return 0;
 }
 
 QPixmap AppCaliWindow::GenerateText(const QStringList &strings)
@@ -216,79 +353,192 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         mouseCanBeTracked = false;
 
         crosshairItem->setVisible(true);
-
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerBitmap->setPixmap(GenerateText({"Shoot at the target to start calibration."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap( GenerateText({"Initialize Calibration:"}));
+            caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                    (scene.sceneRect().height() * 0.25) - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
 
-        tutorialText->setHtml("<p align=\"center\">Calibration can be exited without changes by pressing<br>"
-                              "either <i>Button A,</i> <i>Button B,</i> or <i>Button C (if available).</i></p>");
-        tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(),
-                             (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+            headerBitmap->setPixmap(    GenerateText({"Shoot at the target to start calibration."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+
+            tutorialBitmap->setPixmap(  GenerateText({"Calibration can be exited without changes by pressing",
+                                                      "either Button A, Button B, or Button C (if available)."}));
+            tutorialBitmap->setPos(scene.sceneRect().center().x()     - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                   (scene.sceneRect().bottom() * 0.8) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Initialize Calibration:");
+            caliStageText->setPos(scene.sceneRect().center().x()      - caliStageText->boundingRect().center().x(),
+                                  (scene.sceneRect().bottom() * 0.25) - caliStageText->boundingRect().center().y());
+
+            headerText->setPlainText("Shoot at the target to start calibration.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+
+            tutorialText->setHtml("<p align=\"center\">Calibration can be exited without changes by pressing<br>"
+                                  "either <i>Button A,</i> <i>Button B,</i> or <i>Button C (if available).</i></p>");
+            tutorialText->setPos(scene.sceneRect().center().x()     - tutorialText->boundingRect().center().x(),
+                                 (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+        }
+
         break;
     case Cali_Top:
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().top() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerBitmap->setPixmap(GenerateText({"Shoot at the top edge of the screen."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap(GenerateText({"Cali Step 1:"}));
+            caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                    (scene.sceneRect().height() * 0.25) - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
 
-        tutorialText->setHtml("<p align=\"center\">The calibration process can be reset by pressing<br>"
-                              "either <i>Button A</i> or <i>Button B,</i><br>"
-                              "and can be canceled by pressing <i>Button C (if available).</i></p>");
-        tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(),
-                             (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+            headerBitmap->setPixmap(GenerateText({"Shoot at the top edge of the screen."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+
+            tutorialBitmap->setPixmap(GenerateText({"The calibration process can be reset by pressing",
+                                                    "either Button A or Button B, and can be canceled",
+                                                    "      by pressing Button C (if available).      "}));
+            tutorialBitmap->setPos(scene.sceneRect().center().x()     - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                   (scene.sceneRect().bottom() * 0.8) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Cali Step 1:");
+            caliStageText->setPos(scene.sceneRect().center().x()      - caliStageText->boundingRect().center().x(),
+                                  (scene.sceneRect().bottom() * 0.25) - caliStageText->boundingRect().center().y());
+
+            headerText->setPlainText("Shoot at the top edge of the screen.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+
+            tutorialText->setHtml("<p align=\"center\">The calibration process can be reset by pressing<br>"
+                                  "either <i>Button A</i> or <i>Button B,</i><br>"
+                                  "and can be canceled by pressing <i>Button C (if available).</i></p>");
+            tutorialText->setPos(scene.sceneRect().center().x()     - tutorialText->boundingRect().center().x(),
+                                 (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+        }
+
         break;
     case Cali_Bottom:
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
-                              scene.sceneRect().bottom() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
+                              scene.sceneRect().bottom()     - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
         
-        headerBitmap->setPixmap(GenerateText({"Shoot at the bottom edge of the screen."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap(GenerateText({"Cali Step 2:"}));
+
+            headerBitmap->setPixmap(GenerateText({"Shoot at the bottom edge of the screen."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Cali Step 2:");
+
+            headerText->setPlainText("Shoot at the bottom edge of the screen.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+        }
+
         break;
     case Cali_Left:
-        crosshairItem->setPos(scene.sceneRect().left() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
-                              scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
+        crosshairItem->setPos(scene.sceneRect().left()       - (crosshairItem->boundingRect().center().x() * crosshairItem->scale()),
+                              scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y() * crosshairItem->scale()));
 
-        headerBitmap->setPixmap(GenerateText({"Shoot at the left edge of the screen."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap(GenerateText({"Cali Step 3:"}));
+
+            headerBitmap->setPixmap(GenerateText({"Shoot at the left edge of the screen."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Cali Step 3:");
+
+            headerText->setPlainText("Shoot at the left edge of the screen.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+        }
+
         break;
     case Cali_Right:
         crosshairItem->setPos(scene.sceneRect().right() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerBitmap->setPixmap(GenerateText({"Shoot at the right edge of the screen."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap(GenerateText({"Cali Step 4:"}));
+
+            headerBitmap->setPixmap(GenerateText({"Shoot at the right edge of the screen."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Cali Step 4:");
+
+            headerText->setPlainText("Shoot at the right edge of the screen.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+        }
+
         break;
     case Cali_Center:
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
-        headerBitmap->setPixmap(GenerateText({"Shoot at the final target in the center."}));
-        headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x()*headerBitmap->scale()),
-                             scene.sceneRect().height() * 0.25 - (headerBitmap->boundingRect().center().y()*headerBitmap->scale()));
+        if(bitmapText) {
+            caliStageBitmap->setPixmap(GenerateText({"Cali Step 5:"}));
+
+            headerBitmap->setPixmap(GenerateText({"Shoot at the final target in the center."}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Cali Step 5:");
+
+            headerText->setPlainText("Shoot at the final target in the center.");
+            headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()       + caliStageText->boundingRect().height());
+        }
+
         break;
     case Cali_Verify:
         ui->graphicsView->setMouseTracking(true);
         mouseCanBeTracked = true;
 
-        headerText->setHtml("<p align=\"center\">Confirm that the bullseye lines up with gun sight.<br>"
-                                 "If calibration is acceptable, confirm by pulling the trigger.</p>");
-        headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
-                           (scene.sceneRect().bottom() * 0.25) - headerText->boundingRect().center().y());
+        if(bitmapText) {
+            caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
+            caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                    scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
 
-        tutorialText->setHtml("<p align=\"center\">If the target accuracy isn't desirable,<br>"
-                              "press either <i>Button A</i> or <i>Button B</i> to restart the calibration process.<br>"
-                              "You can also exit calibration without saving changes by pressing <i>Button C (if available).</i></p>");
-        tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(),
-                             (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+            headerBitmap->setPixmap(GenerateText({"    Confirm that the bullseye     ",
+                                                  "   lines up with the gun sight.   ",
+                                                  "If this calibration is acceptable,",
+                                                  "  confirm by pulling the trigger. "}));
+            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+
+            tutorialBitmap->setPixmap(GenerateText({"       If this target accuracy isn't desirable,      ",
+                                                    "          press either Button A or Button B          ",
+                                                    "         to restart the calibration process.         ",
+                                                    "",
+                                                    "[You can also exit calibration without saving changes",
+                                                    "        by pressing Button C (if available).]        "}));
+            tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                   (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+        } else {
+            caliStageText->setPlainText("Verify New Calibration:");
+            caliStageText->setPos(scene.sceneRect().center().x()        - caliStageText->boundingRect().center().x(),
+                                  (scene.sceneRect().bottom() * 0.25)   - caliStageText->boundingRect().center().y());
+
+            headerText->setHtml("<p align=\"center\">Confirm that the bullseye lines up with gun sight.<br>"
+                                "If this calibration is acceptable, confirm by pulling the trigger.</p>");
+            headerText->setPos(scene.sceneRect().center().x()   - headerText->boundingRect().center().x(),
+                               caliStageText->pos().y()         + caliStageText->boundingRect().height());
+
+            tutorialText->setHtml("<p align=\"center\">If the target accuracy isn't desirable,<br>"
+                                  "press either <i>Button A</i> or <i>Button B</i><br>"
+                                  "to restart the calibration process.<br>"
+                                  "<br>"
+                                  "[You can also exit calibration without saving changes<br>"
+                                  "by pressing <i>Button C (if available).</i>]</p>");
+            tutorialText->setPos(scene.sceneRect().center().x() - tutorialText->boundingRect().center().x(),
+                                 (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
+        }
 
         break;
     case Cali_End:

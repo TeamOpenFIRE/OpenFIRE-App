@@ -80,21 +80,49 @@ public:
 
     int GetWindowMode() { return mode; }
 
+    void Shutdown() { emit WindowExiting(mode); }
+
 signals:
     /// @brief      Signals back to the main app that the window is exiting
     /// @details    This should be emitted in any situation that the window may exit
     void WindowExiting(const int &);
 
 private:
+    enum {
+        ScaleSmall = 0,
+        ScaleBig,
+        ScaleHiDPI
+    } ScaleTypes_e;
+
+    enum {
+        TextHeading = 0,
+        TextSub,
+        TextSmall,
+        Crosshair
+    } TextScaleTypes_e;
+
     Ui::AppCaliWindow *ui;
+
+    /// @brief      Very basic approximated HiDPI-aware values for both bitmap and font texts
+    /// @returns    An appropriate scaling value, depending on value passed through of TextScaleTypes_e
+    ///             and depending on whether bitmapText is enabled or not.
+    int GetTextScale(const int &);
 
     /// @brief      Generates input from text into a bitmap representation using the app's builtin "test" typeface
     /// @returns    Pixmap of the string list provided.
     QPixmap GenerateText(const QStringList &);
 
+    /// @brief      Type of text scale appropriate for this window
+    /// @details    Value is one of ScaleTypes_e
+    int scale = -1;
+
     /// @brief      What mode this window was opened as
     /// @returns    A value of AppCaliStates_e
     int mode = -1;
+
+    /// @brief      Whether to use bitmaps or font-based text
+    /// @details    In case normal fonts are ever desirable.
+    bool bitmapText = true;
 
     /// @brief      Indicator that mouse tracking is allowed
     bool mouseCanBeTracked = false;
@@ -106,18 +134,48 @@ private:
     /// @brief      The crosshair used in calibration UX
     QGraphicsSvgItem *crosshairItem;
 
+    /// @brief      Objects used to construct the look of the alignment view
+    /// @details    Two sets of differently colored boxes for Square and Diamond IR layouts,
+    ///             And two polygons that connects these together.
+    QGraphicsRectItem *alignmentBoxesSquare[4];
+    QGraphicsRectItem *alignmentBoxesDiamond[4];
+    QGraphicsPolygonItem *alignmentLines[2];
+
+    /// @brief      Test Mode screen points
+    QGraphicsEllipseItem *testPoints[testPointsCount];
+
+    /// @brief      Test Mode polygon that connects across the test points
+    QGraphicsPolygonItem *testBox;
+
     /// @brief      Text bitmaps generated from test font files
+    /// @details    Contents are generated at runtime from GenerateText
+
+    /// @brief      Main top text bitmap, used for primary info strings
+    /// @details    For cali, this displays tutorial text to the user
     QGraphicsPixmapItem *headerBitmap;
+
+    /// @brief      Indicator of cali stage that goes above headerText in Calibration Mode
+    QGraphicsPixmapItem *caliStageBitmap;
+
+    /// @brief      Text bitmaps used for showing current profile data during calibration
+    /// @details    In order: Top Offset, Bottom Offset, Left Offset, Right Offset, Top Left LED, Top Right LED
     QGraphicsPixmapItem *profileBitmaps[6];
+
+    /// @brief      Bottom text bitmap used for showing how to exit calibration (or other button related instructions) to the user
     QGraphicsPixmapItem *tutorialBitmap;
+
+    /// @brief      Side text used to present Alignment Mode information about the different IR emitter layouts
     QGraphicsPixmapItem *alignmentBitmapLeft;
     QGraphicsPixmapItem *alignmentBitmapRight;
 
-    // TODO: replace text items here with bitmap Pixmaps
-
+    // Below is older native font-based implementations of text objects
+    // Could be useful in future for non-English languages?
     /// @brief      Main top text item, used for primary info strings
     /// @details    For cali, this displays tutorial text to the user
     QGraphicsTextItem *headerText;
+
+    /// @brief      Indicator of cali stage that goes above headerText in Calibration Mode
+    QGraphicsTextItem *caliStageText;
 
     /// @brief      Text used for showing current profile data during calibration
     /// @details    In order: Top Offset, Bottom Offset, Left Offset, Right Offset, Top Left LED, Top Right LED
@@ -126,24 +184,9 @@ private:
     /// @brief      Bottom text used for showing how to exit calibration (or other button related instructions) to the user
     QGraphicsTextItem *tutorialText;
 
-    /// @brief      Objects used to construct the look of the alignment view
-    /// @details    Two sets of differently colored boxes for Square and Diamond IR layouts,
-    ///             And two polygons that connects these together.
-    QGraphicsRectItem *alignmentBoxesSquare[4];
-    QGraphicsRectItem *alignmentBoxesDiamond[4];
-    QGraphicsPolygonItem *alignmentLines[2];
-
-    /// @brief      Side text used for alignment view information
+    /// @brief      Side text used to present Alignment Mode information about the different IR emitter layouts
     QGraphicsTextItem *alignmentTextLeft;
     QGraphicsTextItem *alignmentTextRight;
-
-    /// @brief      Test Mode screen points
-    QGraphicsEllipseItem *testPoints[testPointsCount];
-
-    /// @brief      Test Mode polygon that connects across the test points
-    QGraphicsPolygonItem *testBox;
-
-    // TODO: add items to make alignment screen here
 
 private slots:
 
