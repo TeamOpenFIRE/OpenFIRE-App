@@ -100,7 +100,7 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                                                          "each one being aligned to the"}));
             alignmentBitmapRight->setScale(GetTextScale(TextSmall));
             alignmentBitmapRight->setPos(scene.sceneRect().width()   * 0.96   - (alignmentBitmapRight->boundingRect().width()      * alignmentBitmapRight->scale()),
-                                         (scene.sceneRect().height() * 0.275) + (alignmentBitmapRight->boundingRect().center().y() * alignmentBitmapRight->scale()));
+                                         (scene.sceneRect().height() * 0.3) + (alignmentBitmapRight->boundingRect().center().y() * alignmentBitmapRight->scale()));
             alignmentBitmapColoredRight = new QGraphicsPixmapItem(GenerateText({"     Green-colored boxes.    "}, QColor(100, 255, 100)));
             alignmentBitmapColoredRight->setScale(GetTextScale(TextSmall));
             alignmentBitmapColoredRight->setPos(alignmentBitmapRight->pos().x(),
@@ -118,18 +118,22 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                (scene.sceneRect().height() * 0.25) - headerText->boundingRect().center().y());
 
             alignmentTextLeft = new QGraphicsTextItem();
-            alignmentTextLeft->setHtml("<p align=\"justify\">For <b>Square Layout,</b> the emitters should<br>"
-                                       "be placed at the top and bottom<br>"
-                                       "of the display; each one being aligned to the"
+            alignmentTextLeft->setHtml("<p align=\"justify\">For <b>Square Layout,</b><br>"
+                                       "the emitters should be<br>"
+                                       "placed at the top and<br>"
+                                       "bottom of the display;<br>"
+                                       "each one being aligned to the<br>"
                                        "<p style=\"color: tomato\">Red-colored boxes.</p></p>");
             alignmentTextLeft->setFont(QFont("Monospace", GetTextScale(TextSub)));
             alignmentTextLeft->setPos(scene.sceneRect().width() * 0.075,
                                       (scene.sceneRect().height() * 0.3) + alignmentTextLeft->boundingRect().center().y());
 
             alignmentTextRight = new QGraphicsTextItem();
-            alignmentTextRight->setHtml("<p align=\"justify\">For <b>Diamond Layout,</b> the emitters should<br>"
-                                        "be placed at the center of the four edges<br>"
-                                        "of the display; each one being aligned to the</p>"
+            alignmentTextRight->setHtml("<p align=\"justify\">For <b>Diamond Layout,</b><br>"
+                                        "the emitters should be placed<br>"
+                                        "at the center of the four<br>"
+                                        "edges of the display;<br>"
+                                        "each one being aligned to the</p>"
                                         "<p style=\"color: palegreen\">Green-colored boxes.</p>");
             alignmentTextRight->setFont(QFont("Monospace", TextSub));
             alignmentTextRight->setPos(scene.sceneRect().width() * 0.70,
@@ -208,10 +212,11 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         ui->graphicsView->setBackgroundBrush(QBrush(QColor("midnightblue")));
 
         if(bitmapText) {
-            headerBitmap->setPixmap(GenerateText({"  The array of shapes displayed onscreen represents    ",
-                                                  "         the emitters that the camera can see.         ",
-                                                  "  The colored points should move opposite to your aim, ",
-                                                  "and the gray circle should line up with your gun sight."}));
+            headerBitmap->setPixmap(GenerateText({"     The array of shapes displayed onscreen     ",
+                                                  "represents the emitters that the camera can see.",
+                                                  "   The colored points should move opposite to   ",
+                                                  "     your aim, and the gray circle should be    ",
+                                                  "          lining up with your gun sight.        "}));
             headerBitmap->setPos(scene.sceneRect().center().x()     - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
                                  (scene.sceneRect().bottom() * 0.1) - (headerBitmap->boundingRect().center().y() * headerBitmap->scale()));
             scene.addItem(headerBitmap);
@@ -222,8 +227,10 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                    scene.sceneRect().bottom() * 0.85);
             scene.addItem(tutorialBitmap);
         } else {
-            headerText->setHtml("<p align=justify>The array of shapes onscreen represents the emitters that the camera can see.<br>"
-                                "The points should move opposite to your aim, with the gray circle representing line-of-sight.</p>");
+            headerText->setHtml("<p align=justify>The array of shapes onscreen<br>"
+                                "represents the emitters that the camera can see.<br>"
+                                "The points should move opposite to your aim,<br>"
+                                "and the gray circle should be lining up with your gun sight.</p>");
             headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
                                (scene.sceneRect().bottom() * 0.1) - headerText->boundingRect().center().y());
             scene.addItem(headerText);
@@ -310,7 +317,7 @@ int AppCaliWindow::GetTextScale(const int &type)
             if(bitmapText) return 2;
             else return 12;
         case Crosshair:
-            return 1;
+            return 2;
         }
     }
 
