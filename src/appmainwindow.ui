@@ -1184,7 +1184,7 @@
                    </widget>
                   </item>
                   <item>
-                   <layout class="QGridLayout" name="gridLayout_2">
+                   <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,0,0,1">
                     <item row="0" column="1">
                      <widget class="QLabel" name="label_11">
                       <property name="text">

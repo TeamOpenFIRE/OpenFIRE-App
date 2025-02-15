@@ -762,7 +762,7 @@ void guiWindow::on_confirmButton_clicked()
             for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
                 serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
 
-            serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid.toInt(nullptr, 16)));
+            serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid));
             if(!App_Const::tinyUSBtable.tinyUSBname.isEmpty())
                 serialQueue.append(QString("Xm.3.1.%1").arg(App_Const::tinyUSBtable.tinyUSBname));
 
@@ -1570,36 +1570,6 @@ void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 }
 
 
-void guiWindow::on_productIdInput_textChanged(const QString &arg1)
-{
-    App_Const::tinyUSBtable.tinyUSBid = arg1;
-    if(ui->productNameInput->text().isEmpty()) {
-        switch(App_Const::tinyUSBtable.tinyUSBid.toInt()) {
-        case 1:
-            ui->tUSB_p1->setChecked(true);
-            break;
-        case 2:
-            ui->tUSB_p2->setChecked(true);
-            break;
-        case 3:
-            ui->tUSB_p3->setChecked(true);
-            break;
-        case 4:
-            ui->tUSB_p4->setChecked(true);
-            break;
-        default:
-            ui->tUSB_p1->setChecked(false);
-            ui->tUSB_p2->setChecked(false);
-            ui->tUSB_p3->setChecked(false);
-            ui->tUSB_p4->setChecked(false);
-            break;
-        }
-    }
-
-    DiffUpdate();
-}
-
-
 void guiWindow::on_tUSB_p1_toggled(bool checked)
 {
     if(checked) {
@@ -1649,6 +1619,36 @@ void guiWindow::on_tUSB_p4_toggled(bool checked)
 
         DiffUpdate();
     }
+}
+
+
+void guiWindow::on_productIdInput_valueChanged(int arg1)
+{
+    App_Const::tinyUSBtable.tinyUSBid = QString::number(arg1);
+    if(ui->productNameInput->text().isEmpty()) {
+        switch(arg1) {
+        case 1:
+            ui->tUSB_p1->setChecked(true);
+            break;
+        case 2:
+            ui->tUSB_p2->setChecked(true);
+            break;
+        case 3:
+            ui->tUSB_p3->setChecked(true);
+            break;
+        case 4:
+            ui->tUSB_p4->setChecked(true);
+            break;
+        default:
+            ui->tUSB_p1->setChecked(false);
+            ui->tUSB_p2->setChecked(false);
+            ui->tUSB_p3->setChecked(false);
+            ui->tUSB_p4->setChecked(false);
+            break;
+        }
+    }
+
+    DiffUpdate();
 }
 
 
