@@ -115,15 +115,13 @@ private slots:
 
     void on_autofireWaitFactorBox_valueChanged(int arg1);
 
-    void on_productIdInput_textEdited(const QString &arg1);
+    void on_productIdInput_textChanged(const QString &arg1);
 
     void on_productNameInput_textEdited(const QString &arg1);
 
     void on_neopixelStrandLengthBox_valueChanged(int arg1);
 
     void on_clearEepromBtn_clicked();
-
-    void on_productIdInput_textChanged(const QString &arg1);
 
     void on_testBtn_clicked();
 

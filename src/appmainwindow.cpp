@@ -140,8 +140,6 @@ guiWindow::guiWindow(QWidget *parent)
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
     PortsSearch();
     usbName.prepend("[No device]");
-    ui->productIdConverted->setEnabled(false);
-    ui->productIdInput->setValidator(new QIntValidator());
     // TODO: what's a good validator to only accept character values within the range of an unsigned char?
     //ui->productNameInput->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]+"), this));
     ui->comPortSelector->addItems(usbName);
@@ -764,7 +762,7 @@ void guiWindow::on_confirmButton_clicked()
             for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
                 serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
 
-            serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid));
+            serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid.toInt(nullptr, 16)));
             if(!App_Const::tinyUSBtable.tinyUSBname.isEmpty())
                 serialQueue.append(QString("Xm.3.1.%1").arg(App_Const::tinyUSBtable.tinyUSBname));
 
@@ -1034,7 +1032,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             ui->solenoidHoldLengthBox->setEnabled(boolSettings[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(settingsTable[OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(boolSettings[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(settingsTable[OF_Const::autofireWaitFactor]);
 
-            ui->productIdInput->setText(App_Const::tinyUSBtable.tinyUSBid);
+            ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
             ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
 
             if(App_Const::inputsMap.value(OF_Const::neoPixel) >= 0)
@@ -1571,72 +1569,8 @@ void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
     DiffUpdate();
 }
 
-// decimal-to-hex conversion
+
 void guiWindow::on_productIdInput_textChanged(const QString &arg1)
-{
-    qint32  iTest = arg1.toInt(NULL, 10);
-    QString hex;
-
-    if(iTest >= INT8_MIN && iTest <= INT8_MAX){
-            hex = QString("%1").arg(iTest & 0xFF, 2, 16).simplified();
-    } else if(iTest >= INT16_MIN && iTest <= INT16_MAX){
-            hex = QString("%1").arg(iTest & 0xFFFF, 4, 16).simplified();
-    } else {
-            hex = QString("%1").arg(iTest, 8, 16).simplified();
-    }
-    ui->productIdConverted->setText(QString("0x%1").arg(hex));
-}
-
-
-void guiWindow::on_tUSB_p1_toggled(bool checked)
-{
-    if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "1";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P1";
-        ui->productIdInput->setText(App_Const::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p2_toggled(bool checked)
-{
-    if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "2";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P2";
-        ui->productIdInput->setText(App_Const::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p3_toggled(bool checked)
-{
-    if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "3";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P3";
-        ui->productIdInput->setText(App_Const::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p4_toggled(bool checked)
-{
-    if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "4";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P4";
-        ui->productIdInput->setText(App_Const::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_productIdInput_textEdited(const QString &arg1)
 {
     App_Const::tinyUSBtable.tinyUSBid = arg1;
     if(ui->productNameInput->text().isEmpty()) {
@@ -1666,13 +1600,79 @@ void guiWindow::on_productIdInput_textEdited(const QString &arg1)
 }
 
 
+void guiWindow::on_tUSB_p1_toggled(bool checked)
+{
+    if(checked) {
+        App_Const::tinyUSBtable.tinyUSBid = "1";
+        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P1";
+        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p2_toggled(bool checked)
+{
+    if(checked) {
+        App_Const::tinyUSBtable.tinyUSBid = "2";
+        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P2";
+        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p3_toggled(bool checked)
+{
+    if(checked) {
+        App_Const::tinyUSBtable.tinyUSBid = "3";
+        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P3";
+        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p4_toggled(bool checked)
+{
+    if(checked) {
+        App_Const::tinyUSBtable.tinyUSBid = "4";
+        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P4";
+        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
 void guiWindow::on_productNameInput_textEdited(const QString &arg1)
 {
-    // TODO: there should be a way of using .toLocal8Bit() and checking if it's undefined,
-    // as that indicates a character exceeds the normal char size, therefore
-    // reset the lineEdit's text and don't change. But for now, weh.
-    App_Const::tinyUSBtable.tinyUSBname = arg1;
-    DiffUpdate();
+    bool badInput = false;
+    // Very unga-bunga way of doing this.
+    // if someone is aware of a validator for this, feel free to replace this.
+    for(int i = 0; i < arg1.length(); i++) {
+        if(arg1.at(i).unicode() > 255) {
+            badInput = true;
+            break;
+        }
+    }
+
+    if(badInput) {
+        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        ui->productNameInput->setStyleSheet("color: red");
+    } else {
+        if(!ui->productNameInput->styleSheet().isEmpty())
+            ui->productNameInput->setStyleSheet("");
+        App_Const::tinyUSBtable.tinyUSBname = arg1;
+        DiffUpdate();
+    }
 }
 
 
@@ -1820,7 +1820,6 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
     }
 }
 
-// TODO TODO: move this to appcali subwindow
 void guiWindow::caliBtns_clicked()
 {
     caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
@@ -2056,7 +2055,7 @@ void guiWindow::CaliWindowExiting(const int &mode)
         break;
     }
 
-    // for some reason, caliWindow has a lingering pointer???
+    // for some reason, caliWindows can leave a lingering pointer???
     // so make sure it's deleted.
     caliWindow->close();
     if(caliWindow != nullptr)
@@ -2066,14 +2065,21 @@ void guiWindow::CaliWindowExiting(const int &mode)
 
 void guiWindow::on_clearEepromBtn_clicked()
 {
+    // Do we really need all this msgbox setup?
     QMessageBox messageBox;
     messageBox.setText("Really delete saved data?");
-    messageBox.setInformativeText("This operation will delete all saved data, including:\n\n - Calibration Profiles\n - Toggles\n - Settings\n - Custom Identifiers\n\nAre you sure about this?");
+    messageBox.setInformativeText("This operation will delete all saved data, including:\n\n"
+                                  " - Calibration Profiles\n"
+                                  " - Toggles\n - Settings\n"
+                                  " - Custom Identifiers\n\n"
+                                  "Are you sure about this?");
     messageBox.setWindowTitle("Delete Confirmation");
     messageBox.setIcon(QMessageBox::Warning);
     messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     messageBox.setDefaultButton(QMessageBox::Yes);
+
     int value = messageBox.exec();
+
     if(value == QMessageBox::Yes) {
         if(serialPort.isOpen()) {
             serialActive = true;
