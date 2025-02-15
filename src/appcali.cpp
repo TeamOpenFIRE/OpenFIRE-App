@@ -354,10 +354,10 @@ QPixmap AppCaliWindow::GenerateText(const QStringList &strings, const QColor &ti
         painter.setPen(QPen(tintColor));
         painter.drawPixmap(combinedBuffer.rect(), mask1);
         // shadowed area gets tinted with a 140 units darker shade
-        // using bitmath here to exclude 128+8+4, as QColor invalidates negative numbers
-        painter.setPen(QPen(QColor(tintColor.red()   ^ 0b01110011,
-                                   tintColor.green() ^ 0b01110011,
-                                   tintColor.blue()  ^ 0b01110011)));
+        // need to be careful not to dip into negatives, as that invalidates the QColor
+        painter.setPen(QPen(QColor(tintColor.red()   > 140 ? tintColor.red()   - 140 : 0,
+                                   tintColor.green() > 140 ? tintColor.green() - 140 : 0,
+                                   tintColor.blue()  > 140 ? tintColor.blue()  - 140 : 0)));
         painter.drawPixmap(combinedBuffer.rect(), mask2);
     }
 
