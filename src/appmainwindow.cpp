@@ -1195,7 +1195,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
     if(index >= 0 && index <= App_Const::inputsMap.size()) {
-        printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
+        //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
 
     // reset presets box, as it's no longer accurate for this layout
