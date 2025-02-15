@@ -350,10 +350,14 @@ QPixmap AppCaliWindow::GenerateText(const QStringList &strings, const QColor &ti
 
     if(tintColor.isValid()) {
         QBitmap mask1 = combinedBuffer.createMaskFromColor(QColor(255, 255, 255), Qt::MaskOutColor);
-        QBitmap mask2 = combinedBuffer.createMaskFromColor(QColor(115, 115, 255), Qt::MaskOutColor);
+        QBitmap mask2 = combinedBuffer.createMaskFromColor(QColor(115, 115, 115), Qt::MaskOutColor);
         painter.setPen(QPen(tintColor));
         painter.drawPixmap(combinedBuffer.rect(), mask1);
-        painter.setPen(QPen(tintColor.darker(200)));
+        // shadowed area gets tinted with a 140 units darker shade
+        // using bitmath here to exclude 128+8+4, as QColor invalidates negative numbers
+        painter.setPen(QPen(QColor(tintColor.red()   ^ 0b01110011,
+                                   tintColor.green() ^ 0b01110011,
+                                   tintColor.blue()  ^ 0b01110011)));
         painter.drawPixmap(combinedBuffer.rect(), mask2);
     }
 
