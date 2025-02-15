@@ -178,10 +178,6 @@ private:
     /// @details    Only one of these should be up at a time
     AppCaliWindow *caliWindow = nullptr;
 
-    /// @brief      Submethod that fills contents of boxes with OF_Const::valuesNamesList
-    /// @details
-    void BoxesFill();
-
     /// @brief      Mass update all pinboxes with certain sets of values
     /// @details    Used when toggling custom pins, initial load, and setting presets
     void BoxesUpdate();
@@ -213,10 +209,6 @@ private:
     /// @brief      Grab firmware settings from serial device
     /// @details    Currently only called by the success route of SerialInit
     void SerialLoad();
-
-    /// @brief      Sync current settings from app to board
-    /// @details    If successful, current settings get copied to "orig" settings tables
-    void SyncSettings();
 
     /// @brief      Disables given setting of a combobox
     /// @arg        Combobox item, index number to toggle, enable state to set to

@@ -560,12 +560,12 @@ void guiWindow::BoxesUpdate()
         // if the custom pins setting *grabbed from the gun* has been set
         if(boolSettings_orig[OF_Const::customPins]) {
             // reset pinboxes
-            for(int i = 0; i < PINS_COUNT; i++)
+            for(int i = 0; i < pinBoxes.count(); i++)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
             for(int i = 0; i < App_Const::inputsMap_orig.count(); i++)
-                if(App_Const::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Const::inputsMap_orig.value(i) < PINS_COUNT)
+                if(App_Const::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Const::inputsMap_orig.value(i) < pinBoxes.count())
                     pinBoxes.at(App_Const::inputsMap_orig.value(i))->setCurrentIndex(i+1);
 
         // else, if the board *was using default maps* before switching to custom (no need to re-set pinboxes)
@@ -678,34 +678,6 @@ void guiWindow::DiffUpdate()
 }
 
 
-void guiWindow::SyncSettings()
-{
-    for(int i = 0; i < OF_Const::boolTypesCount; i++)
-        boolSettings_orig[i] = boolSettings[i];
-
-    if(boolSettings_orig[OF_Const::customPins])
-        App_Const::inputsMap_orig = App_Const::inputsMap;
-    else for(int i = 0; i < App_Const::inputsMap.size(); i++)
-        App_Const::inputsMap_orig[i] = -1;
-
-    for(int i = 0; i < OF_Const::settingsTypesCount; i++)
-        settingsTable_orig[i] = settingsTable[i];
-
-    App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
-    App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
-    App_Const::board.previousProfile = App_Const::board.selectedProfile;
-
-    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-        App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
-        App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
-        App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
-        App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
-        App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
-    }
-    LabelsUpdate();
-}
-
-
 QString guiWindow::PrettifyName(QString name)
 {
     if(name.isEmpty())
@@ -814,10 +786,37 @@ void guiWindow::on_confirmButton_clicked()
             if(!success) printf("Ah shit, it failed! What did you do, Seong?");
             else {
                 statusBar()->showMessage("Sent settings successfully!", 5000);
-                SyncSettings();
+
+                // sync settings
+                for(int i = 0; i < OF_Const::boolTypesCount; i++)
+                    boolSettings_orig[i] = boolSettings[i];
+
+                if(boolSettings_orig[OF_Const::customPins])
+                    App_Const::inputsMap_orig = App_Const::inputsMap;
+                else for(int i = 0; i < App_Const::inputsMap.size(); i++)
+                        App_Const::inputsMap_orig[i] = -1;
+
+                for(int i = 0; i < OF_Const::settingsTypesCount; i++)
+                    settingsTable_orig[i] = settingsTable[i];
+
+                App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
+                App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
+                App_Const::board.previousProfile = App_Const::board.selectedProfile;
+
+                for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+                    App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
+                    App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
+                    App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
+                    App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
+                    App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
+                }
+
+                // Reflect new names in UI
+                LabelsUpdate();
+
+                // update (clear) diffs
                 PixelsDiff();
                 DiffUpdate();
-                ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
             }
 
             serialActive = false;
@@ -889,11 +888,28 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
             for(uint8_t i = 0; i < PINS_COUNT; i++) {
                 pinBoxes << new QComboBox();
-                pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+                pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
                 pinBoxes.at(i)->setProperty("prevMapping", OF_Const::btnUnmapped+1);
                 pinBoxes.at(i)->setProperty("trackable", App_Const::trackPinbox);
                 pinBoxes.at(i)->installEventFilter(this);
+                // install items
+                pinBoxes.at(i)->addItems(OF_Const::valuesNameList);
+                // clear out analog options for digital pins (< GPIO26)
+                // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
+                if(i < 26) {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
+                }
+                // filter out SCL/SDA if possible.
+                if(i & 1) {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                } else {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                }
                 connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
                 padding << new QWidget();
@@ -911,10 +927,26 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 
             aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(App_Const::board.versionNumber, App_Const::board.versionCodename));
-            BoxesFill();
+
+            // update presets box if this board has any
+            ui->presetsBox->clear();
+
+            if(OF_Const::boardsAltPresets.count(App_Const::board.boardType.toStdString())) {
+                ui->presetsBox->setHidden(false);
+                ui->presetsBox->setEnabled(true);
+
+                QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Const::board.boardType.toStdString());
+                for(auto &entry : altPresets)
+                    ui->presetsBox->addItem(entry.name);
+            } else {
+                ui->presetsBox->setEnabled(false);
+                ui->presetsBox->setHidden(true);
+            }
+
             LabelsUpdate();
 
-            ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
+            // set boxes to reflect indexes of inputsMap
+            BoxesUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
             if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {
@@ -1115,45 +1147,6 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
     }
 }
 
-void guiWindow::BoxesFill()
-{
-    // update box types
-    for(uint8_t i = 0; i < pinBoxes.count(); i++) {
-        pinBoxes.at(i)->addItems(OF_Const::valuesNameList);
-        // clear out analog options for digital pins (< GPIO26)
-        // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
-        if(i < 26) {
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
-        }
-        // filter out SCL/SDA if possible.
-        if(i & 1) {
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-        } else {
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-        }
-    }
-
-    ui->presetsBox->clear();
-
-    if(OF_Const::boardsAltPresets.count(App_Const::board.boardType.toStdString())) {
-        ui->presetsBox->setHidden(false);
-        ui->presetsBox->setEnabled(true);
-
-        QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Const::board.boardType.toStdString());
-        for(auto &entry : altPresets)
-            ui->presetsBox->addItem(entry.name);
-
-    } else {
-        ui->presetsBox->setEnabled(false);
-        ui->presetsBox->setHidden(true);
-    }
-
-    BoxesUpdate();
-}
 
 // Only runs either on initial load or save
 void guiWindow::LabelsUpdate()
@@ -1191,6 +1184,8 @@ void guiWindow::LabelsUpdate()
     if(App_Const::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
     if(App_Const::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
     if(App_Const::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
+
+    ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
 }
 
 void guiWindow::pinBoxes_currentIndexChanged(int index)
@@ -1200,7 +1195,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
     if(index >= 0 && index <= App_Const::inputsMap.size()) {
-        //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
+        printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
 
     // reset presets box, as it's no longer accurate for this layout
@@ -1219,7 +1214,8 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
         int8_t btnRequest = index - 1;
 
         // Remove whatever pin mapping that this function belonged to, if it was mapped
-        if(App_Const::inputsMap.value(btnRequest) > OF_Const::btnUnmapped)
+        // (making sure we don't disable the pin trying to be set)
+        if(App_Const::inputsMap.value(btnRequest) > OF_Const::btnUnmapped && App_Const::inputsMap.value(btnRequest) != sender()->property("slot").toInt())
             pinBoxes.at(App_Const::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // unmap pinbox's previous function, if mapped to any
