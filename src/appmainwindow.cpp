@@ -89,10 +89,9 @@ guiWindow::guiWindow(QWidget *parent)
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
 
-    // Add center board pic (and reorder PinsCenterSub so it's below board pic)
-    ui->PinsCenter->addWidget(&boardPic);
-    ui->PinsCenter->removeItem(ui->PinsCenterSub);
-    ui->PinsCenter->addLayout(ui->PinsCenterSub);
+    // Add center board pic above the Sub Pins layout
+    ui->PinsCenter->insertWidget(0, &boardPic, 1);
+    boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Setup test screen buttons
     for(uint8_t i = 0; i < 16; i++) {
@@ -146,7 +145,7 @@ guiWindow::guiWindow(QWidget *parent)
 guiWindow::~guiWindow()
 {
     if(serialPort.isOpen()) {
-        statusBar()->showMessage("Sending undock request to App_Const::board...");
+        statusBar()->showMessage("Sending undock request to board...");
         serialPort.write("XE");
         serialPort.waitForBytesWritten(2000);
         serialPort.waitForReadyRead(2000);
@@ -202,11 +201,12 @@ void guiWindow::PortsSearch()
     } else {
         // Yeah, sue me, we reading this backwards to make stack management easier.
         for(int i = serialFoundList.length() - 1; i >= 0; --i) {
-            if(serialFoundList[i].vendorIdentifier() == 0xF143) {
+            if(serialFoundList.at(i).vendorIdentifier() == 0xF143) {
                 usbName.prepend(serialFoundList[i].systemLocation());
-                printf("Found device @ %s\n", serialFoundList[i].systemLocation().toLocal8Bit().constData());
+                printf("Found device @ %s\n", serialFoundList.at(i).systemLocation().toLocal8Bit().constData());
             } else {
-                printf("Deleting dummy device %s\n", serialFoundList[i].systemLocation().toLocal8Bit().constData());
+                if(!serialFoundList.at(i).systemLocation().contains("tty"))
+                    printf("Deleting dummy device %s\n", serialFoundList.at(i).systemLocation().toLocal8Bit().constData());
                 serialFoundList.removeAt(i);
             }
         }
@@ -317,6 +317,7 @@ void guiWindow::SerialLoad()
                 serialPort.write("Xlp");
                 serialPort.waitForBytesWritten(2000);
                 serialPort.waitForReadyRead(2000);
+                App_Const::inputsMap_orig.clear(), App_Const::inputsMap.clear();
                 bufStr = serialPort.readLine().trimmed();
                 buffer = bufStr.split(',');
                 for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
@@ -503,7 +504,7 @@ void guiWindow::BoxesUpdate()
     // enabling custom pins
     if(boolSettings[OF_Const::customPins]) {
         // enable pinboxes
-        for(int i = 0; i < PINS_COUNT; i++)
+        for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
@@ -797,18 +798,10 @@ void guiWindow::aliveTimer_timeout()
 void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 {
     // Clear stale states if any, and unmount old board if mounted.
-    if(testMode) {
-        testMode = false;
+    if(testMode)
+        if(caliWindow != nullptr)
+            caliWindow->Shutdown();
 
-        ui->buttonsTestArea->setEnabled(true);
-        ui->testBtn->setText("Enable IR Test Mode");
-        ui->pinsTab->setEnabled(true);
-        ui->settingsTab->setEnabled(true);
-        ui->profilesTab->setEnabled(true);
-        ui->feedbackTestsBox->setEnabled(true);
-        ui->dangerZoneBox->setEnabled(true);
-        serialActive = false;
-    }
     if(serialPort.isOpen()) {
         serialActive = true;
         serialPort.write("XE");
@@ -934,6 +927,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 }
             }
 
+            // aspect ratio hint needs to be set every time a new asset is loaded
             boardPic.load(origBoardPicFile);
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
 
@@ -1074,7 +1068,7 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
 void guiWindow::BoxesFill()
 {
     // update box types
-    for(uint8_t i = 0; i < PINS_COUNT; i++) {
+    for(uint8_t i = 0; i < pinBoxes.count(); i++) {
         pinBoxes.at(i)->addItems(OF_Const::valuesNameList);
         // clear out analog options for digital pins (< GPIO26)
         // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
@@ -1155,7 +1149,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // and "prevMapping" to get previous index, as this method immediately overwrites what it was mapped to.
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
-    if(index >= 0 && index < App_Const::inputsMap.size()) {
+    if(index >= 0 && index <= App_Const::inputsMap.size()) {
         //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
 
@@ -1798,13 +1792,13 @@ void guiWindow::serialPort_readyRead()
             QString idleBuffer = serialPort.readLine();
 
             if(idleBuffer.contains("Pressed:"))
-                testLabel[idleBuffer.trimmed().rightRef(2).toInt()-1]->setStyleSheet("background-color: #FF0000; font: bold");
+                testLabel[idleBuffer.trimmed().right(2).toInt()-1]->setStyleSheet("background-color: #FF0000; font: bold");
 
             else if(idleBuffer.contains("Released:"))
-                testLabel[idleBuffer.trimmed().rightRef(2).toInt()-1]->setStyleSheet("");
+                testLabel[idleBuffer.trimmed().right(2).toInt()-1]->setStyleSheet("");
 
             else if(idleBuffer.contains("Temperature:")) {
-                uint8_t temp = idleBuffer.trimmed().rightRef(2).toInt();
+                uint8_t temp = idleBuffer.trimmed().right(2).toInt();
 
                 testLabel[14]->setText(QString("Temp: %1°C").arg(temp));
 
@@ -1814,7 +1808,7 @@ void guiWindow::serialPort_readyRead()
 
             } else if(idleBuffer.contains("Analog:")) {
                 // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
-                uint8_t analogDir = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();
 
                 // analog stick moved
                 if(analogDir) {
@@ -1837,7 +1831,7 @@ void guiWindow::serialPort_readyRead()
                 }
 
             } else if(idleBuffer.contains("Profile: ")) {
-                uint8_t selection = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
 
                 if(selection != App_Const::board.selectedProfile) {
                     App_Const::board.selectedProfile = selection;
@@ -1847,7 +1841,7 @@ void guiWindow::serialPort_readyRead()
                 DiffUpdate();
 
             } else if(idleBuffer.contains("UpdatedProf: ")) {
-                uint8_t selection = idleBuffer.trimmed().rightRef(1).toInt();
+                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
 
                 if(selection != App_Const::board.selectedProfile)
                     selectedProfile[selection]->setChecked(true);
@@ -1886,7 +1880,7 @@ void guiWindow::serialPort_readyRead()
             } else if(idleBuffer.contains("CalStage: ")) {
                 if(caliWindow != nullptr) {
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate) {
-                        caliWindow->CaliModeSet(idleBuffer.trimmed().rightRef(1).toInt());
+                        caliWindow->CaliModeSet(idleBuffer.trimmed().right(1).toInt());
                     }
                 }
             }
@@ -1951,7 +1945,7 @@ void guiWindow::on_testBtn_clicked()
         aliveTimer->stop();
 
         if(caliWindow != nullptr)
-            delete caliWindow;
+            caliWindow->Shutdown();
 
         caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
         connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
@@ -2084,6 +2078,32 @@ void guiWindow::on_baudResetBtn_clicked()
     serialActive = false;
 }
 
+
+void guiWindow::on_tabWidget_currentChanged(int index)
+{
+    switch(index) {
+    // settings tab
+    case 1:
+        ui->settingsDescBox->setTitle("");
+        ui->settingsDescText->setText(ui->settingsDescText->whatsThis());
+        break;
+    // profiles tab
+    case 2:
+        ui->profilesDescBox->setTitle("");
+        ui->profilesDescText->setText(ui->profilesDescText->whatsThis());
+        break;
+    // test tab (no use yet)
+    case 3:
+        break;
+    // pins tab (doesn't have any)
+    case 0:
+    default:
+        break;
+    }
+}
+
+
+
 void guiWindow::on_actionAbout_UI_triggered()
 {
     QDialog *about = new QDialog;
@@ -2175,4 +2195,3 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
         ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
     }
 }
-
