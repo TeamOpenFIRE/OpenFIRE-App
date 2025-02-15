@@ -109,8 +109,9 @@ private:
     int GetTextScale(const int &);
 
     /// @brief      Generates input from text into a bitmap representation using the app's builtin "test" typeface
+    /// @details    Optional color bit tints the pixmap into the provided color.
     /// @returns    Pixmap of the string list provided.
-    QPixmap GenerateText(const QStringList &);
+    QPixmap GenerateText(const QStringList &, const QColor & = QColor());
 
     /// @brief      Type of text scale appropriate for this window
     /// @details    Value is one of ScaleTypes_e
@@ -167,6 +168,10 @@ private:
     /// @brief      Side text used to present Alignment Mode information about the different IR emitter layouts
     QGraphicsPixmapItem *alignmentBitmapLeft;
     QGraphicsPixmapItem *alignmentBitmapRight;
+
+    /// @brief      Side colored text used to emphasize different layout types in Alignment Mode
+    QGraphicsPixmapItem *alignmentBitmapColoredLeft;
+    QGraphicsPixmapItem *alignmentBitmapColoredRight;
 
     // Below is older native font-based implementations of text objects
     // Could be useful in future for non-English languages?

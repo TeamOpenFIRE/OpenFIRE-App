@@ -84,21 +84,27 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                                                         "    the emitters should be   ",
                                                                         "    placed at the top and    ",
                                                                         "    bottom of the display;   ",
-                                                                        "each one being aligned to the",
-                                                                        "      Red-colored boxes.     "}));
+                                                                        "each one being aligned to the"}));
             alignmentBitmapLeft->setScale(GetTextScale(TextSmall));
             alignmentBitmapLeft->setPos(scene.sceneRect().width() * 0.05,
                                         (scene.sceneRect().height() * 0.3) + (alignmentBitmapLeft->boundingRect().center().y() * alignmentBitmapLeft->scale()));
+            alignmentBitmapColoredLeft = new QGraphicsPixmapItem(GenerateText({"      Red-colored boxes.     "}, QColor(255, 100, 100)));
+            alignmentBitmapColoredLeft->setScale(GetTextScale(TextSmall));
+            alignmentBitmapColoredLeft->setPos(alignmentBitmapLeft->pos().x(),
+                                               alignmentBitmapLeft->pos().y() + (alignmentBitmapLeft->boundingRect().height() * alignmentBitmapLeft->scale()));
 
             alignmentBitmapRight = new QGraphicsPixmapItem(GenerateText({"     For Diamond Layout,     ",
                                                                          "the emitters should be placed",
                                                                          "  at the center of the four  ",
                                                                          "    edges of the display;    ",
-                                                                         "each one being aligned to the",
-                                                                         "     Green-colored boxes.    "}));
+                                                                         "each one being aligned to the"}));
             alignmentBitmapRight->setScale(GetTextScale(TextSmall));
             alignmentBitmapRight->setPos(scene.sceneRect().width()   * 0.96   - (alignmentBitmapRight->boundingRect().width()      * alignmentBitmapRight->scale()),
                                          (scene.sceneRect().height() * 0.275) + (alignmentBitmapRight->boundingRect().center().y() * alignmentBitmapRight->scale()));
+            alignmentBitmapColoredRight = new QGraphicsPixmapItem(GenerateText({"     Green-colored boxes.    "}, QColor(100, 255, 100)));
+            alignmentBitmapColoredRight->setScale(GetTextScale(TextSmall));
+            alignmentBitmapColoredRight->setPos(alignmentBitmapRight->pos().x(),
+                                                alignmentBitmapRight->pos().y() + (alignmentBitmapRight->boundingRect().height() * alignmentBitmapRight->scale()));
 
             tutorialBitmap = new QGraphicsPixmapItem(GenerateText({"Press ESC to exit alignment tool."}));
             tutorialBitmap->setScale(GetTextScale(TextSub));
@@ -185,7 +191,9 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         if(bitmapText) {
             scene.addItem(tutorialBitmap);
             scene.addItem(alignmentBitmapLeft);
+            scene.addItem(alignmentBitmapColoredLeft);
             scene.addItem(alignmentBitmapRight);
+            scene.addItem(alignmentBitmapColoredRight);
             scene.addItem(headerBitmap);
         } else {
             scene.addItem(tutorialText);
@@ -310,7 +318,7 @@ int AppCaliWindow::GetTextScale(const int &type)
     return 0;
 }
 
-QPixmap AppCaliWindow::GenerateText(const QStringList &strings)
+QPixmap AppCaliWindow::GenerateText(const QStringList &strings, const QColor &tintColor)
 {
     QVector<QPixmap> imageBuffer;
     int maxWidth = 0;
@@ -339,6 +347,15 @@ QPixmap AppCaliWindow::GenerateText(const QStringList &strings)
     painter.begin(&combinedBuffer);
     for(int i = 0; i < imageBuffer.count(); i++)
         painter.drawPixmap(QPoint(0,8*i), imageBuffer.at(i));
+
+    if(tintColor.isValid()) {
+        QBitmap mask1 = combinedBuffer.createMaskFromColor(QColor(255, 255, 255), Qt::MaskOutColor);
+        QBitmap mask2 = combinedBuffer.createMaskFromColor(QColor(115, 115, 255), Qt::MaskOutColor);
+        painter.setPen(QPen(tintColor));
+        painter.drawPixmap(combinedBuffer.rect(), mask1);
+        painter.setPen(QPen(tintColor.darker(200)));
+        painter.drawPixmap(combinedBuffer.rect(), mask2);
+    }
 
     painter.end();
 
