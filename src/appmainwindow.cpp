@@ -143,6 +143,14 @@ guiWindow::guiWindow(QWidget *parent)
     // TODO: what's a good validator to only accept character values within the range of an unsigned char?
     //ui->productNameInput->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]+"), this));
     ui->comPortSelector->addItems(usbName);
+
+    // light mode styling adjustments:
+    if(this->palette().window().color().value() > this->palette().text().color().value()) {
+        ui->settingsDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
+        ui->settingsDescText->setStyleSheet("color: doubledarkgray");
+        ui->profilesDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
+        ui->profilesDescText->setStyleSheet("color: doubledarkgray");
+    }
 }
 
 guiWindow::~guiWindow()
