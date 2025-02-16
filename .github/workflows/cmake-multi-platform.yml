@@ -18,24 +18,24 @@ jobs:
         c_compiler: [clang, cl]
         qt_version: [5.15.2, 6.8.2]
         include:
-          - os: windows-latest
+          - os: windows-2019
             c_compiler: cl
             cpp_compiler: cl
             file: build
             pretty: "Windows Artifact"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux AppImage"
         exclude:
-          - os: windows-latest
+          - os: windows-2019
             c_compiler: clang
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: cl
             qt_version: 6.8.2
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: cl
             qt_version: 5.15.2
 
@@ -65,7 +65,7 @@ jobs:
         aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
         modules: 'qtserialport'
-        archives: 'qtbase qttranslations qttools qtsvg icu d3dcompiler_47'
+        archives: 'qtbase qttranslations qttools qtsvg icu'
 
     - name: Configure CMake (for Qt5)
       if: ${{ matrix.qt_version == '5.15.2' }}
