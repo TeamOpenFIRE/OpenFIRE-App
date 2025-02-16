@@ -2,7 +2,7 @@
 #include "ui_appcali.h"
 
 #include <QScreen>
-#include <QDebug>
+#include <QBitmap>
 
 AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
     : QWidget(parent)
