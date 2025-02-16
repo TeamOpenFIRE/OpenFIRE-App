@@ -35,6 +35,9 @@ jobs:
           - os: ubuntu-latest
             c_compiler: cl
             qt_version: 6.8.*
+          - os: ubuntu-latest
+            c_compiler: cl
+            qt_version: 5.15.2
 
     steps:
     - uses: actions/checkout@v4
@@ -118,6 +121,3 @@ jobs:
 
     - name: Download a Build Artifact
       uses: actions/download-artifact@v4
-      with:
-        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
-        name: OpenFIREapp-${{ matrix.pretty }} # optional
