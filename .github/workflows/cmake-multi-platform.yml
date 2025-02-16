@@ -47,12 +47,21 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install Qt
+    - name: Install Qt(5)
+      if: ${{ matrix.qt_version == '5.15.2' }}
       uses: jurplel/install-qt-action@v3
       with:
         aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
-        archives: 'qttranslations qttools qtsvg qtserialport qtbase icu'
+        archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
+    - name: Install Qt(6)
+      if: ${{ matrix.qt_version == '6.8.*' }}
+      uses: jurplel/install-qt-action@v3
+      with:
+        aqtversion: '==3.1.*'
+        version: '${{ matrix.qt_version }}'
+        modules: 'qtserialport'
+        archives: 'qtbase qttranslations qttools qtsvg icu d3dcompiler_47'
 
     - name: Configure CMake (for Qt5)
       if: ${{ matrix.qt_version == '5.15.2' }}
