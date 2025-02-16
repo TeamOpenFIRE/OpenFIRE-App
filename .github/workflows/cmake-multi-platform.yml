@@ -59,6 +59,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DOFAPP_QT_VERSIONS=Qt5
         ${{ matrix.install_prefix }}
         -S ${{ github.workspace }}
 
