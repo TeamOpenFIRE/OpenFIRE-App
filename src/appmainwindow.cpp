@@ -431,6 +431,7 @@ void guiWindow::SerialLoad()
                     selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Const::profilesTable.at(i).profName));
                     if(i == App_Const::board.selectedProfile)
                         selectedProfile.at(i)->setChecked(true);
+                    selectedProfile.at(i)->setFont(QFont("Monospace"));
                     selectedProfile.at(i)->setProperty("slot", i);
                     connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
@@ -521,16 +522,16 @@ void guiWindow::SerialLoad()
 
                     ui->profilesArea->addWidget(renameBtn.at(i),       i+1, 0);
                     ui->profilesArea->addWidget(selectedProfile.at(i), i+1, 1);
-                    ui->profilesArea->addWidget(topOffset.at(i),       i+1, 2);
-                    ui->profilesArea->addWidget(bottomOffset.at(i),    i+1, 4);
-                    ui->profilesArea->addWidget(leftOffset.at(i),      i+1, 6);
-                    ui->profilesArea->addWidget(rightOffset.at(i),     i+1, 8);
-                    ui->profilesArea->addWidget(TLled.at(i),           i+1, 10);
-                    ui->profilesArea->addWidget(TRled.at(i),           i+1, 12);
-                    ui->profilesArea->addWidget(irSens.at(i),          i+1, 14);
-                    ui->profilesArea->addWidget(runMode.at(i),         i+1, 16);
-                    ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 18);
-                    ui->profilesArea->addWidget(color.at(i),           i+1, 20);
+                    ui->profilesArea->addWidget(topOffset.at(i),       i+1, 3);
+                    ui->profilesArea->addWidget(bottomOffset.at(i),    i+1, 5);
+                    ui->profilesArea->addWidget(leftOffset.at(i),      i+1, 7);
+                    ui->profilesArea->addWidget(rightOffset.at(i),     i+1, 9);
+                    ui->profilesArea->addWidget(TLled.at(i),           i+1, 11);
+                    ui->profilesArea->addWidget(TRled.at(i),           i+1, 13);
+                    ui->profilesArea->addWidget(irSens.at(i),          i+1, 15);
+                    ui->profilesArea->addWidget(runMode.at(i),         i+1, 17);
+                    ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 19);
+                    ui->profilesArea->addWidget(color.at(i),           i+1, 21);
 
                     ui->caliBtnsLayout->addWidget(caliBtn.at(i), caliBtnRow, i);
 
@@ -1334,11 +1335,11 @@ void guiWindow::renameBoxes_clicked()
     // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
     QString newLabel = QInputDialog::getText(this,
                                              "Input Name",
-                                             QString("Set name for profile %1").arg(sender()->property("slot").toInt()+1));
+                                             QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
 
     if(!newLabel.isEmpty()) {
-        selectedProfile[sender()->property("slot").toInt()]->setText(newLabel.left(15));
-        App_Const::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
+        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()).arg(newLabel.left(15)));
+        App_Const::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15);
     }
 
     DiffUpdate();
