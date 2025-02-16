@@ -16,9 +16,9 @@
 */
 
 #include "appmainwindow.h"
+#include "appabout.h"
 #include "constants.h"
 #include "ui_appmainwindow.h"
-#include "ui_about.h"
 
 #include <QGraphicsScene>
 #include <QMessageBox>
@@ -2157,14 +2157,9 @@ void guiWindow::on_tabWidget_currentChanged(int index)
 }
 
 
-
 void guiWindow::on_actionAbout_UI_triggered()
 {
-    QDialog *about = new QDialog;
-    Ui::aboutDialog aboutDialog;
-    aboutDialog.setupUi(about);
-    about->setFixedSize(450, 300);
-    about->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint | Qt::WindowCloseButtonHint);
+    AppAbout *about = new AppAbout();
     about->show();
 }
 

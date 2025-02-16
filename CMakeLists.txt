@@ -39,7 +39,9 @@ set(PROJECT_SOURCES
         src/appcali.h
         src/appcali.cpp
         src/appcali.ui
-        src/about.ui
+        src/appabout.h
+        src/appabout.cpp
+        src/appabout.ui
         img/vectors.qrc
         boards/boardPics/boards.qrc
         boards/OpenFIREshared.h
