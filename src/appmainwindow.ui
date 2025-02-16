@@ -127,9 +127,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0">
         <item>
          <widget class="QScrollArea" name="pinsScrollArea">
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -147,8 +144,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>940</width>
-             <height>460</height>
+             <width>938</width>
+             <height>458</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -268,9 +265,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_7" stretch="8,3">
         <item>
          <widget class="QScrollArea" name="settingsScrollArea">
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -288,7 +282,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>926</width>
+             <width>924</width>
              <height>691</height>
             </rect>
            </property>
@@ -1464,9 +1458,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="8,3">
         <item>
          <widget class="QScrollArea" name="profilesScrollArea">
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -1484,8 +1475,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>940</width>
-             <height>353</height>
+             <width>938</width>
+             <height>351</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16">
