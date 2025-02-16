@@ -80,7 +80,7 @@ jobs:
         ${{ matrix.install_prefix }}
         -S ${{ github.workspace }}
     - name: Configure CMake (for Qt6)
-      if: ${{ matrix.qt_version == '6.8.*' }}
+      if: ${{ matrix.qt_version == '6.8.2' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
