@@ -2207,9 +2207,12 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
         QFile fileIn(path);
         if(fileIn.open(QFile::ReadOnly)) {
             if(fileIn.readLine().trimmed() == App_Const::board.boardType) {
+                ui->customPinsEnabled->setChecked(true);
+                // clear current mapping
                 for(int i = 0; i < PINS_COUNT; i++)
                     pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
+                // import new maps
                 for(int i = 0; i < PINS_COUNT; i++)
                     if(!fileIn.atEnd())
                         pinBoxes.at(i)->setCurrentIndex(fileIn.read(1).toHex().toInt(nullptr, 16));
