@@ -25,6 +25,17 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+#ifdef Q_OS_WIN
+    // set fusion style, which will use system palette on Qt 6.5+
+    // (Qt < 6.5 needs a custom dark palette.)
+    a.setStyle("fusion");
+#if QT_VERSION_MAJOR < 6 || (QT_VERSION_MAJOR > 5 && QT_VERSION_MINOR < 5)
+    // Windows: (attempt to) respect light/dark mode setting in Qt 5.15-6.4
+    qputenv("QT_QPA_PLATFORM", "windows:darkmode=[1|2]");
+    // TODO: a custom dark palette is necessary for Qt < 6.5
+#endif // QT_VERSION
+#endif // Q_OS_WIN
+
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
