@@ -82,7 +82,7 @@ jobs:
         sudo apt install -y appstream libfuse2
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
-        install -Dm755 "${{ github.workspace }}/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
+        install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
         linuxdeploy-x86_64.AppImage --plugin=qt --output=appimage --appdir AppDir
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
