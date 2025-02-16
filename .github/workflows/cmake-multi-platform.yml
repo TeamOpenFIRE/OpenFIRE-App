@@ -94,13 +94,13 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
       uses: miurahr/install-linuxdeploy-action@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
       # thanks linuxdeploy for not preinstalling your dependencies :<
       run: |
         sudo apt install -y appstream libfuse2
