@@ -16,7 +16,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         build_type: [Release]
         c_compiler: [clang, cl]
-        qt_version: [5.15.2, 6.8.*]
+        qt_version: [5.15.2, 6.8.2]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -34,7 +34,7 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
-            qt_version: 6.8.*
+            qt_version: 6.8.2
           - os: ubuntu-latest
             c_compiler: cl
             qt_version: 5.15.2
@@ -59,7 +59,7 @@ jobs:
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
-      if: ${{ matrix.qt_version == '6.8.*' }}
+      if: ${{ matrix.qt_version == '6.8.2' }}
       uses: jurplel/install-qt-action@v4
       with:
         aqtversion: '==3.1.*'
