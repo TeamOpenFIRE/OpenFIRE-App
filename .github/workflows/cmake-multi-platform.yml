@@ -34,6 +34,7 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+            qt_version: 6.8.*
 
     steps:
     - uses: actions/checkout@v4
@@ -111,7 +112,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # Artifact name
-        name: OpenFIREapp-${{ matrix.pretty }} # optional, default is artifact
+        name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }} # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ matrix.file }}
 
