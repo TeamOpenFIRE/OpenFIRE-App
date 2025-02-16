@@ -242,9 +242,6 @@
             <property name="toolButtonStyle">
              <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
-            <property name="arrowType">
-             <enum>Qt::DownArrow</enum>
-            </property>
            </widget>
           </item>
           <item alignment="Qt::AlignRight|Qt::AlignBottom">
@@ -290,7 +287,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-193</y>
+             <y>0</y>
              <width>926</width>
              <height>691</height>
             </rect>
