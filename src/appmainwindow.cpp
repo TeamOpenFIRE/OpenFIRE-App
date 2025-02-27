@@ -1843,6 +1843,8 @@ void guiWindow::caliBtns_clicked()
 // TODO: move to appserial
 void guiWindow::serialPort_readyRead()
 {
+    debugWindow.AppendText(serialPort.peek(serialPort.bytesAvailable()));
+
     if(!serialActive) {
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
@@ -2253,3 +2255,9 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
         ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
     }
 }
+
+void guiWindow::on_actionDebug_Window_triggered()
+{
+    debugWindow.show();
+}
+

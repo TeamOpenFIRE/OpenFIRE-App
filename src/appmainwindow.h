@@ -29,6 +29,7 @@
 
 #include "constants.h"
 #include "appcali.h"
+#include "appdebug.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMainWindow>
 #include <QSerialPort>
@@ -169,6 +170,8 @@ private slots:
 
     void CaliWindowExiting(const int &);
 
+    void on_actionDebug_Window_triggered();
+
 private:
     Ui::guiWindow *ui;
 
@@ -177,6 +180,10 @@ private:
     /// @brief      Calibration window pointer
     /// @details    Only one of these should be up at a time
     AppCaliWindow *caliWindow = nullptr;
+
+    /// @brief      Debug window pointer
+    /// @details    Only one of these should be up at a time
+    AppDebugWindow debugWindow;
 
     /// @brief      Mass update all pinboxes with certain sets of values
     /// @details    Used when toggling custom pins, initial load, and setting presets

@@ -1922,6 +1922,7 @@
     <addaction name="separator"/>
     <addaction name="actionOpenFIRE_Documentation"/>
     <addaction name="actionOpenFIRE_Serial_Usage"/>
+    <addaction name="actionDebug_Window"/>
    </widget>
    <addaction name="menuHelp"/>
    <addaction name="menuAbout"/>
@@ -1971,6 +1972,11 @@
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="actionDebug_Window">
+   <property name="text">
+    <string>Debug Window</string>
    </property>
   </action>
  </widget>

@@ -39,6 +39,9 @@ set(PROJECT_SOURCES
         src/appcali.h
         src/appcali.cpp
         src/appcali.ui
+        src/appdebug.h
+        src/appdebug.cpp
+        src/appdebug.ui
         src/appabout.h
         src/appabout.cpp
         src/appabout.ui
