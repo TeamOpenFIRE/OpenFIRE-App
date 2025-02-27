@@ -2083,26 +2083,23 @@ void guiWindow::on_clearEepromBtn_clicked()
     messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     messageBox.setDefaultButton(QMessageBox::Yes);
 
-    int value = messageBox.exec();
-
-    if(value == QMessageBox::Yes) {
+    if(messageBox.exec() == QMessageBox::Yes) {
         if(serialPort.isOpen()) {
             serialActive = true;
             // clear the buffer if anything's been sent.
-            while(!serialPort.atEnd()) {
+            while(!serialPort.atEnd())
                 serialPort.readLine();
-            }
             serialPort.write("Xc");
             serialPort.waitForBytesWritten(2000);
             if(serialPort.waitForReadyRead(5000)) {
                 QString buffer = serialPort.readLine();
-                if(buffer.trimmed() == "Cleared! Please reset the App_Const::board.") {
+                if(buffer.trimmed() == "Cleared! Please reset the board.") {
                     serialPort.write("XE");
                     serialPort.waitForBytesWritten(2000);
                     serialPort.close();
                     serialActive = false;
                     ui->comPortSelector->setCurrentIndex(0);
-                    QMessageBox::information(this, "Cleared storage.",
+                    QMessageBox::information(this, "Successfully reset board settings",
                                                    "Please unplug the board and reinsert it into the PC.");
                 }
             }
