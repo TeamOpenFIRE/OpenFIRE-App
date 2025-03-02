@@ -80,12 +80,24 @@ public:
 
     int GetWindowMode() { return mode; }
 
+    /// @brief      Objects to hold new cali profile values
+    int topOffset = -1;
+    int bottomOffset = -1;
+    int leftOffset = -1;
+    int rightOffset = -1;
+    float topLeftLed = -1;
+    float topRightLed = -1;
+
     void Shutdown() { emit WindowExiting(mode); }
 
 signals:
     /// @brief      Signals back to the main app that the window is exiting
     /// @details    This should be emitted in any situation that the window may exit
-    void WindowExiting(const int &);
+    /// @param      mode
+    ///             Window mode this object was launched in; must be one of ApCaliStates_e
+    /// @param      ints & floats
+    ///             Profile offsets for Calibration Mode
+    void WindowExiting(const int &mode, const int & = -1, const int & = -1, const int & = -1, const int & = -1, const float & = -1, const float & = -1);
 
 private:
     enum {
@@ -100,6 +112,15 @@ private:
         TextSmall,
         Crosshair
     } TextScaleTypes_e;
+
+    const QStringList caliTypesPrefixes = {
+        "   Top Offset: ",
+        "Bottom Offset: ",
+        "  Left Offset: ",
+        " Right Offset: ",
+        " Top Left LED: ",
+        "Top Right LED: "
+    };
 
     Ui::AppCaliWindow *ui;
 

@@ -763,7 +763,7 @@ void guiWindow::on_confirmButton_clicked()
             serialPort.clear();
 
             for(uint8_t i = 0; i < serialQueue.length(); i++) {
-                serialPort.write(serialQueue[i].toLocal8Bit());
+                serialPort.write(serialQueue.at(i).toLocal8Bit());
                 serialPort.waitForBytesWritten(2000);
                 if(serialPort.waitForReadyRead(2000)) {
                     QString buffer = serialPort.readLine();
@@ -775,13 +775,13 @@ void guiWindow::on_confirmButton_clicked()
                             buffer = serialPort.readLine();
                             if(buffer.contains("Settings saved to")) {
                                 success = true;
-                                t = 3;
+                                break;
                             }
                         }
+
                         if(success) {
-                            while(!serialPort.atEnd()) {
+                            while(!serialPort.atEnd())
                                 serialPort.readLine();
-                            }
                         }
                     }
                 }
@@ -832,9 +832,9 @@ void guiWindow::on_confirmButton_clicked()
             aliveTimer->start(ALIVE_TIMER);
             serialQueue.clear();
 
-            if(!serialPort.atEnd()) {
+            if(!serialPort.atEnd())
                 serialPort.readAll();
-            }
+
         } else printf("Wait, this port wasn't open to begin with!!! WTF SEONG!?!?");
     } else { statusBar()->showMessage("Save operation canceled.", 3000); }
 }
@@ -1828,14 +1828,18 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 void guiWindow::caliBtns_clicked()
 {
     caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
+    caliWindow->setProperty("profile", sender()->property("slot").toInt());
     connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
 
     caliWindow->showFullScreen();
 
-    serialPort.write(QString("XC%1C").arg(sender()->property("slot").toInt()+1).toLocal8Bit());
-    if(!serialPort.waitForBytesWritten(1000)) {
+    serialPort.write(QString("XC%1CI%2L%3").arg(sender()->property("slot").toInt()+1)
+                                           .arg(App_Const::profilesTable.at(sender()->property("slot").toInt()).irSensitivity)
+                                           .arg(App_Const::profilesTable.at(sender()->property("slot").toInt()).layoutType)
+                                           .toLocal8Bit());
+
+    if(!serialPort.waitForBytesWritten(1000))
         ui->statusBar->showMessage("Could not send calibration request.");
-    }
 }
 
 
@@ -1849,14 +1853,20 @@ void guiWindow::serialPort_readyRead()
         while(!serialPort.atEnd()) {
             QString idleBuffer = serialPort.readLine();
 
-            if(idleBuffer.contains("Pressed:"))
-                testLabel[idleBuffer.trimmed().right(2).toInt()-1]->setStyleSheet("background-color: #FF0000; font: bold");
+            if(idleBuffer.contains("Pressed:")) {
+                int btn = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+                if(btn < 16)
+                    testLabel[btn]->setStyleSheet("background-color: #FF0000; font: bold");
+            }
 
-            else if(idleBuffer.contains("Released:"))
-                testLabel[idleBuffer.trimmed().right(2).toInt()-1]->setStyleSheet("");
+            else if(idleBuffer.contains("Released:")) {
+                int btn = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+                if(btn < 16)
+                    testLabel[btn]->setStyleSheet("");
+            }
 
             else if(idleBuffer.contains("Temperature:")) {
-                uint8_t temp = idleBuffer.trimmed().right(2).toInt();
+                unsigned int temp = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
 
                 testLabel[14]->setText(QString("Temp: %1°C").arg(temp));
 
@@ -1907,40 +1917,42 @@ void guiWindow::serialPort_readyRead()
                 App_Const::board.selectedProfile = selection;
 
                 // TODO: ummmm this seems very unsafe. :/
-                // also the hope is that we update profile info as part of cali,
-                // and the cali window cleanup is what updates profile info
-                serialPort.waitForReadyRead(2000);
+                // to be deprecated as "CalUpd" sends the same information, just much safer
+                serialPort.waitForReadyRead(10);
                 topOffset[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
 
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForReadyRead(10);
                 bottomOffset[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
 
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForReadyRead(10);
                 leftOffset[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
 
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForReadyRead(10);
                 rightOffset[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
 
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForReadyRead(10);
                 TLled[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].TLled = TLled[selection]->text().toFloat();
 
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForReadyRead(10);
                 TRled[selection]->setText(serialPort.readLine().trimmed());
                 App_Const::profilesTable[selection].TRled = TRled[selection]->text().toFloat();
 
                 DiffUpdate();
 
-            } else if(idleBuffer.contains("CalStage: ")) {
-                if(caliWindow != nullptr) {
-                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate) {
-                        caliWindow->CaliModeSet(idleBuffer.trimmed().right(1).toInt());
-                    }
-                }
+            } else if(idleBuffer.contains("CalStage:")) {
+                if(caliWindow != nullptr)
+                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
+                        caliWindow->CaliModeSet(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt());
+
+            } else if(idleBuffer.contains("CalUpd:")) {
+                if(caliWindow != nullptr)
+                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
+                        caliWindow->CaliModeTextUpdate(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed());
             }
         }
 
@@ -2030,12 +2042,45 @@ void guiWindow::on_testBtn_clicked()
 }
 
 
-void guiWindow::CaliWindowExiting(const int &mode)
+void guiWindow::CaliWindowExiting(const int &mode,
+                                  const int &topOffsetNew,
+                                  const int &bottomOffsetNew,
+                                  const int &leftOffsetNew,
+                                  const int &rightOffsetNew,
+                                  const float &topLeftLedNew,
+                                  const float &topRightLedNew)
 {
     switch(mode) {
     case AppCaliWindow::modeCalibrate:
-        // TODO: add stuff here for profile info cleanup
+    {
+        if(topOffsetNew != 0 && bottomOffsetNew != 0 && leftOffsetNew != 0 && rightOffsetNew != 0 && topLeftLedNew >= 0 && topRightLedNew <= 32768) {
+            uint8_t selection = caliWindow->property("profile").toInt();
+
+            App_Const::profilesTable[selection].topOffset = topOffsetNew;
+            topOffset[selection]->setText(QString::number(topOffsetNew));
+
+            App_Const::profilesTable[selection].bottomOffset = bottomOffsetNew;
+            bottomOffset[selection]->setText(QString::number(bottomOffsetNew));
+
+            App_Const::profilesTable[selection].leftOffset = leftOffsetNew;
+            leftOffset[selection]->setText(QString::number(leftOffsetNew));
+
+            App_Const::profilesTable[selection].rightOffset = rightOffsetNew;
+            rightOffset[selection]->setText(QString::number(rightOffsetNew));
+
+            App_Const::profilesTable[selection].TLled = topLeftLedNew;
+            TLled[selection]->setText(QString::number(topLeftLedNew));
+
+            App_Const::profilesTable[selection].TRled = topRightLedNew;
+            TRled[selection]->setText(QString::number(topRightLedNew));
+
+            DiffUpdate();
+            ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection) + " successful", 5000);
+        } else {
+            ui->statusBar->showMessage("Calibration failed: invalid results, reverting to original values.", 10000);
+        }
         break;
+    }
     case AppCaliWindow::modeIRTest:
         if(serialPort.isOpen()) {
             serialPort.write("XT");
@@ -2051,8 +2096,6 @@ void guiWindow::CaliWindowExiting(const int &mode)
         ui->profilesTab->setEnabled(true);
         ui->feedbackTestsBox->setEnabled(true);
         ui->dangerZoneBox->setEnabled(true);
-
-        DiffUpdate();
 
         serialActive = false;
         aliveTimer->start(ALIVE_TIMER);

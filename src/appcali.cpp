@@ -46,6 +46,18 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
             caliStageBitmap->setScale(GetTextScale(TextHeading));
             tutorialBitmap = new QGraphicsPixmapItem();
             tutorialBitmap->setScale(GetTextScale(TextSub));
+            for(int i = 0; i < 6; i++) {
+                profileBitmaps[i] = new QGraphicsPixmapItem();
+                profileBitmaps[i]->setScale(GetTextScale(TextSub));
+                scene.addItem(profileBitmaps[i]);
+                profileBitmaps[i]->setPixmap(GenerateText({caliTypesPrefixes.at(i)}));
+                if(i == 0)
+                     profileBitmaps[i]->setPos(scene.sceneRect().left()       + (80 * GetTextScale(TextSub)),
+                                               scene.sceneRect().center().y() - (24 * GetTextScale(TextSub)));
+                else profileBitmaps[i]->setPos(profileBitmaps[i-1]->pos().x(),
+                                               profileBitmaps[i-1]->pos().y() + (profileBitmaps[i-1]->boundingRect().height()*GetTextScale(TextSub)));
+                profileBitmaps[i]->setVisible(false);
+            }
 
             scene.addItem(headerBitmap);
             scene.addItem(caliStageBitmap);
@@ -55,6 +67,11 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
             caliStageText->setFont(QFont("Monospace", GetTextScale(TextHeading)));
             tutorialText = new QGraphicsTextItem();
             tutorialText->setFont(QFont("Monospace", GetTextScale(TextSub)));
+            for(int i = 0; i < 6; i++) {
+                profileText[i] = new QGraphicsTextItem();
+                profileText[i]->setFont(QFont("Monospace", GetTextScale(TextSub)));
+                scene.addItem(profileText[i]);
+            }
 
             scene.addItem(headerText);
             scene.addItem(caliStageText);
@@ -397,6 +414,11 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
                                                       "either Button A, Button B, or Button C (if available)."}));
             tutorialBitmap->setPos(scene.sceneRect().center().x()     - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                    (scene.sceneRect().bottom() * 0.8) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+
+            for(int i = 0; i < 6; i++) {
+                profileBitmaps[i]->setVisible(false);
+                profileBitmaps[i]->setPixmap(GenerateText({caliTypesPrefixes.at(i)}));
+            }
         } else {
             caliStageText->setPlainText("Initialize Calibration:");
             caliStageText->setPos(scene.sceneRect().center().x()      - caliStageText->boundingRect().center().x(),
@@ -431,6 +453,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
                                                     "      by pressing Button C (if available).      "}));
             tutorialBitmap->setPos(scene.sceneRect().center().x()     - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                    (scene.sceneRect().bottom() * 0.8) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+
+            for(int i = 0; i < 6; i++)
+                profileBitmaps[i]->setVisible(true);
         } else {
             caliStageText->setPlainText("Cali Step 1:");
             caliStageText->setPos(scene.sceneRect().center().x()      - caliStageText->boundingRect().center().x(),
@@ -529,25 +554,49 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         mouseCanBeTracked = true;
 
         if(bitmapText) {
-            caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
-            caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
-                                    scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
+            if(topOffset >= -1000 && topOffset <= 1000 &&
+                bottomOffset >= -1000 && bottomOffset <= 1000 &&
+                leftOffset >= -1000 && leftOffset <= 1000 &&
+                rightOffset >= -1000 && rightOffset <= 1000 &&
+                topLeftLed >= 0 && topLeftLed <= 8000 &&
+                topRightLed <= 8000) {
 
-            headerBitmap->setPixmap(GenerateText({"    Confirm that the bullseye     ",
-                                                  "   lines up with the gun sight.   ",
-                                                  "If this calibration is acceptable,",
-                                                  "  confirm by pulling the trigger. "}));
-            headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
-                                 caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+                caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
+                caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                        scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
 
-            tutorialBitmap->setPixmap(GenerateText({"       If this target accuracy isn't desirable,      ",
-                                                    "          press either Button A or Button B          ",
-                                                    "         to restart the calibration process.         ",
-                                                    "",
-                                                    "[You can also exit calibration without saving changes",
-                                                    "        by pressing Button C (if available).]        "}));
-            tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
-                                   (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+                headerBitmap->setPixmap(GenerateText({"    Confirm that the bullseye     ",
+                                                      "   lines up with the gun sight.   ",
+                                                      "If this calibration is acceptable,",
+                                                      "  confirm by pulling the trigger. "}));
+                headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                     caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+
+                tutorialBitmap->setPixmap(GenerateText({"       If this target accuracy isn't desirable,      ",
+                                                        "          press either Button A or Button B          ",
+                                                        "         to restart the calibration process.         ",
+                                                        "",
+                                                        "[You can also exit calibration without saving changes",
+                                                        "        by pressing Button C (if available).]        "}));
+                tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                       (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+            } else {
+                caliStageBitmap->setPixmap( GenerateText({"WARNING: Possibly Malformed Calibration!!"}, QColor(225,25,25)));
+                caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                        scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
+
+                headerBitmap->setPixmap(GenerateText({"  The current pending values for this profile  ",
+                                                      "will likely cause incorrect or broken tracking."},
+                                                     QColor(225,25,25)));
+                headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
+                                     caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
+
+                tutorialBitmap->setPixmap(GenerateText({"Press Button A or Button B to restart calibration,",
+                                                        "           or pull the trigger to exit.           "},
+                                                       QColor(225,25,25)));
+                tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
+                                       (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+            }
         } else {
             caliStageText->setPlainText("Verify New Calibration:");
             caliStageText->setPos(scene.sceneRect().center().x()        - caliStageText->boundingRect().center().x(),
@@ -570,14 +619,58 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
 
         break;
     case Cali_End:
-        emit WindowExiting(mode);
+        emit WindowExiting(mode, topOffset, bottomOffset, leftOffset, rightOffset, topLeftLed, topRightLed);
         break;
     }
 }
 
-void AppCaliWindow::CaliModeTextUpdate(const QString &)
+void AppCaliWindow::CaliModeTextUpdate(const QString &text)
 {
+    int type = text.front().digitValue();
 
+    if(bitmapText) {
+        switch(type) {
+        case 1: // top offset
+            topOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            profileBitmaps[0]->setPixmap(GenerateText({caliTypesPrefixes.at(0) + QString::number(topOffset)}));
+            break;
+        case 2: // bottom offset
+            bottomOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            profileBitmaps[1]->setPixmap(GenerateText({caliTypesPrefixes.at(1) + QString::number(bottomOffset)}));
+            break;
+        case 3: // left offset
+            leftOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            profileBitmaps[2]->setPixmap(GenerateText({caliTypesPrefixes.at(2) + QString::number(leftOffset)}));
+            break;
+        case 4: // right offset
+            rightOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            profileBitmaps[3]->setPixmap(GenerateText({caliTypesPrefixes.at(3) + QString::number(rightOffset)}));
+            break;
+        case 5: // topleft
+            topLeftLed = text.mid(text.indexOf('.')+1).trimmed().toFloat();
+            profileBitmaps[4]->setPixmap(GenerateText({caliTypesPrefixes.at(4) + QString::number(topLeftLed, 'g', 6)}));
+            break;
+        case 6: // topright
+            topRightLed = text.mid(text.indexOf('.')+1).trimmed().toFloat();
+            profileBitmaps[5]->setPixmap(GenerateText({caliTypesPrefixes.at(5) + QString::number(topRightLed, 'g', 6)}));
+            break;
+        }
+    } else {
+        switch(type) {
+        case 1: // top offset
+            break;
+        case 2: // bottom offset
+            break;
+        case 3: // left offset
+            break;
+        case 4: // right offset
+            break;
+        case 5: // topleft
+            break;
+        case 6: // topright
+            break;
+        }
+    }
 }
 
 void AppCaliWindow::TestModeDraw(const QStringList &coordsList)

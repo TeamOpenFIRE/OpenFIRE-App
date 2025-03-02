@@ -168,7 +168,7 @@ private slots:
 
     void on_actionOpen_IR_Emitter_Alignment_Assistant_triggered();
 
-    void CaliWindowExiting(const int &);
+    void CaliWindowExiting(const int &mode, const int & = -1, const int & = -1, const int & = -1, const int & = -1, const float & = -1, const float & = -1);
 
     void on_actionDebug_Window_triggered();
 
