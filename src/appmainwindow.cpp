@@ -158,8 +158,8 @@ guiWindow::~guiWindow()
     if(serialPort.isOpen()) {
         statusBar()->showMessage("Sending undock request to board...");
         serialPort.write("XE");
-        serialPort.waitForBytesWritten(2000);
-        serialPort.waitForReadyRead(2000);
+        serialPort.waitForBytesWritten(1000);
+        serialPort.waitForReadyRead(1000);
         serialPort.close();
     }
     delete ui;
@@ -243,47 +243,54 @@ bool guiWindow::SerialInit(int portNum)
         // windows needs DTR enabled to actually read responses.
         serialPort.setDataTerminalReady(true);
         serialPort.write("XP");
-        if(serialPort.waitForBytesWritten(2000)) {
-            if(serialPort.waitForReadyRead(2000)) {
+        if(serialPort.waitForBytesWritten(500)) {
+            if(serialPort.waitForReadyRead(500)) {
                 QByteArray bufStr = serialPort.readLine().trimmed();
                 QList<QByteArray> buffer = bufStr.split(',');
-                if(buffer[0].contains("OpenFIRE")) {
+
+                if(buffer.at(0) == "CAMERROR: Not available") {
+                    QMessageBox::warning(this,  "Device Error: Camera not available!",
+                                                "Data received from the board indicates that the camera is in a bad state.\n"
+                                                "This can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\n"
+                                                "The camera must be removed or resoldered to resolve this.");
+                    buffer.takeFirst();
+                }
+
+                if(buffer.at(0).contains("OpenFIRE")) {
                     printf("OpenFIRE gun detected!\n");
 
-                    App_Const::board.versionNumber = buffer[1].constData();
+                    App_Const::board.versionNumber = buffer.at(1).constData();
                     printf("Version number: %s\n", App_Const::board.versionNumber.toLocal8Bit().constData());
 
-                    App_Const::board.versionCodename = buffer[2].constData();
+                    App_Const::board.versionCodename = buffer.at(2).constData();
                     printf("Version codename: %s\n", App_Const::board.versionCodename.toLocal8Bit().constData());
 
-                    App_Const::board.boardType = buffer[3].constData();
+                    App_Const::board.boardType = buffer.at(3).constData();
                     printf("Board type: %s\n", App_Const::board.boardType.toLocal8Bit().constData());
 
-                    App_Const::board.selectedProfile = buffer[4].toInt();
+                    App_Const::board.selectedProfile = buffer.at(4).toInt();
                     App_Const::board.previousProfile = App_Const::board.selectedProfile;
 
                     serialPort.write("Xli");
-                    serialPort.waitForReadyRead(1000);
+                    serialPort.waitForBytesWritten(500);
+                    serialPort.waitForReadyRead(500);
+
                     bufStr = serialPort.readLine().trimmed();
                     buffer = bufStr.split(',');
-                    App_Const::tinyUSBtable.tinyUSBid = buffer[0];
+                    App_Const::tinyUSBtable.tinyUSBid = buffer.at(0);
                     App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
+
                     if(buffer[1] == "SERIALREADERR01")
                         App_Const::tinyUSBtable.tinyUSBname = "";
-                    else App_Const::tinyUSBtable.tinyUSBname = buffer[1];
+
+                    else App_Const::tinyUSBtable.tinyUSBname = buffer.at(1);
 
                     App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
 
                     SerialLoad();
                     return true;
-                } else if(buffer[0].contains("Device not available")) {
-                    QMessageBox::warning(this,  "Device Error: Camera not available!",
-                                                "Data received from the board indicates that the camera is in a bad state.\n"
-                                                "This can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\n"
-                                                "The camera must be removed or resoldered to resolve this.");
-                    return false;
                 } else {
-                    printf("Port did not respond with expected response! Seong fucked this up again.");
+                    printf("Port did not respond with expected response! Got: %s", buffer.join(',').constData());
                     return false;
                 }
             } else {
@@ -294,7 +301,7 @@ bool guiWindow::SerialInit(int portNum)
                 return false;
             }
         } else {
-            printf("Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?");
+            printf("Couldn't send any data in time! Does the port even exist???\n");
             return false;
         }
     } else {
@@ -311,8 +318,8 @@ void guiWindow::SerialLoad()
     serialActive = true;
     serialPort.clear();
     serialPort.write("Xlb");
-    if(serialPort.waitForBytesWritten(2000)) {
-        if(serialPort.waitForReadyRead(2000)) {
+    if(serialPort.waitForBytesWritten(500)) {
+        if(serialPort.waitForReadyRead(500)) {
             QString bufStr = serialPort.readLine().trimmed();
             QStringList buffer = bufStr.split(',');
 
@@ -328,8 +335,8 @@ void guiWindow::SerialLoad()
             if(boolSettings[OF_Const::customPins]) {
                 serialPort.clear();
                 serialPort.write("Xlp");
-                serialPort.waitForBytesWritten(2000);
-                serialPort.waitForReadyRead(2000);
+                serialPort.waitForBytesWritten(500);
+                serialPort.waitForReadyRead(500);
                 App_Const::inputsMap_orig.clear(), App_Const::inputsMap.clear();
                 bufStr = serialPort.readLine().trimmed();
                 buffer = bufStr.split(',');
@@ -348,8 +355,8 @@ void guiWindow::SerialLoad()
             // settings
             serialPort.clear();
             serialPort.write("Xls");
-            serialPort.waitForBytesWritten(2000);
-            serialPort.waitForReadyRead(2000);
+            serialPort.waitForBytesWritten(500);
+            serialPort.waitForReadyRead(500);
             bufStr = serialPort.readLine().trimmed();
             buffer = bufStr.split(',');
             for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
@@ -399,8 +406,8 @@ void guiWindow::SerialLoad()
                 caliBtnRow = i/4;
                 serialPort.clear();
                 serialPort.write(QString("XlP%1").arg(i).toLocal8Bit());
-                serialPort.waitForBytesWritten(2000);
-                if(serialPort.waitForReadyRead(1000)) {
+                serialPort.waitForBytesWritten(500);
+                if(serialPort.waitForReadyRead(500)) {
                     // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
                     bufStr = serialPort.readLine().trimmed();
                     buffer = bufStr.split(',');
@@ -546,15 +553,10 @@ void guiWindow::SerialLoad()
                 } else break;
             }
             serialActive = false;
-        } else {
-            QMessageBox::warning(this, "Sync Error: Data hasn't arrived!!", "Device was detected, but settings request wasn't received in time!\n"
-                                                                            "This can happen if the app was closed in the middle of an operation.\n\n"
-                                                                            "Try selecting the device again.");
-            //qDebug() << "Didn't receive any data in time! Dammit Seong, you jiggled the cable too much again!";
-        }
-    } else {
-        printf("Couldn't send any data in time! Does the port even exist??? Fucking dammit Seong!?!?!?\n");
-    }
+        } else QMessageBox::warning(this, "Sync Error: Data hasn't arrived!!",  "Device was detected, but settings request wasn't received in time!\n"
+                                                                                "This can happen if the app was closed in the middle of an operation.\n\n"
+                                                                                "Try selecting the device again.");
+    } else printf("Couldn't send any data in time! Does the port even exist???\n");
 }
 
 
@@ -724,7 +726,7 @@ void guiWindow::on_confirmButton_clicked()
             aliveTimer->stop();
             // send a signal so the gun pauses its test outputs for the save op.
             serialPort.write("Xm");
-            serialPort.waitForBytesWritten(1000);
+            serialPort.waitForBytesWritten(500);
 
             QProgressBar *statusProgressBar = new QProgressBar();
             ui->statusBar->addPermanentWidget(statusProgressBar);
@@ -764,8 +766,8 @@ void guiWindow::on_confirmButton_clicked()
 
             for(uint8_t i = 0; i < serialQueue.length(); i++) {
                 serialPort.write(serialQueue.at(i).toLocal8Bit());
-                serialPort.waitForBytesWritten(2000);
-                if(serialPort.waitForReadyRead(2000)) {
+                serialPort.waitForBytesWritten(1000);
+                if(serialPort.waitForReadyRead(1000)) {
                     QString buffer = serialPort.readLine();
                     if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
                         statusProgressBar->setValue(statusProgressBar->value() + 1);
@@ -792,7 +794,7 @@ void guiWindow::on_confirmButton_clicked()
             ui->tabWidget->setEnabled(true);
             ui->comPortSelector->setEnabled(true);
 
-            if(!success) printf("Ah shit, it failed! What did you do, Seong?");
+            if(!success) printf("Settings syncing failed!?\n");
             else {
                 statusBar()->showMessage("Sent settings successfully!", 5000);
 
@@ -835,7 +837,7 @@ void guiWindow::on_confirmButton_clicked()
             if(!serialPort.atEnd())
                 serialPort.readAll();
 
-        } else printf("Wait, this port wasn't open to begin with!!! WTF SEONG!?!?");
+        } else printf("Wait, this port wasn't open to begin with!!!\n");
     } else { statusBar()->showMessage("Save operation canceled.", 3000); }
 }
 
@@ -1128,8 +1130,8 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
         if(serialPort.isOpen()) {
             serialActive = true;
             serialPort.write("XE");
-            serialPort.waitForBytesWritten(2000);
-            serialPort.waitForReadyRead(2000);
+            serialPort.waitForBytesWritten(500);
+            serialPort.waitForReadyRead(500);
             serialPort.readAll();
             serialPort.close();
             testLabel[14]->setStyleSheet("");
@@ -1203,9 +1205,11 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // and "prevMapping" to get previous index, as this method immediately overwrites what it was mapped to.
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
+    /*
     if(index >= 0 && index <= App_Const::inputsMap.size()) {
         //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
+    //*/
 
     // reset presets box, as it's no longer accurate for this layout
     if(ui->presetsBox->currentIndex() > -1)
@@ -1222,14 +1226,15 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     } else if(sender()->property("prevMapping").toInt() != index) {
         int8_t btnRequest = index - 1;
 
-        // Remove whatever pin mapping that this function belonged to, if it was mapped
-        // (making sure we don't disable the pin trying to be set)
-        if(App_Const::inputsMap.value(btnRequest) > OF_Const::btnUnmapped && App_Const::inputsMap.value(btnRequest) != sender()->property("slot").toInt())
-            pinBoxes.at(App_Const::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
-
         // unmap pinbox's previous function, if mapped to any
         if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1)
-            pinBoxes.at(App_Const::inputsMap.value(sender()->property("prevMapping").toInt()-1))->setCurrentIndex(OF_Const::btnUnmapped+1);
+            App_Const::inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
+
+        // Remove whatever pin mapping that this function belonged to, if it was mapped
+        // (making sure we don't disable the pin trying to be set)
+        if(App_Const::inputsMap.value(btnRequest)  > OF_Const::btnUnmapped &&
+           App_Const::inputsMap.value(btnRequest) != sender()->property("slot").toInt())
+            pinBoxes.at(App_Const::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if function is I2C, check for other things
         if(btnRequest == OF_Const::camSDA) {
@@ -1838,7 +1843,7 @@ void guiWindow::caliBtns_clicked()
                                            .arg(App_Const::profilesTable.at(sender()->property("slot").toInt()).layoutType)
                                            .toLocal8Bit());
 
-    if(!serialPort.waitForBytesWritten(1000))
+    if(!serialPort.waitForBytesWritten(500))
         ui->statusBar->showMessage("Could not send calibration request.");
 }
 
@@ -1970,7 +1975,7 @@ void guiWindow::serialPort_readyRead()
 void guiWindow::on_rumbleTestBtn_clicked()
 {
     serialPort.write("Xtr");
-    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
     else ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
 }
 
@@ -1978,7 +1983,7 @@ void guiWindow::on_rumbleTestBtn_clicked()
 void guiWindow::on_solenoidTestBtn_clicked()
 {
     serialPort.write("Xts");
-    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
     else ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
 }
 
@@ -1986,7 +1991,7 @@ void guiWindow::on_solenoidTestBtn_clicked()
 void guiWindow::on_redLedTestBtn_clicked()
 {
     serialPort.write("XtR");
-    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
     else ui->statusBar->showMessage("Set LED to Red.", 2500);
 }
 
@@ -1994,7 +1999,7 @@ void guiWindow::on_redLedTestBtn_clicked()
 void guiWindow::on_greenLedTestBtn_clicked()
 {
     serialPort.write("XtG");
-    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
     else ui->statusBar->showMessage("Set LED to Green.", 2500);
 }
 
@@ -2002,7 +2007,7 @@ void guiWindow::on_greenLedTestBtn_clicked()
 void guiWindow::on_blueLedTestBtn_clicked()
 {
     serialPort.write("XtB");
-    if(!serialPort.waitForBytesWritten(1000)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
+    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
     else ui->statusBar->showMessage("Set LED to Blue.", 2500);
 }
 
@@ -2021,8 +2026,8 @@ void guiWindow::on_testBtn_clicked()
         connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
 
         serialPort.write("XT");
-        serialPort.waitForBytesWritten(1000);
-        serialPort.waitForReadyRead(1000);
+        serialPort.waitForBytesWritten(500);
+        serialPort.waitForReadyRead(500);
 
         if(serialPort.readLine().trimmed() == "Entering Test Mode...") {
             caliWindow->showFullScreen();
@@ -2084,8 +2089,8 @@ void guiWindow::CaliWindowExiting(const int &mode,
     case AppCaliWindow::modeIRTest:
         if(serialPort.isOpen()) {
             serialPort.write("XT");
-            serialPort.waitForBytesWritten(1000);
-            serialPort.waitForReadyRead(1000);
+            serialPort.waitForBytesWritten(500);
+            serialPort.waitForReadyRead(500);
         }
 
         testMode = false;
@@ -2135,8 +2140,8 @@ void guiWindow::on_clearEepromBtn_clicked()
             while(!serialPort.atEnd())
                 serialPort.readLine();
             serialPort.write("Xc");
-            serialPort.waitForBytesWritten(2000);
-            if(serialPort.waitForReadyRead(5000)) {
+            serialPort.waitForBytesWritten(500);
+            if(serialPort.waitForReadyRead(2000)) {
                 QString buffer = serialPort.readLine();
                 if(buffer.trimmed() == "Cleared! Please reset the board.") {
                     serialPort.write("XE");
@@ -2158,7 +2163,7 @@ void guiWindow::on_baudResetBtn_clicked()
     // No need for workarounds, bootloader reset is in the firmware now.
     serialActive = true;
     serialPort.write("Xxx");
-    serialPort.waitForBytesWritten(1000);
+    serialPort.waitForBytesWritten(500);
     serialPort.close();
 
 /* test stuff for potential app FW update functionality
@@ -2262,15 +2267,11 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
 
                 fileIn.close();
                 ui->statusBar->showMessage("Successfully imported custom layout!", 5000);
-            } else {
-                QMessageBox::warning(this, "Board Doesn't Match", "Custom layout file is not compatible with this board.");
-            }
-        } else {
-            QMessageBox::warning(this, "File Read Error", "Custom layout file could not be read.");
-        }
-    } else {
-        ui->statusBar->showMessage("Canceled custom layout load operation.", 5000);
-    }
+            } else QMessageBox::warning(this, "Board Doesn't Match",
+                                              "Custom layout file is not compatible with this board.");
+        } else QMessageBox::warning(this, "File Read Error",
+                                          "Custom layout file could not be read.");
+    } else ui->statusBar->showMessage("Canceled custom layout load operation.", 5000);
 }
 
 
@@ -2291,12 +2292,9 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
 
             fileOut.close();
             ui->statusBar->showMessage("Custom layout export successful!", 5000);
-        } else {
-            QMessageBox::warning(this, "File Write Error", "Custom layout file could not be written.");
-        }
-    } else {
-        ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
-    }
+        } else QMessageBox::warning(this, "File Write Error",
+                                          "Custom layout file could not be written.");
+    } else ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
 }
 
 void guiWindow::on_actionDebug_Window_triggered()
