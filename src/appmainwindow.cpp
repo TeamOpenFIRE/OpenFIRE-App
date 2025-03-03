@@ -1834,7 +1834,8 @@ void guiWindow::caliBtns_clicked()
 {
     caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
     caliWindow->setProperty("profile", sender()->property("slot").toInt());
-    connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+    connect(caliWindow, &AppCaliWindow::WindowExiting,      this, &guiWindow::CaliWindowExiting);
+    connect(caliWindow, &AppCaliWindow::CaliRequestToExit,  this, &guiWindow::CaliWindowRequestedExit);
 
     caliWindow->showFullScreen();
 
@@ -2058,7 +2059,12 @@ void guiWindow::CaliWindowExiting(const int &mode,
     switch(mode) {
     case AppCaliWindow::modeCalibrate:
     {
-        if(topOffsetNew != 0 && bottomOffsetNew != 0 && leftOffsetNew != 0 && rightOffsetNew != 0 && topLeftLedNew >= 0 && topRightLedNew <= 32768) {
+        if(topOffsetNew >= 0 &&
+            bottomOffsetNew >= 0 &&
+            leftOffsetNew >= 0 &&
+            rightOffsetNew >= 0 &&
+            topLeftLedNew >= 0 && topLeftLedNew < 32768 &&
+            topRightLedNew >= 0 && topRightLedNew < 32768) {
             uint8_t selection = caliWindow->property("profile").toInt();
 
             App_Const::profilesTable[selection].topOffset = topOffsetNew;
@@ -2115,6 +2121,15 @@ void guiWindow::CaliWindowExiting(const int &mode,
     caliWindow->close();
     if(caliWindow != nullptr)
         caliWindow = nullptr;
+}
+
+
+void guiWindow::CaliWindowRequestedExit()
+{
+    if(serialPort.isOpen()) {
+        serialPort.write("X");
+        serialPort.waitForBytesWritten(500);
+    }
 }
 
 

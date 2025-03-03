@@ -35,6 +35,14 @@
     </message>
 </context>
 <context>
+    <name>AppDebugWindow</name>
+    <message>
+        <location filename="../src/appdebug.ui" line="14"/>
+        <source>Serial Debug</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>guiWindow</name>
     <message>
         <location filename="../src/appmainwindow.ui" line="49"/>
@@ -188,7 +196,7 @@
     </message>
     <message>
         <location filename="../src/appmainwindow.ui" line="534"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how &lt;span style=&quot; font-style:italic;&quot;&gt;Button A&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Button B&lt;/span&gt; behaves during normal use.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Button A&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Button B&lt;/span&gt; will perform different functions when aiming off-screen, instead actuating the functions of &lt;span style=&quot; font-style:italic;&quot;&gt;Start&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Select&lt;/span&gt; respectively.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; all buttons will perform the same functions, regardless of aiming off-screen or not.&lt;/p&gt;&lt;p&gt;Enabled is recommended for lightguns &lt;span style=&quot; font-weight:700;&quot;&gt;with two or less sub buttons.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how &lt;span style=&quot; font-style:italic;&quot;&gt;Button A&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Button B&lt;/span&gt; behaves during normal use.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled, &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Button A&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Button B&lt;/span&gt; will perform different functions when aiming off-screen, instead actuating the functions of &lt;span style=&quot; font-style:italic;&quot;&gt;Start&lt;/span&gt; &amp;amp; &lt;span style=&quot; font-style:italic;&quot;&gt;Select&lt;/span&gt; respectively.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; all buttons will perform the same functions, regardless of aiming off-screen or not.&lt;/p&gt;&lt;p&gt;Enabled is recommended for lightguns &lt;span style=&quot; font-weight:700;&quot;&gt;with two or less sub buttons.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -532,11 +540,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1456"/>
-        <source>Saved Profiles</source>
+        <location filename="../src/appmainwindow.ui" line="1979"/>
+        <source>Debug Window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/appmainwindow.ui" line="1456"/>
         <location filename="../src/appmainwindow.ui" line="1486"/>
         <source>Calibration Profiles</source>
         <translation type="unfinished"></translation>
@@ -673,42 +682,42 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1936"/>
+        <location filename="../src/appmainwindow.ui" line="1937"/>
         <source>&amp;About OpenFIRE...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1941"/>
+        <location filename="../src/appmainwindow.ui" line="1942"/>
         <source>&amp;OpenFIRE Documentation...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1944"/>
+        <location filename="../src/appmainwindow.ui" line="1945"/>
         <source>Alt+D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1949"/>
+        <location filename="../src/appmainwindow.ui" line="1950"/>
         <source>OpenFIRE &amp;Serial Usage Docs...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1952"/>
+        <location filename="../src/appmainwindow.ui" line="1953"/>
         <source>Alt+S</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1957"/>
+        <location filename="../src/appmainwindow.ui" line="1958"/>
         <source>Open &amp;IR Emitter Alignment Assistant</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1962"/>
+        <location filename="../src/appmainwindow.ui" line="1963"/>
         <source>Import Custom Layout...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/appmainwindow.ui" line="1970"/>
+        <location filename="../src/appmainwindow.ui" line="1971"/>
         <source>Export Custom Layout...</source>
         <translation type="unfinished"></translation>
     </message>

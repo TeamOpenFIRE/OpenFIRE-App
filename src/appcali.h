@@ -99,6 +99,11 @@ signals:
     ///             Profile offsets for Calibration Mode
     void WindowExiting(const int &mode, const int & = -1, const int & = -1, const int & = -1, const int & = -1, const float & = -1, const float & = -1);
 
+    /// @brief      Signals to the main app that a calibration window has received an exit keystroke
+    ///             and to request the board to follow.
+    /// @note       Main app is the only part that has access to the current active serialPort object.
+    void CaliRequestToExit();
+
 private:
     enum {
         ScaleSmall = 0,
@@ -229,6 +234,8 @@ private slots:
     void sceneKeyCloseReceiver() {
         if(mode != modeCalibrate) {
             emit WindowExiting(mode);
+        } else {
+            emit CaliRequestToExit();
         }
     }
 
