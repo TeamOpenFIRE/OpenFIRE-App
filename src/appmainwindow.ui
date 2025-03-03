@@ -1453,7 +1453,7 @@
       </widget>
       <widget class="QWidget" name="profilesTab">
        <attribute name="title">
-        <string>Saved Profiles</string>
+        <string>Calibration Profiles</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="8,3">
         <item>
