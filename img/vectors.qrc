@@ -1,0 +1,107 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file alias="icon.png">ico/openfire.png</file>
+        <file alias="edit.png">ico/edit.png</file>
+        <file alias="openfire.png">ico/typeface.png</file>
+        <file alias="donate.svg">ico/donate.svg</file>
+    </qresource>
+    <qresource prefix="/cali">
+        <file alias="crosshair.svg">cali/crosshair.svg</file>
+    </qresource>
+    <qresource prefix="/testFont">
+        <file>testFont/33</file>
+        <file>testFont/34</file>
+        <file>testFont/35</file>
+        <file>testFont/36</file>
+        <file>testFont/37</file>
+        <file>testFont/38</file>
+        <file>testFont/39</file>
+        <file>testFont/40</file>
+        <file>testFont/41</file>
+        <file>testFont/42</file>
+        <file>testFont/43</file>
+        <file>testFont/44</file>
+        <file>testFont/45</file>
+        <file>testFont/46</file>
+        <file>testFont/47</file>
+        <file>testFont/48</file>
+        <file>testFont/49</file>
+        <file>testFont/50</file>
+        <file>testFont/51</file>
+        <file>testFont/52</file>
+        <file>testFont/53</file>
+        <file>testFont/54</file>
+        <file>testFont/55</file>
+        <file>testFont/56</file>
+        <file>testFont/57</file>
+        <file>testFont/58</file>
+        <file>testFont/59</file>
+        <file>testFont/60</file>
+        <file>testFont/61</file>
+        <file>testFont/62</file>
+        <file>testFont/63</file>
+        <file>testFont/64</file>
+        <file>testFont/65</file>
+        <file>testFont/66</file>
+        <file>testFont/67</file>
+        <file>testFont/68</file>
+        <file>testFont/69</file>
+        <file>testFont/70</file>
+        <file>testFont/71</file>
+        <file>testFont/72</file>
+        <file>testFont/73</file>
+        <file>testFont/74</file>
+        <file>testFont/75</file>
+        <file>testFont/76</file>
+        <file>testFont/77</file>
+        <file>testFont/78</file>
+        <file>testFont/79</file>
+        <file>testFont/80</file>
+        <file>testFont/81</file>
+        <file>testFont/82</file>
+        <file>testFont/83</file>
+        <file>testFont/84</file>
+        <file>testFont/85</file>
+        <file>testFont/86</file>
+        <file>testFont/87</file>
+        <file>testFont/88</file>
+        <file>testFont/89</file>
+        <file>testFont/90</file>
+        <file>testFont/91</file>
+        <file>testFont/92</file>
+        <file>testFont/93</file>
+        <file>testFont/94</file>
+        <file>testFont/95</file>
+        <file>testFont/96</file>
+        <file>testFont/97</file>
+        <file>testFont/98</file>
+        <file>testFont/99</file>
+        <file>testFont/100</file>
+        <file>testFont/101</file>
+        <file>testFont/102</file>
+        <file>testFont/103</file>
+        <file>testFont/104</file>
+        <file>testFont/105</file>
+        <file>testFont/106</file>
+        <file>testFont/107</file>
+        <file>testFont/108</file>
+        <file>testFont/109</file>
+        <file>testFont/110</file>
+        <file>testFont/111</file>
+        <file>testFont/112</file>
+        <file>testFont/113</file>
+        <file>testFont/114</file>
+        <file>testFont/115</file>
+        <file>testFont/116</file>
+        <file>testFont/117</file>
+        <file>testFont/118</file>
+        <file>testFont/119</file>
+        <file>testFont/120</file>
+        <file>testFont/121</file>
+        <file>testFont/122</file>
+        <file>testFont/123</file>
+        <file>testFont/124</file>
+        <file>testFont/125</file>
+        <file>testFont/126</file>
+    </qresource>
+</RCC>

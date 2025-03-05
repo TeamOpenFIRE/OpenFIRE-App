@@ -13,29 +13,36 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         build_type: [Release]
         c_compiler: [clang, cl]
+        qt_version: [5.15.2, 6.8.2]
         include:
-          - os: windows-latest
+          - os: windows-2019
             c_compiler: cl
             cpp_compiler: cl
             file: build
             pretty: "Windows Artifact"
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux AppImage"
         exclude:
-          - os: windows-latest
+          - os: windows-2019
             c_compiler: clang
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: cl
+            qt_version: 6.8.2
+          - os: ubuntu-22.04
+            c_compiler: cl
+            qt_version: 5.15.2
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -44,16 +51,36 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+    - name: Install Qt(5)
+      if: ${{ matrix.qt_version == '5.15.2' }}
+      uses: jurplel/install-qt-action@v4
       with:
         aqtversion: '==3.1.*'
-        version: '5.15.2'
-        archives: 'qttranslations qttools qtsvg qtserialport qtbase icu'
+        version: '${{ matrix.qt_version }}'
+        archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
+    - name: Install Qt(6)
+      if: ${{ matrix.qt_version == '6.8.2' }}
+      uses: jurplel/install-qt-action@v4
+      with:
+        aqtversion: '==3.1.*'
+        version: '${{ matrix.qt_version }}'
+        modules: 'qtserialport'
+        archives: 'qtbase qttranslations qttools qtsvg icu'
 
-    - name: Configure CMake
+    - name: Configure CMake (for Qt5)
+      if: ${{ matrix.qt_version == '5.15.2' }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DOFAPP_QT_VERSIONS=Qt5
+        ${{ matrix.install_prefix }}
+        -S ${{ github.workspace }}
+    - name: Configure CMake (for Qt6)
+      if: ${{ matrix.qt_version == '6.8.2' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -67,19 +94,19 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
       uses: miurahr/install-linuxdeploy-action@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
       # thanks linuxdeploy for not preinstalling your dependencies :<
       run: |
         sudo apt install -y appstream libfuse2
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
-        install -Dm755 "${{ github.workspace }}/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
+        install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
         linuxdeploy-x86_64.AppImage --plugin=qt --output=appimage --appdir AppDir
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -88,12 +115,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # Artifact name
-        name: OpenFIREapp-${{ matrix.pretty }} # optional, default is artifact
+        name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }} # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ matrix.file }}
 
     - name: Download a Build Artifact
       uses: actions/download-artifact@v4
-      with:
-        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
-        name: OpenFIREapp-${{ matrix.pretty }} # optional

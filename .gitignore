@@ -1,2 +1,3 @@
 #ignore local user CMake list
 CMakeLists.txt.user
+build
