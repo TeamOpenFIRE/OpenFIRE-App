@@ -199,7 +199,10 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
         }
     }
 
-    return QWidget::eventFilter(object, event);
+    // disable QComboBox scroll events (to prevent accidental pinbox index changing)
+    if(!(event->type() == QEvent::Wheel && object->inherits("QComboBox")))
+        return QWidget::eventFilter(object, event);
+    else return true;
 }
 
 
