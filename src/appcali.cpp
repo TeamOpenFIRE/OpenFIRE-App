@@ -228,6 +228,9 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         this->setWindowTitle("IR Emitters Test");
         ui->graphicsView->setBackgroundBrush(QBrush(QColor("midnightblue")));
 
+        qreal scaleX = scene.sceneRect().width() / 1920.0;
+        qreal scaleY = scene.sceneRect().height() / 1080.0;
+
         if(bitmapText) {
             headerBitmap->setPixmap(GenerateText({"     The array of shapes displayed onscreen     ",
                                                   "represents the emitters that the camera can see.",
@@ -261,10 +264,12 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
 
         for(int i = 0; i < testPointsCount; i++) {
             testPoints[i] = new QGraphicsEllipseItem();
+            testPoints[i]->setTransform(QTransform::fromScale(scaleX, scaleY));
             scene.addItem(testPoints[i]);
         }
 
         testBox = new QGraphicsPolygonItem();
+        testBox->setTransform(QTransform::fromScale(scaleX, scaleY));
         testBox->setPen(QPen(Qt::gray, 2));
         scene.addItem(testBox);
 
