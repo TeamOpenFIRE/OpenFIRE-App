@@ -954,10 +954,10 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 ui->presetsBox->setHidden(true);
             }
 
-            LabelsUpdate();
-
             // set boxes to reflect indexes of inputsMap
             BoxesUpdate();
+
+            LabelsUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
             if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {
