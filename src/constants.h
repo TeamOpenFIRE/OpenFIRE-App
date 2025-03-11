@@ -18,6 +18,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include "../boards/OpenFIREshared.h"
 #include <QString>
 #include <QVector>
 #include <QMap>
@@ -72,6 +73,21 @@ public:
 
     // Currently loaded board object
     static inline boardInfo_s board;
+
+    /// @brief      Current array of booleans
+    /// @details    Meant for toggle/on-off type settings specifically
+    static inline bool boolSettings[OF_Const::boolTypesCount] = { false };
+
+    /// @brief      Array of booleans last synced from the microcontroller
+    /// @details    This is only updated on saving and loading settings successfully
+    static inline bool boolSettings_orig[OF_Const::boolTypesCount] = { false };
+
+    /// @brief      Current array of tunable settings
+    static inline uint32_t settingsTable[OF_Const::settingsTypesCount] = { 0 };
+
+    /// @brief      Array of tunables last synced from the microcontroller
+    /// @details    This is only updated on saving and loading settings successfully
+    static inline uint32_t settingsTable_orig[OF_Const::settingsTypesCount] = { 0 };
 
     // Currently loaded board's TinyUSB identifier info
     static inline tinyUSBtable_s tinyUSBtable;

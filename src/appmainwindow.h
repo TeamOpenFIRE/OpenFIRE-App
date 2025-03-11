@@ -30,6 +30,7 @@
 #include "constants.h"
 #include "appcali.h"
 #include "appdebug.h"
+#include "appserial.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMainWindow>
 #include <QSerialPort>
@@ -44,6 +45,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSvgWidget>
+#include <QProgressBar>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -60,15 +62,15 @@ public:
     ~guiWindow();
 
 private slots:
+    void Worker_Started();
+
     void aliveTimer_timeout();
 
-    void on_comPortSelector_currentIndexChanged(int index);
+    void on_comPortSelector_currentTextChanged(const QString &);
 
     void on_confirmButton_clicked();
 
     void pinBoxes_currentIndexChanged(int index);
-
-    void serialPort_readyRead();
 
     void renameBoxes_clicked();
 
@@ -158,6 +160,14 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
+    void serialPort_readyRead();
+
+    void serialPort_handleResult(const int &, const bool & = false);
+
+    void serialPort_progressSet(const int &);
+
+    void serialPort_progressUpdate(const int &);
+
     void on_actionOpenFIRE_Documentation_triggered();
 
     void on_actionOpenFIRE_Serial_Usage_triggered();
@@ -206,19 +216,6 @@ private:
     /// @details    Controls enablement of certain settings in the NeoPixels section of settings
     void PixelsDiff();
 
-    /// @brief      Search for available serial port devices
-    /// @details    Filters for OpenFIRE devices specifically
-    // (TODO: move to appserial)
-    void PortsSearch();
-
-    /// @brief      Pair serial device to portNum device, and start grabbing its info
-    /// @returns    True if device could be initiated, false if syncing failed
-    bool SerialInit(int portNum);
-
-    /// @brief      Grab firmware settings from serial device
-    /// @details    Currently only called by the success route of SerialInit
-    void SerialLoad();
-
     /// @brief      Disables given setting of a combobox
     /// @arg        Combobox item, index number to toggle, enable state to set to
     void SetComboBoxItemEnabled(QComboBox * comboBox, const int index, const bool enabled) {
@@ -231,30 +228,9 @@ private:
     //
     // vvv---Internal Values---vvv
 
-    QSerialPort serialPort;
+    SerialThreadController serial;
 
     bool serialActive = false;
-
-    /// @brief      List of serial port objects that were found in PortsSearch()
-    QList<QSerialPortInfo> serialFoundList;
-
-    /// @brief      Extracted COM paths, as provided from serialFoundList
-    QStringList usbName;
-
-    /// @brief      Current array of booleans
-    /// @details    Meant for toggle/on-off type settings specifically
-    bool boolSettings[OF_Const::boolTypesCount];
-
-    /// @brief      Array of booleans last synced from the microcontroller
-    /// @details    This is only updated on saving and loading settings successfully
-    bool boolSettings_orig[OF_Const::boolTypesCount];
-
-    /// @brief      Current array of tunable settings
-    uint32_t settingsTable[OF_Const::settingsTypesCount];
-
-    /// @brief      Array of tunables last synced from the microcontroller
-    /// @details    This is only updated on saving and loading settings successfully
-    uint32_t settingsTable_orig[OF_Const::settingsTypesCount];
 
     /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
     // TODO: add this to settingsTable (5.1?)
@@ -306,5 +282,7 @@ private:
     QVector<QPushButton*> color;
     QVector<QPushButton*> renameBtn;
     QVector<QPushButton*> caliBtn;
+
+    QProgressBar *statusProgressBar = nullptr;
 };
 #endif // GUIWINDOW_H
