@@ -3,7 +3,7 @@
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
 
-bool SerialThreadWorker::SearchPorts()
+bool AppSerial::SearchPorts()
 {
     QList<QSerialPortInfo> serialFoundList = QSerialPortInfo::availablePorts();
     if(!serialFoundList.isEmpty()) {
@@ -24,7 +24,7 @@ bool SerialThreadWorker::SearchPorts()
             printf("Current ports list does not match new list, overriding...\n");
             currentPortsNames = GeneratePortsList(currentPorts);
             return true;
-        } else for(const auto port : serialFoundList) {
+        } else for(const auto &port : serialFoundList) {
             if(!currentPortsNames.contains(port.portName())) {
                 currentPorts = serialFoundList;
                 printf("%s not found in current ports, overriding old serial devices list...\n", port.portName().toLocal8Bit().constData());
@@ -36,34 +36,34 @@ bool SerialThreadWorker::SearchPorts()
     } else return true;
 }
 
-QStringList SerialThreadWorker::GeneratePortsList(const QList<QSerialPortInfo> &portsList)
+QStringList AppSerial::GeneratePortsList(const QList<QSerialPortInfo> &portsList)
 {
     QStringList newList;
 
-    for(const auto port : portsList)
+    for(const auto &port : portsList)
         newList.append(port.portName());
 
     return newList;
 }
 
-bool SerialThreadWorker::GetSettings(const QString &portName)
+bool AppSerial::GetSettings(const QString &portName)
 {
-    for(const auto curPort : currentPorts)
+    for(const auto &curPort : currentPorts)
         if(portName == curPort.portName())
-            port->setPort(curPort);
+            port.setPort(curPort);
 
-    if(!port->portName().isEmpty()) {
-        port->setBaudRate(QSerialPort::Baud9600);
-        if(port->open(QIODevice::ReadWrite)) {
+    if(!port.portName().isEmpty()) {
+        port.setBaudRate(QSerialPort::Baud9600);
+        if(port.open(QIODevice::ReadWrite)) {
             //serialActive = true;
 
             // windows needs DTR enabled to actually read responses.
-            port->setDataTerminalReady(true);
+            port.setDataTerminalReady(true);
 
-            port->write("XP");
-            if(port->waitForBytesWritten(500)) {
-                if(port->waitForReadyRead(500)) {
-                    QByteArray bufStr = port->readLine().trimmed();
+            port.write("XP");
+            if(port.waitForBytesWritten(500)) {
+                if(port.waitForReadyRead(500)) {
+                    QByteArray bufStr = port.readLine().trimmed();
                     QList<QByteArray> buffer = bufStr.split(',');
 
                     if(buffer.at(0) == "CAMERROR: Not available") {
@@ -91,29 +91,28 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                         App_Const::board.selectedProfile = buffer.at(4).toInt();
                         App_Const::board.previousProfile = App_Const::board.selectedProfile;
 
-                        port->write("Xli");
-                        port->waitForBytesWritten(500);
-                        port->waitForReadyRead(500);
+                        port.write("Xli");
+                        port.waitForBytesWritten(500);
+                        port.waitForReadyRead(500);
 
-                        bufStr = port->readLine().trimmed();
+                        bufStr = port.readLine().trimmed();
                         buffer = bufStr.split(',');
                         App_Const::tinyUSBtable.tinyUSBid = buffer.at(0);
                         App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
 
                         if(buffer[1] == "SERIALREADERR01")
                             App_Const::tinyUSBtable.tinyUSBname = "";
-
                         else App_Const::tinyUSBtable.tinyUSBname = buffer.at(1);
 
                         App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
 
-                        emit Serial_ProgressUpdate(1);
+                        emit Serial_ProgressUpdate(1, "Getting Settings (1)");
 
-                        port->clear();
-                        port->write("Xlb");
-                        if(port->waitForBytesWritten(500)) {
-                            if(port->waitForReadyRead(500)) {
-                                QString bufStr = port->readLine().trimmed();
+                        port.clear();
+                        port.write("Xlb");
+                        if(port.waitForBytesWritten(500)) {
+                            if(port.waitForReadyRead(500)) {
+                                QString bufStr = port.readLine().trimmed();
                                 QStringList buffer = bufStr.split(',');
 
                                 // booleans
@@ -124,16 +123,16 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                                     } else break;
                                 }
 
-                                emit Serial_ProgressUpdate(2);
+                                emit Serial_ProgressUpdate(2, "Getting Settings (2)");
 
                                 // pins
                                 if(App_Const::boolSettings[OF_Const::customPins]) {
-                                    port->clear();
-                                    port->write("Xlp");
-                                    port->waitForBytesWritten(500);
-                                    port->waitForReadyRead(500);
+                                    port.clear();
+                                    port.write("Xlp");
+                                    port.waitForBytesWritten(500);
+                                    port.waitForReadyRead(500);
                                     App_Const::inputsMap_orig.clear(), App_Const::inputsMap.clear();
-                                    bufStr = port->readLine().trimmed();
+                                    bufStr = port.readLine().trimmed();
                                     buffer = bufStr.split(',');
                                     for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
                                         if(!buffer.isEmpty())
@@ -145,16 +144,16 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                                         App_Const::inputsMap_orig[i] = OF_Const::btnUnmapped;
                                 }
 
-                                emit Serial_ProgressUpdate(3);
+                                emit Serial_ProgressUpdate(3, "Getting Settings (3)");
 
                                 App_Const::inputsMap = App_Const::inputsMap_orig;
 
                                 // settings
-                                port->clear();
-                                port->write("Xls");
-                                port->waitForBytesWritten(500);
-                                port->waitForReadyRead(500);
-                                bufStr = port->readLine().trimmed();
+                                port.clear();
+                                port.write("Xls");
+                                port.waitForBytesWritten(500);
+                                port.waitForReadyRead(500);
+                                bufStr = port.readLine().trimmed();
                                 buffer = bufStr.split(',');
                                 for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
                                     if(!buffer.isEmpty()) {
@@ -163,7 +162,7 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                                     } else break;
                                 }
 
-                                emit Serial_ProgressUpdate(4);
+                                emit Serial_ProgressUpdate(4, "Getting Profiles Data");
 
                                 // profiles
                                 App_Const::profilesTable.clear(), App_Const::profilesTable_orig.clear();
@@ -171,12 +170,12 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                                 // TODO: don't think we NEED to limit reading only to profiles count?
                                 // perhaps just stop at the first invalid response from the board
                                 for(uint8_t i = 0;; i++) {
-                                    port->clear();
-                                    port->write(QString("XlP%1").arg(i).toLocal8Bit());
-                                    port->waitForBytesWritten(500);
-                                    if(port->waitForReadyRead(500)) {
+                                    port.clear();
+                                    port.write(QString("XlP%1").arg(i).toLocal8Bit());
+                                    port.waitForBytesWritten(500);
+                                    if(port.waitForReadyRead(500)) {
                                         // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
-                                        bufStr = port->readLine().trimmed();
+                                        bufStr = port.readLine().trimmed();
                                         buffer = bufStr.split(',');
 
                                         App_Const::profilesTable << App_Const::profilesTable_s(), App_Const::profilesTable_orig << App_Const::profilesTable_s();
@@ -197,8 +196,11 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                                         App_Const::profilesTable_orig[i] = App_Const::profilesTable.at(i);
                                     } else break;
                                 }
-                                emit Serial_ProgressUpdate(5);
+
+                                emit Serial_ProgressUpdate(5, "Successfully synced data!");
+
                                 return true;
+
                             } else QMessageBox::warning(nullptr, "Sync Error: Data hasn't arrived!!",
                                                      "Device was detected, but settings request wasn't received in time!\n"
                                                      "This can happen if the app was closed in the middle of an operation.\n\n"
@@ -208,14 +210,14 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                             return false;
                         }
                     } else {
-                        printf("Port did not respond with expected response! Got: %s", buffer.join(',').constData());
+                        printf("Port did not respond with expected response! Got: %s\n", buffer.join(',').constData());
                         return false;
                     }
                 } else {
-                    //QMessageBox::warning(this,  "Data hasn't arrived! (Stale state?)",
-                    //                     "Device was detected, but initial settings request wasn't received in time!\n"
-                    //                     "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
-                    //                     "Try selecting the device again.");
+                    QMessageBox::warning(nullptr,  "Data hasn't arrived! (Stale state?)",
+                                         "Device was detected, but initial settings request wasn't received in time!\n"
+                                         "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
+                                         "Try selecting the device again.");
                     return false;
                 }
             } else {
@@ -223,30 +225,30 @@ bool SerialThreadWorker::GetSettings(const QString &portName)
                 return false;
             }
         } else {
-            //QMessageBox::warning(this,  "Serial port is already in use!",
-            //                     "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
-            //                     "Please close the offending application and try selecting this port again.");
+            QMessageBox::warning(nullptr,  "Serial port is already in use!",
+                                 "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
+                                 "Please close the offending application and try selecting this port again.");
             return false;
         }
     } else return false;
     return false;
 }
 
-bool SerialThreadWorker::OneShotSend(const QString &string)
+bool AppSerial::OneShotSend(const QByteArray &string)
 {
-    if(port->isOpen()) {
-        port->write(string.toLocal8Bit());
-        port->waitForBytesWritten(1000);
+    if(port.isOpen()) {
+        port.write(string);
+        port.waitForBytesWritten(1000);
         return true;
     } else return false;
 }
 
-bool SerialThreadWorker::CommitSettings()
+bool AppSerial::CommitSettings()
 {
-    if(port->isOpen()) {
+    if(port.isOpen()) {
         // send a signal so the gun pauses its test outputs for the save op.
-        port->write("Xm");
-        port->waitForBytesWritten(1000);
+        port.write("Xm");
+        port.waitForBytesWritten(1000);
 
         QStringList serialQueue;
         for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++)
@@ -275,13 +277,13 @@ bool SerialThreadWorker::CommitSettings()
         emit Serial_SetProgressRange(serialQueue.length()-1);
 
         // throw out whatever's in the buffer if there's anything there.
-        port->clear();
+        port.clear();
 
         for(uint8_t i = 0; i < serialQueue.length(); i++) {
-            port->write(serialQueue.at(i).toLocal8Bit());
-            port->waitForBytesWritten(1000);
-            if(port->waitForReadyRead(1000)) {
-                QString buffer = port->readLine();
+            port.write(serialQueue.at(i).toLocal8Bit());
+            port.waitForBytesWritten(1000);
+            if(port.waitForReadyRead(1000)) {
+                QString buffer = port.readLine();
                 if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
                     emit Serial_ProgressUpdate(i);
                 } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
@@ -293,16 +295,14 @@ bool SerialThreadWorker::CommitSettings()
     return false;
 }
 
-bool SerialThreadWorker::Disconnect()
+void AppSerial::Disconnect()
 {
-    if(port->isOpen()) {
-        port->write("XE");
-        port->waitForBytesWritten(1000);
-        port->waitForReadyRead(1000);
-        port->close();
+    if(port.isOpen()) {
+        port.write("XE");
+        port.waitForBytesWritten(1000);
+        port.waitForReadyRead(1000);
+        port.close();
     }
 
-    port->setPortName("");
-
-    return true;
+    port.setPortName("");
 }

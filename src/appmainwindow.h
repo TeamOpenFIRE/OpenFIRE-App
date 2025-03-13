@@ -34,6 +34,8 @@
 #include "../boards/OpenFIREshared.h"
 #include <QMainWindow>
 #include <QSerialPort>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QGraphicsItem>
 #include <QPen>
 #include <QTimer>
@@ -62,8 +64,6 @@ public:
     ~guiWindow();
 
 private slots:
-    void Worker_Started();
-
     void aliveTimer_timeout();
 
     void on_comPortSelector_currentTextChanged(const QString &);
@@ -162,11 +162,13 @@ private slots:
 
     void serialPort_readyRead();
 
-    void serialPort_handleResult(const int &, const bool & = false);
+    void serialPort_SearchFinished();
+
+    void serialPort_DisconnectFinished();
 
     void serialPort_progressSet(const int &);
 
-    void serialPort_progressUpdate(const int &);
+    void serialPort_progressUpdate(const int &, const char* = nullptr);
 
     void on_actionOpenFIRE_Documentation_triggered();
 
@@ -228,12 +230,18 @@ private:
     //
     // vvv---Internal Values---vvv
 
-    SerialThreadController serial;
+    AppSerial serial;
+
+    // result of async serial operations
+    QFuture<bool> serialSearchFuture;
+    QFutureWatcher<bool> serialSearchWatcher;
+
+    QFuture<void> serialDisconnectFuture;
+    QFutureWatcher<void> serialDisconnectWatcher;
 
     bool serialActive = false;
 
     /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
-    // TODO: add this to settingsTable (5.1?)
     uint8_t tempWarning = 35;
     uint8_t tempShutoff = 42;
 
@@ -242,7 +250,7 @@ private:
 
     /// @brief      Timer that probes the board if it's still plugged in
     /// @details    Timer interval is provided in ms by ALIVE_TIMER
-    QTimer *aliveTimer;
+    QTimer aliveTimer;
 
     // ^^^---Internal Values---^^^
     //

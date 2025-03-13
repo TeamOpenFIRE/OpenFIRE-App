@@ -21,8 +21,8 @@ if(OFAPP_GITHASH)
     add_compile_definitions(OFAPP_GITHASH="${OFAPP_GITHASH}")
 endif()
 
-find_package(QT NAMES ${OFAPP_QT_VERSIONS} REQUIRED COMPONENTS Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(QT NAMES ${OFAPP_QT_VERSIONS} REQUIRED COMPONENTS Widgets LinguistTools Concurrent)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Concurrent)
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
@@ -69,6 +69,7 @@ else()
 endif()
 
 target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
 
 # Serial Port
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
