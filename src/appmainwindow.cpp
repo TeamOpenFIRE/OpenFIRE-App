@@ -837,6 +837,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
     } else {
         ui->boardLabel->clear();
         ui->versionLabel->clear();
+        ui->tabWidget->setEnabled(false);
 
         if(serial.port.isOpen())
             serialDisconnectWatcher.setFuture(serialDisconnectFuture);
