@@ -164,8 +164,6 @@ private slots:
 
     void serialPort_SearchFinished();
 
-    void serialPort_DisconnectFinished();
-
     void serialPort_progressSet(const int &);
 
     void serialPort_progressUpdate(const int &, const char* = nullptr);
@@ -235,9 +233,6 @@ private:
     // result of async serial operations
     QFuture<bool> serialSearchFuture;
     QFutureWatcher<bool> serialSearchWatcher;
-
-    QFuture<void> serialDisconnectFuture;
-    QFutureWatcher<void> serialDisconnectWatcher;
 
     bool serialActive = false;
 

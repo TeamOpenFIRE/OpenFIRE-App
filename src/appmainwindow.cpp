@@ -27,7 +27,7 @@
 #include <QProgressBar>
 #include <QProcess>
 //#include <QStorageInfo>
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QDebug>
 #include <QFileDialog>
 #include <QColorDialog>
@@ -62,7 +62,6 @@ guiWindow::guiWindow(QWidget *parent)
 
     // Connect together Serial stuff
     connect(&serialSearchWatcher, &QFutureWatcher<uint8_t>::finished, this, &guiWindow::serialPort_SearchFinished);
-    connect(&serialDisconnectWatcher, &QFutureWatcher<uint8_t>::finished, this, &guiWindow::serialPort_DisconnectFinished);
     connect(&serial.port, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
     connect(&serial, &AppSerial::Serial_SetProgressRange, this, &guiWindow::serialPort_progressSet);
     connect(&serial, &AppSerial::Serial_ProgressUpdate, this, &guiWindow::serialPort_progressUpdate);
@@ -840,8 +839,22 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         ui->tabWidget->setEnabled(false);
 
         if(serial.port.isOpen())
-            serialDisconnectWatcher.setFuture(serialDisconnectFuture);
-            serialDisconnectFuture = QtConcurrent::run(&AppSerial::Disconnect, &serial);
+            serial.Disconnect();
+
+        // reset stuff
+        testLabel[14]->setStyleSheet("");
+        testLabel[15]->setStyleSheet("");
+
+        // force disable test mode if it was set
+        if(testMode) {
+            testMode = false;
+            ui->buttonsTestArea->setEnabled(true);
+            ui->pinsTab->setEnabled(true);
+            ui->settingsTab->setEnabled(true);
+            ui->profilesTab->setEnabled(true);
+            ui->feedbackTestsBox->setEnabled(true);
+            ui->dangerZoneBox->setEnabled(true);
+        }
     }
     serialActive = false;
 }
@@ -1710,29 +1723,6 @@ void guiWindow::serialPort_SearchFinished()
             }
         }
     }
-}
-
-
-void guiWindow::serialPort_DisconnectFinished()
-{
-    // reset stuff
-    testLabel[14]->setStyleSheet("");
-    testLabel[15]->setStyleSheet("");
-
-    // force disable test mode if it was set
-    if(testMode) {
-        testMode = false;
-        ui->buttonsTestArea->setEnabled(true);
-        ui->pinsTab->setEnabled(true);
-        ui->settingsTab->setEnabled(true);
-        ui->profilesTab->setEnabled(true);
-        ui->feedbackTestsBox->setEnabled(true);
-        ui->dangerZoneBox->setEnabled(true);
-        serialActive = false;
-    }
-
-    serialActive = false;
-    ui->tabWidget->setEnabled(false);
 }
 
 

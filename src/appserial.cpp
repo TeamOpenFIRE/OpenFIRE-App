@@ -91,6 +91,7 @@ bool AppSerial::GetSettings(const QString &portName)
                         App_Const::board.selectedProfile = buffer.at(4).toInt();
                         App_Const::board.previousProfile = App_Const::board.selectedProfile;
 
+                        // get TUSB info
                         port.write("Xli");
                         port.waitForBytesWritten(500);
                         port.waitForReadyRead(500);
@@ -109,6 +110,8 @@ bool AppSerial::GetSettings(const QString &portName)
                         emit Serial_ProgressUpdate(1, "Getting Settings (1)");
 
                         port.clear();
+
+                        // get toggles
                         port.write("Xlb");
                         if(port.waitForBytesWritten(500)) {
                             if(port.waitForReadyRead(500)) {
@@ -167,11 +170,9 @@ bool AppSerial::GetSettings(const QString &portName)
                                 // profiles
                                 App_Const::profilesTable.clear(), App_Const::profilesTable_orig.clear();
 
-                                // TODO: don't think we NEED to limit reading only to profiles count?
-                                // perhaps just stop at the first invalid response from the board
                                 for(uint8_t i = 0;; i++) {
                                     port.clear();
-                                    port.write(QString("XlP%1").arg(i).toLocal8Bit());
+                                    port.write("XlP" + QByteArray::number(i));
                                     port.waitForBytesWritten(500);
                                     if(port.waitForReadyRead(500)) {
                                         // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
@@ -182,16 +183,16 @@ bool AppSerial::GetSettings(const QString &portName)
 
                                         // copy settings
                                         App_Const::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
-                                            App_Const::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
-                                            App_Const::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].runMode = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
-                                            App_Const::profilesTable[i].color = buffer.takeFirst().toLong(),
-                                            App_Const::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
+                                        App_Const::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
+                                        App_Const::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
+                                        App_Const::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].runMode = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
+                                        App_Const::profilesTable[i].color = buffer.takeFirst().toLong(),
+                                        App_Const::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
 
                                         App_Const::profilesTable_orig[i] = App_Const::profilesTable.at(i);
                                     } else break;
@@ -202,9 +203,9 @@ bool AppSerial::GetSettings(const QString &portName)
                                 return true;
 
                             } else QMessageBox::warning(nullptr, "Sync Error: Data hasn't arrived!!",
-                                                     "Device was detected, but settings request wasn't received in time!\n"
-                                                     "This can happen if the app was closed in the middle of an operation.\n\n"
-                                                     "Try selecting the device again.");
+                                                                 "Device was detected, but settings request wasn't received in time!\n"
+                                                                 "This can happen if the app was closed in the middle of an operation.\n\n"
+                                                                 "Try selecting the device again.");
                         } else {
                             printf("Couldn't send any data in time! Does the port even exist???\n");
                             return false;
@@ -214,10 +215,10 @@ bool AppSerial::GetSettings(const QString &portName)
                         return false;
                     }
                 } else {
-                    QMessageBox::warning(nullptr,  "Data hasn't arrived! (Stale state?)",
-                                         "Device was detected, but initial settings request wasn't received in time!\n"
-                                         "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
-                                         "Try selecting the device again.");
+                    QMessageBox::warning(nullptr,   "Data hasn't arrived! (Stale state?)",
+                                                    "Device was detected, but initial settings request wasn't received in time!\n"
+                                                    "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
+                                                    "Try selecting the device again.");
                     return false;
                 }
             } else {
@@ -225,9 +226,9 @@ bool AppSerial::GetSettings(const QString &portName)
                 return false;
             }
         } else {
-            QMessageBox::warning(nullptr,  "Serial port is already in use!",
-                                 "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
-                                 "Please close the offending application and try selecting this port again.");
+            QMessageBox::warning(nullptr,   "Serial port is already in use!",
+                                            "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
+                                            "Please close the offending application and try selecting this port again.");
             return false;
         }
     } else return false;
@@ -238,8 +239,9 @@ bool AppSerial::OneShotSend(const QByteArray &string)
 {
     if(port.isOpen()) {
         port.write(string);
-        port.waitForBytesWritten(1000);
-        return true;
+        if(port.waitForBytesWritten(1000))
+            return true;
+        else return false;
     } else return false;
 }
 
@@ -285,8 +287,9 @@ bool AppSerial::CommitSettings()
             if(port.waitForReadyRead(1000)) {
                 QString buffer = port.readLine();
                 if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
-                    emit Serial_ProgressUpdate(i);
+                    emit Serial_ProgressUpdate(i, "Committing settings to microcontroller...");
                 } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
+                    emit Serial_ProgressUpdate(serialQueue.length()-1, "Successfully synced settings!");
                     return true;
                 } else return false;
             } else return false;
@@ -299,8 +302,8 @@ void AppSerial::Disconnect()
 {
     if(port.isOpen()) {
         port.write("XE");
-        port.waitForBytesWritten(1000);
-        port.waitForReadyRead(1000);
+        port.waitForBytesWritten(500);
+        port.waitForReadyRead(500);
         port.close();
     }
 
