@@ -751,50 +751,29 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->tabWidget->setEnabled(true);
             ui->customPinsEnabled->setChecked(App_Const::boolSettings[OF_Const::customPins]);
 
-            if(App_Const::inputsMap.value(OF_Const::rumblePin) >= 0)
-                ui->rumbleToggle->setEnabled(true),  ui->rumbleFFToggle->setEnabled(true);
-            else ui->rumbleToggle->setEnabled(false), ui->rumbleFFToggle->setEnabled(false);
-            ui->rumbleToggle->setChecked(App_Const::boolSettings[OF_Const::rumble]);
-
-            if(App_Const::inputsMap.value(OF_Const::solenoidPin) >= 0)
-                ui->solenoidToggle->setEnabled(true);
-            else ui->solenoidToggle->setEnabled(false);
-            ui->solenoidToggle->setChecked(App_Const::boolSettings[OF_Const::solenoid]);
-
-            if((App_Const::boolSettings[OF_Const::rumble] && App_Const::boolSettings[OF_Const::rumbleFF]) || App_Const::boolSettings[OF_Const::solenoid])
-                ui->autofireToggle->setEnabled(true);
-            else ui->autofireToggle->setEnabled(false);
-            ui->autofireToggle->setChecked(App_Const::boolSettings[OF_Const::autofire]);
-
-            ui->simplePauseToggle->setChecked(App_Const::boolSettings[OF_Const::simplePause]);
-            ui->holdToPauseToggle->setChecked(App_Const::boolSettings[OF_Const::holdToPause]);
-
-            if(App_Const::inputsMap.value(OF_Const::ledR) >= 0 && App_Const::inputsMap.value(OF_Const::ledG) >= 0 && App_Const::inputsMap.value(OF_Const::ledB) >= 0)
-                ui->commonAnodeToggle->setEnabled(true);
-            else ui->commonAnodeToggle->setEnabled(false);
-            ui->commonAnodeToggle->setChecked(App_Const::boolSettings[OF_Const::commonAnode]);
-
-            ui->lowButtonsToggle->setChecked(App_Const::boolSettings[OF_Const::lowButtonsMode]);
-            ui->rumbleFFToggle->setChecked(App_Const::boolSettings[OF_Const::rumbleFF]);
-            ui->rumbleIntensityBox->setEnabled(App_Const::boolSettings[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Const::settingsTable[OF_Const::rumbleStrength]);
-            ui->rumbleLengthBox->setEnabled(App_Const::boolSettings[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Const::settingsTable[OF_Const::rumbleInterval]);
-            ui->holdToPauseLengthBox->setEnabled(App_Const::boolSettings[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Const::settingsTable[OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setEnabled(App_Const::boolSettings[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Const::settingsTable[OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setEnabled(App_Const::boolSettings[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Const::settingsTable[OF_Const::solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setEnabled(App_Const::boolSettings[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Const::settingsTable[OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(App_Const::boolSettings[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Const::settingsTable[OF_Const::autofireWaitFactor]);
+            ui->rumbleToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumble]);
+            ui->solenoidToggle->setChecked(App_Const::boolSettings_orig[OF_Const::solenoid]);
+            ui->autofireToggle->setChecked(App_Const::boolSettings_orig[OF_Const::autofire]);
+            ui->simplePauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::simplePause]);
+            ui->holdToPauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::holdToPause]);
+            ui->commonAnodeToggle->setChecked(App_Const::boolSettings_orig[OF_Const::commonAnode]);
+            ui->lowButtonsToggle->setChecked(App_Const::boolSettings_orig[OF_Const::lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumbleFF]);
+            ui->rumbleIntensityBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(App_Const::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Const::settingsTable_orig[OF_Const::autofireWaitFactor]);
 
             ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
             ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-
-            if(App_Const::inputsMap.value(OF_Const::neoPixel) >= 0)
-                ui->neopixelGroupBox->setEnabled(true);
-            else ui->neopixelGroupBox->setEnabled(false);
-            ui->neopixelStrandLengthBox->setValue(App_Const::settingsTable[OF_Const::customLEDcount]);
-            ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable[OF_Const::customLEDstatic]);
-            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
+            ui->neopixelStrandLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
             switch(App_Const::tinyUSBtable.tinyUSBid.toInt()) {
             case 1:
@@ -831,7 +810,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 ui->tinyUSBLayoutToggle->setChecked(true);
                 break;
             }
+
         } else ui->comPortSelector->setCurrentIndex(0);
+
         serialPort_progressSet(0);
     } else {
         ui->boardLabel->clear();
