@@ -290,7 +290,7 @@ void guiWindow::DiffUpdate()
     if(App_Const::board.selectedProfile != App_Const::board.previousProfile)
         settingsDiff++;
 
-    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+    for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
         if(App_Const::profilesTable_orig[i].profName != App_Const::profilesTable[i].profName)
             settingsDiff++;
 
@@ -392,7 +392,7 @@ void guiWindow::on_confirmButton_clicked()
             App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
             App_Const::board.previousProfile = App_Const::board.selectedProfile;
 
-            for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+            for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
                 App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
                 App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
                 App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;

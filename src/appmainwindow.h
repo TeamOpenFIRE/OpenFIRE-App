@@ -21,9 +21,6 @@
 // Maximum amount of GPIO that the RP2040 microcontroller has available
 #define PINS_COUNT 30
 
-// Default maximum amount of profiles to read in (TODO: could just be made a flexible number)
-#define PROFILES_COUNT 4
-
 // Interval of the aliveTimer object that probes the board to ensure it's connected
 #define ALIVE_TIMER 5000
 
