@@ -146,6 +146,9 @@ guiWindow::guiWindow(QWidget *parent)
     statusProgressBar->setVisible(false);
     ui->statusBar->addPermanentWidget(statusProgressBar);
 
+    // Disable ONLY the tab widget (doing this from the form also disables children, including the scroll area)
+    ui->tabWidget->setEnabled(false);
+
     // light mode styling adjustments:
     if(this->palette().window().color().value() > this->palette().text().color().value()) {
         ui->settingsDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
