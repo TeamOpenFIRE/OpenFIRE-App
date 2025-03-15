@@ -27,6 +27,7 @@
 #include <QProgressBar>
 #include <QProcess>
 //#include <QStorageInfo>
+#include <QtConcurrentRun>
 #include <QDebug>
 #include <QFileDialog>
 #include <QColorDialog>
@@ -59,37 +60,42 @@ guiWindow::guiWindow(QWidget *parent)
     }
 #endif
 
-    connect(&serialPort, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
+    // Connect together Serial stuff
+    connect(&serialSearchWatcher, &QFutureWatcher<uint8_t>::finished, this, &guiWindow::serialPort_SearchFinished);
+    connect(&serial.port, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
+    connect(&serial, &AppSerial::Serial_SetProgressRange, this, &guiWindow::serialPort_progressSet);
+    connect(&serial, &AppSerial::Serial_ProgressUpdate, this, &guiWindow::serialPort_progressUpdate);
 
+    connect(&aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
+
+    // Start initial serial search
+    aliveTimer.start(ALIVE_TIMER);
+    aliveTimer_timeout();
+
+#if defined(OFAPP_VERSION) & defined(OFAPP_CODENAME)
+    this->setWindowTitle("OpenFIRE App - " + OFAPP_CODENAME + " [v" + OFAPP_VERSION + ']');
+#else
     this->setWindowTitle("OpenFIRE App - Tokinomiya [v3.0-dev]");
+#endif // OFAPP_VERSION
 
-    // get all fixed interactable elements marked to use event filter:
-    for(const auto child : this->findChildren<QPushButton*>()) {
+    // get all fixed interactable elements marked to use event filter for hover stuff:
+    for(const auto child : this->findChildren<QPushButton*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-    }
-    for(const auto child : this->findChildren<QCheckBox*>()) {
+
+    for(const auto child : this->findChildren<QCheckBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-        //if(!child->property("isFor").isNull()) connect(child, &QCheckBox::stateChanged, this, &NeroPrefixSettingsWindow::OptionSet);
-    }
-    for(const auto child : this->findChildren<QLineEdit*>()) {
+
+    for(const auto child : this->findChildren<QLineEdit*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-        //if(!child->property("isFor").isNull()) connect(child, &QLineEdit::textEdited, this, &NeroPrefixSettingsWindow::OptionSet);
-    }
-    for(const auto child : this->findChildren<QSpinBox*>()) {
+
+    for(const auto child : this->findChildren<QSpinBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-        // QSpinboxes' "valueChanged" signal isn't new syntax friendly?
-        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(valueChanged(int)), this, SLOT(OptionSet()));
-    }
-    for(const auto child : this->findChildren<QComboBox*>()) {
+
+    for(const auto child : this->findChildren<QComboBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-        // QComboboxes aren't new syntax friendly?
-        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(activated(int)), this, SLOT(OptionSet()));
-    }
-    for(const auto child : this->findChildren<QRadioButton*>()) {
+
+    for(const auto child : this->findChildren<QRadioButton*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
-        // QComboboxes aren't new syntax friendly?
-        //if(!child->property("isFor").isNull()) connect(child, SIGNAL(activated(int)), this, SLOT(OptionSet()));
-    }
 
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
@@ -99,7 +105,7 @@ guiWindow::guiWindow(QWidget *parent)
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Setup test screen buttons
-    for(uint8_t i = 0; i < 16; i++) {
+    for(int i = 0; i < 16; i++) {
         testLabel[i] = new QLabel;
 
         // temperature sensor
@@ -134,15 +140,14 @@ guiWindow::guiWindow(QWidget *parent)
     // set hidden by default until a board with presets is loaded
     ui->presetsBox->setHidden(true);
 
-    // Finally get to the thing!
-    aliveTimer = new QTimer();
-    connect(aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
-    PortsSearch();
-    usbName.prepend("[No device]");
-    // TODO: what's a good validator to only accept character values within the range of an unsigned char?
-    //ui->productNameInput->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]+"), this));
-    ui->comPortSelector->addItems(usbName);
+
+    statusProgressBar = new QProgressBar();
+    statusProgressBar->setVisible(false);
+    ui->statusBar->addPermanentWidget(statusProgressBar);
+
+    // Disable ONLY the tab widget (doing this from the form also disables children, including the scroll area)
+    ui->tabWidget->setEnabled(false);
 
     // light mode styling adjustments:
     if(this->palette().window().color().value() > this->palette().text().color().value()) {
@@ -155,13 +160,11 @@ guiWindow::guiWindow(QWidget *parent)
 
 guiWindow::~guiWindow()
 {
-    if(serialPort.isOpen()) {
+    if(ui->comPortSelector->currentIndex() > 0) {
         statusBar()->showMessage("Sending undock request to board...");
-        serialPort.write("XE");
-        serialPort.waitForBytesWritten(1000);
-        serialPort.waitForReadyRead(1000);
-        serialPort.close();
+        serial.Disconnect();
     }
+
     delete ui;
 }
 
@@ -206,373 +209,16 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
 }
 
 
-void guiWindow::PortsSearch()
-{
-    serialFoundList = QSerialPortInfo::availablePorts();
-    if(serialFoundList.isEmpty()) {
-        QMessageBox::critical(this, "ERROR: No devices detected!",  "Is the microcontroller board currently running OpenFIRE and is currently plugged in?\n"
-                                                                    "Make sure it's connected and recognized by the PC.\n\n"
-                                                                    "This app will now close.");
-        exit(1);
-    } else {
-        // Yeah, sue me, we reading this backwards to make stack management easier.
-        for(int i = serialFoundList.length() - 1; i >= 0; --i) {
-            if(serialFoundList.at(i).vendorIdentifier() == 0xF143) {
-                usbName.prepend(serialFoundList[i].systemLocation());
-                printf("Found device @ %s\n", serialFoundList.at(i).systemLocation().toLocal8Bit().constData());
-            } else {
-                if(!serialFoundList.at(i).systemLocation().contains("tty"))
-                    printf("Deleting dummy device %s\n", serialFoundList.at(i).systemLocation().toLocal8Bit().constData());
-                serialFoundList.removeAt(i);
-            }
-        }
-        if(!usbName.length()) {
-            QMessageBox::critical(this, "ERROR: No devices detected!",  "Is the microcontroller board currently running OpenFIRE and is currently plugged in?\n"
-                                                                        "Make sure it's connected and recognized by the PC.\n\n"
-                                                                        "This app will now close.");
-            exit(1);
-        }
-    }
-}
-
-
-// Bool returns success (false if failed)
-bool guiWindow::SerialInit(int portNum)
-{
-    serialPort.setPort(serialFoundList[portNum]);
-    serialPort.setBaudRate(QSerialPort::Baud9600);
-    if(serialPort.open(QIODevice::ReadWrite)) {
-        serialActive = true;
-        // windows needs DTR enabled to actually read responses.
-        serialPort.setDataTerminalReady(true);
-        serialPort.write("XP");
-        if(serialPort.waitForBytesWritten(500)) {
-            if(serialPort.waitForReadyRead(500)) {
-                QByteArray bufStr = serialPort.readLine().trimmed();
-                QList<QByteArray> buffer = bufStr.split(',');
-
-                if(buffer.at(0) == "CAMERROR: Not available") {
-                    QMessageBox::warning(this,  "Device Error: Camera not available!",
-                                                "Data received from the board indicates that the camera is in a bad state.\n"
-                                                "This can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\n"
-                                                "The camera must be removed or resoldered to resolve this.");
-                    buffer.takeFirst();
-                }
-
-                if(buffer.at(0).contains("OpenFIRE")) {
-                    printf("OpenFIRE gun detected!\n");
-
-                    App_Const::board.versionNumber = buffer.at(1).constData();
-                    printf("Version number: %s\n", App_Const::board.versionNumber.toLocal8Bit().constData());
-
-                    App_Const::board.versionCodename = buffer.at(2).constData();
-                    printf("Version codename: %s\n", App_Const::board.versionCodename.toLocal8Bit().constData());
-
-                    App_Const::board.boardType = buffer.at(3).constData();
-                    printf("Board type: %s\n", App_Const::board.boardType.toLocal8Bit().constData());
-
-                    App_Const::board.selectedProfile = buffer.at(4).toInt();
-                    App_Const::board.previousProfile = App_Const::board.selectedProfile;
-
-                    serialPort.write("Xli");
-                    serialPort.waitForBytesWritten(500);
-                    serialPort.waitForReadyRead(500);
-
-                    bufStr = serialPort.readLine().trimmed();
-                    buffer = bufStr.split(',');
-                    App_Const::tinyUSBtable.tinyUSBid = buffer.at(0);
-                    App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
-
-                    if(buffer[1] == "SERIALREADERR01")
-                        App_Const::tinyUSBtable.tinyUSBname = "";
-
-                    else App_Const::tinyUSBtable.tinyUSBname = buffer.at(1);
-
-                    App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
-
-                    SerialLoad();
-                    return true;
-                } else {
-                    printf("Port did not respond with expected response! Got: %s", buffer.join(',').constData());
-                    return false;
-                }
-            } else {
-                QMessageBox::warning(this,  "Data hasn't arrived! (Stale state?)",
-                                            "Device was detected, but initial settings request wasn't received in time!\n"
-                                            "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
-                                            "Try selecting the device again.");
-                return false;
-            }
-        } else {
-            printf("Couldn't send any data in time! Does the port even exist???\n");
-            return false;
-        }
-    } else {
-        QMessageBox::warning(this,  "Serial port is already in use!",
-                                    "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
-                                    "Please close the offending application and try selecting this port again.");
-        return false;
-    }
-}
-
-
-void guiWindow::SerialLoad()
-{
-    serialActive = true;
-    serialPort.clear();
-    serialPort.write("Xlb");
-    if(serialPort.waitForBytesWritten(500)) {
-        if(serialPort.waitForReadyRead(500)) {
-            QString bufStr = serialPort.readLine().trimmed();
-            QStringList buffer = bufStr.split(',');
-
-            // booleans
-            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
-                if(!buffer.isEmpty()) {
-                    boolSettings[i] = buffer[i].toInt();
-                    boolSettings_orig[i] = boolSettings[i];
-                } else break;
-            }
-
-            // pins
-            if(boolSettings[OF_Const::customPins]) {
-                serialPort.clear();
-                serialPort.write("Xlp");
-                serialPort.waitForBytesWritten(500);
-                serialPort.waitForReadyRead(500);
-                App_Const::inputsMap_orig.clear(), App_Const::inputsMap.clear();
-                bufStr = serialPort.readLine().trimmed();
-                buffer = bufStr.split(',');
-                for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
-                    if(!buffer.isEmpty())
-                        App_Const::inputsMap_orig[i] = buffer[i].toInt();
-                    else break;
-                }
-            } else {
-                for(int i = 0; i < OF_Const::boardInputsCount; i++)
-                    App_Const::inputsMap_orig[i] = OF_Const::btnUnmapped;
-            }
-
-            App_Const::inputsMap = App_Const::inputsMap_orig;
-
-            // settings
-            serialPort.clear();
-            serialPort.write("Xls");
-            serialPort.waitForBytesWritten(500);
-            serialPort.waitForReadyRead(500);
-            bufStr = serialPort.readLine().trimmed();
-            buffer = bufStr.split(',');
-            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
-                if(!buffer.isEmpty()) {
-                    settingsTable[i] = buffer[i].toInt();
-                    settingsTable_orig[i] = settingsTable[i];
-                } else break;
-            }
-
-            // profiles
-            for(int i = 0; i < App_Const::profilesTable.count(); i++) {
-                delete topOffset.at(i);
-                delete bottomOffset.at(i);
-                delete leftOffset.at(i);
-                delete rightOffset.at(i);
-                delete TLled.at(i);
-                delete TRled.at(i);
-                delete renameBtn.at(i);
-                delete selectedProfile.at(i);
-                delete irSens.at(i);
-                delete runMode.at(i);
-                delete layoutMode.at(i);
-                delete color.at(i);
-                delete caliBtn.at(i);
-            }
-
-            topOffset.clear();
-            bottomOffset.clear();
-            leftOffset.clear();
-            rightOffset.clear();
-            TLled.clear();
-            TRled.clear();
-            renameBtn.clear();
-            selectedProfile.clear();
-            irSens.clear();
-            runMode.clear();
-            layoutMode.clear();
-            color.clear();
-            caliBtn.clear();
-
-            App_Const::profilesTable.clear(), App_Const::profilesTable_orig.clear();
-
-            // TODO: don't think we NEED to limit reading only to profiles count?
-            // perhaps just stop at the first invalid response from the board
-            int caliBtnRow;
-            for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-                caliBtnRow = i/4;
-                serialPort.clear();
-                serialPort.write(QString("XlP%1").arg(i).toLocal8Bit());
-                serialPort.waitForBytesWritten(500);
-                if(serialPort.waitForReadyRead(500)) {
-                    // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
-                    bufStr = serialPort.readLine().trimmed();
-                    buffer = bufStr.split(',');
-
-                    App_Const::profilesTable << App_Const::profilesTable_s(), App_Const::profilesTable_orig << App_Const::profilesTable_s();
-
-                    // copy settings
-                    App_Const::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
-                    App_Const::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
-                    App_Const::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].runMode = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
-                    App_Const::profilesTable[i].color = buffer.takeFirst().toLong(),
-                    App_Const::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
-
-                    App_Const::profilesTable_orig[i] = App_Const::profilesTable.at(i);
-
-                    // create new assets for this profile
-                    renameBtn << new QPushButton();
-                    renameBtn.at(i)->setFlat(true);
-                    renameBtn.at(i)->setFixedWidth(20);
-                    renameBtn.at(i)->setIcon(QIcon(":/icon/edit.png"));
-                    renameBtn.at(i)->installEventFilter(this);
-                    renameBtn.at(i)->setProperty("slot", i);
-                    renameBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    renameBtn.at(i)->setAccessibleName(QString("Rename Profile %1").arg(i+1));
-                    renameBtn.at(i)->setWhatsThis("<p>Click to rename this Calibration Profile.</p>"
-                                                  "<p>Aside from differentiating between different profiles for different displays, "
-                                                  "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
-                    connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
-
-                    selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Const::profilesTable.at(i).profName));
-                    if(i == App_Const::board.selectedProfile)
-                        selectedProfile.at(i)->setChecked(true);
-                    selectedProfile.at(i)->setFont(QFont("Monospace"));
-                    selectedProfile.at(i)->setProperty("slot", i);
-                    connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
-
-                    topOffset       << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).topOffset      ));
-                    bottomOffset    << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).bottomOffset   ));
-                    leftOffset      << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).leftOffset     ));
-                    rightOffset     << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).rightOffset    ));
-                    TLled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TLled          ));
-                    TRled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TRled          ));
-
-                    irSens << new QComboBox();
-                    irSens.at(i)->addItems({"Default", "Higher", "Highest"});
-                    irSens.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).irSensitivity);
-                    irSens.at(i)->installEventFilter(this);
-                    irSens.at(i)->setProperty("slot", i);
-                    irSens.at(i)->setProperty("type", App_Const::pBoxIRsens);
-                    irSens.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    irSens.at(i)->setAccessibleName(QString("Camera Sensitivity for Profile %1").arg(i+1));
-                    irSens.at(i)->setWhatsThis("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
-                                               "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
-                                               "adjusting this setting higher might fix issues with tracking.<br>"
-                                               "Conversely, setting sensitivity too high may cause indirect IR sources "
-                                               "(such as sunlight or IR bouncing off of reflective surfaces) "
-                                               "to be picked up instead, causing the cursor to jitter or erratically jump across the screen.</p>");
-                    connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
-
-                    runMode << new QComboBox();
-                    runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
-                    runMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).runMode);
-                    runMode.at(i)->installEventFilter(this);
-                    runMode.at(i)->setProperty("slot", i);
-                    runMode.at(i)->setProperty("type", App_Const::pBoxRunMode);
-                    runMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    runMode.at(i)->setAccessibleName(QString("Camera Position Averaging Mode for Profile %1").arg(i+1));
-                    runMode.at(i)->setWhatsThis("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
-                                                "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
-                                                "at the cost of a small increase in latency; conversely, disabling this position averaging can "
-                                                "reduce latency, at the cost of some added jitter in mouse movement.</p>"
-                                                "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>");
-                    connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
-
-                    layoutMode << new QComboBox();
-                    layoutMode.at(i)->addItems({"Square", "Diamond"});
-                    layoutMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).layoutType);
-                    layoutMode.at(i)->installEventFilter(this);
-                    layoutMode.at(i)->setProperty("slot", i);
-                    layoutMode.at(i)->setProperty("type", App_Const::pBoxLayout);
-                    layoutMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    layoutMode.at(i)->setAccessibleName(QString("IR Emitter Layout for Profile %1").arg(i+1));
-                    layoutMode.at(i)->setWhatsThis("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
-                                                   "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
-                                                   "which uses two pairs of emitters on the top and bottom, and <i>Diamond Layout,</i> "
-                                                   "which uses one emitter at the center of each side of the display.</p>"
-                                                   "<p><i>Square Layout</i> generally has much higher accuracy at any angle and allows for "
-                                                   "playing closer to the screen or using external Fish Eye lenses without viewport distortion, "
-                                                   "while <i>Diamond Layout</i> is for screen compatibility with certain legacy lightgun systems "
-                                                   "(allowing OpenFIRE guns to play with such other lightgun systems on the same display).</p>"
-                                                   "<p>If unsure, use <b>Square Layout</b> "
-                                                   "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>");
-                    connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
-
-                    color << new QPushButton();
-                    color.at(i)->setFixedWidth(32);
-                    color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Const::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
-                    color.at(i)->installEventFilter(this);
-                    color.at(i)->setProperty("slot", i);
-                    color.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    color.at(i)->setAccessibleName(QString("Profile Menu Color for Cali Profile %1").arg(i+1));
-                    color.at(i)->setWhatsThis("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
-                                              "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
-                                              "which is emitted by a 4-pin RGB LED and/or an active NeoPixel strand.</p>");
-                    connect(color.at(i), &QPushButton::clicked, this, &guiWindow::colorBoxes_clicked);
-
-                    caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
-                    caliBtn.at(i)->installEventFilter(this);
-                    caliBtn.at(i)->setProperty("slot", i);
-                    caliBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
-                    caliBtn.at(i)->setAccessibleName(QString("Open Calibration Window for Cali Profile %1").arg(i+1));
-                    caliBtn.at(i)->setWhatsThis("Click to start the calibration process for this profile.");
-                    connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
-
-                    topOffset.at(i)     ->setAlignment(Qt::AlignCenter);
-                    bottomOffset.at(i)  ->setAlignment(Qt::AlignCenter);
-                    leftOffset.at(i)    ->setAlignment(Qt::AlignCenter);
-                    rightOffset.at(i)   ->setAlignment(Qt::AlignCenter);
-                    TLled.at(i)         ->setAlignment(Qt::AlignCenter);
-                    TRled.at(i)         ->setAlignment(Qt::AlignCenter);
-
-                    ui->profilesArea->addWidget(renameBtn.at(i),       i+1, 0);
-                    ui->profilesArea->addWidget(selectedProfile.at(i), i+1, 1);
-                    ui->profilesArea->addWidget(topOffset.at(i),       i+1, 3);
-                    ui->profilesArea->addWidget(bottomOffset.at(i),    i+1, 5);
-                    ui->profilesArea->addWidget(leftOffset.at(i),      i+1, 7);
-                    ui->profilesArea->addWidget(rightOffset.at(i),     i+1, 9);
-                    ui->profilesArea->addWidget(TLled.at(i),           i+1, 11);
-                    ui->profilesArea->addWidget(TRled.at(i),           i+1, 13);
-                    ui->profilesArea->addWidget(irSens.at(i),          i+1, 15);
-                    ui->profilesArea->addWidget(runMode.at(i),         i+1, 17);
-                    ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 19);
-                    ui->profilesArea->addWidget(color.at(i),           i+1, 21);
-
-                    ui->caliBtnsLayout->addWidget(caliBtn.at(i), caliBtnRow, i);
-
-                } else break;
-            }
-            serialActive = false;
-        } else QMessageBox::warning(this, "Sync Error: Data hasn't arrived!!",  "Device was detected, but settings request wasn't received in time!\n"
-                                                                                "This can happen if the app was closed in the middle of an operation.\n\n"
-                                                                                "Try selecting the device again.");
-    } else printf("Couldn't send any data in time! Does the port even exist???\n");
-}
-
-
 void guiWindow::BoxesUpdate()
 {
     // enabling custom pins
-    if(boolSettings[OF_Const::customPins]) {
+    if(App_Const::boolSettings[OF_Const::customPins]) {
         // enable pinboxes
         for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
-        if(boolSettings_orig[OF_Const::customPins]) {
+        if(App_Const::boolSettings_orig[OF_Const::customPins]) {
             // reset pinboxes
             for(int i = 0; i < pinBoxes.count(); i++)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
@@ -623,19 +269,19 @@ void guiWindow::DiffUpdate()
 {
     int settingsDiff = 0;
 
-    if(boolSettings_orig[OF_Const::customPins] != boolSettings[OF_Const::customPins])
+    if(App_Const::boolSettings_orig[OF_Const::customPins] != App_Const::boolSettings[OF_Const::customPins])
         settingsDiff++;
 
-    if(boolSettings[OF_Const::customPins])
+    if(App_Const::boolSettings[OF_Const::customPins])
         if(App_Const::inputsMap_orig != App_Const::inputsMap)
             settingsDiff++;
 
     for(uint8_t i = 1; i < OF_Const::boolTypesCount; i++)
-        if(boolSettings_orig[i] != boolSettings[i])
+        if(App_Const::boolSettings_orig[i] != App_Const::boolSettings[i])
             settingsDiff++;
 
     for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-        if(settingsTable_orig[i] != settingsTable[i])
+        if(App_Const::settingsTable_orig[i] != App_Const::settingsTable[i])
             settingsDiff++;
 
     if(App_Const::tinyUSBtable_orig.tinyUSBid != App_Const::tinyUSBtable.tinyUSBid)
@@ -647,7 +293,7 @@ void guiWindow::DiffUpdate()
     if(App_Const::board.selectedProfile != App_Const::board.previousProfile)
         settingsDiff++;
 
-    for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
+    for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
         if(App_Const::profilesTable_orig[i].profName != App_Const::profilesTable[i].profName)
             settingsDiff++;
 
@@ -706,11 +352,11 @@ QString guiWindow::PrettifyName(QString name)
 
 void guiWindow::PixelsDiff()
 {
-    if( settingsTable[OF_Const::customLEDcount]  == settingsTable_orig[OF_Const::customLEDcount]  &&
-        settingsTable[OF_Const::customLEDstatic] == settingsTable_orig[OF_Const::customLEDstatic] &&
-        settingsTable[OF_Const::customLEDcolor1] == settingsTable_orig[OF_Const::customLEDcolor1] &&
-        settingsTable[OF_Const::customLEDcolor2] == settingsTable_orig[OF_Const::customLEDcolor2] &&
-        settingsTable[OF_Const::customLEDcolor3] == settingsTable_orig[OF_Const::customLEDcolor3]) {
+    if( App_Const::settingsTable[OF_Const::customLEDcount]  == App_Const::settingsTable_orig[OF_Const::customLEDcount]  &&
+        App_Const::settingsTable[OF_Const::customLEDstatic] == App_Const::settingsTable_orig[OF_Const::customLEDstatic] &&
+        App_Const::settingsTable[OF_Const::customLEDcolor1] == App_Const::settingsTable_orig[OF_Const::customLEDcolor1] &&
+        App_Const::settingsTable[OF_Const::customLEDcolor2] == App_Const::settingsTable_orig[OF_Const::customLEDcolor2] &&
+        App_Const::settingsTable[OF_Const::customLEDcolor3] == App_Const::settingsTable_orig[OF_Const::customLEDcolor3]) {
         ui->pixelChangeNotice->setVisible(false);
     } else {
         ui->pixelChangeNotice->setVisible(true);
@@ -724,168 +370,237 @@ void guiWindow::on_confirmButton_clicked()
     messageBox.setInformativeText("These settings will be committed to your lightgun. Is that okay?");
 
     if(messageBox.exec() == QMessageBox::Yes) {
-        if(serialPort.isOpen()) {
-            serialActive = true;
-            aliveTimer->stop();
-            // send a signal so the gun pauses its test outputs for the save op.
-            serialPort.write("Xm");
-            serialPort.waitForBytesWritten(500);
+        serialActive = true;
 
-            QProgressBar *statusProgressBar = new QProgressBar();
-            ui->statusBar->addPermanentWidget(statusProgressBar);
-            ui->tabWidget->setEnabled(false);
-            ui->comPortSelector->setEnabled(false);
-            ui->confirmButton->setEnabled(false);
+        ui->tabWidget->setEnabled(false);
+        ui->comPortSelector->setEnabled(false);
+        ui->confirmButton->setEnabled(false);
 
-            QStringList serialQueue;
-            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++)
-                serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(boolSettings[i]));
+        if(serial.CommitSettings()) {
+            statusBar()->showMessage("Sent settings successfully!", 5000);
 
-            if(boolSettings[OF_Const::customPins])
-                for(uint8_t i = 0; i < App_Const::inputsMap.count(); i++)
-                    serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(App_Const::inputsMap.value(i)));
+            // sync settings
+            for(int i = 0; i < OF_Const::boolTypesCount; i++)
+                App_Const::boolSettings_orig[i] = App_Const::boolSettings[i];
 
-            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-                serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(settingsTable[i]));
+            if(App_Const::boolSettings_orig[OF_Const::customPins])
+                App_Const::inputsMap_orig = App_Const::inputsMap;
+            else for(int i = 0; i < App_Const::inputsMap.size(); i++)
+                    App_Const::inputsMap_orig[i] = -1;
 
-            serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid));
-            if(!App_Const::tinyUSBtable.tinyUSBname.isEmpty())
-                serialQueue.append(QString("Xm.3.1.%1").arg(App_Const::tinyUSBtable.tinyUSBname));
+            for(int i = 0; i < OF_Const::settingsTypesCount; i++)
+                App_Const::settingsTable_orig[i] = App_Const::settingsTable[i];
 
-            for(uint8_t i = 0; i < 4; i++) {
-                serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Const::profilesTable[i].irSensitivity));
-                serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Const::profilesTable[i].runMode));
-                serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Const::profilesTable[i].layoutType));
-                serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Const::profilesTable[i].color));
-                serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(App_Const::profilesTable[i].profName));
-            }
-            serialQueue.append("XS");
+            App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
+            App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
+            App_Const::board.previousProfile = App_Const::board.selectedProfile;
 
-            statusProgressBar->setRange(0, serialQueue.length()-1);
-            bool success = true;
-
-            // throw out whatever's in the buffer if there's anything there.
-            serialPort.clear();
-
-            for(uint8_t i = 0; i < serialQueue.length(); i++) {
-                serialPort.write(serialQueue.at(i).toLocal8Bit());
-                serialPort.waitForBytesWritten(1000);
-                if(serialPort.waitForReadyRead(1000)) {
-                    QString buffer = serialPort.readLine();
-                    if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
-                        statusProgressBar->setValue(statusProgressBar->value() + 1);
-                    } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                        for(uint8_t t = 0; t < 3; t++) {
-                            if(serialPort.atEnd()) { serialPort.waitForReadyRead(2000); }
-                            buffer = serialPort.readLine();
-                            if(buffer.contains("Settings saved to")) {
-                                success = true;
-                                break;
-                            }
-                        }
-
-                        if(success) {
-                            while(!serialPort.atEnd())
-                                serialPort.readLine();
-                        }
-                    }
-                }
+            for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
+                App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
+                App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
+                App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
+                App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
+                App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
             }
 
-            ui->statusBar->removeWidget(statusProgressBar);
-            delete statusProgressBar;
-            ui->tabWidget->setEnabled(true);
-            ui->comPortSelector->setEnabled(true);
+            // Reflect new names in UI
+            LabelsUpdate();
 
-            if(!success) printf("Settings syncing failed!?\n");
-            else {
-                statusBar()->showMessage("Sent settings successfully!", 5000);
+            // update (clear) diffs
+            PixelsDiff();
+            DiffUpdate();
+        } else printf("Settings syncing failed!?\n");
 
-                // sync settings
-                for(int i = 0; i < OF_Const::boolTypesCount; i++)
-                    boolSettings_orig[i] = boolSettings[i];
-
-                if(boolSettings_orig[OF_Const::customPins])
-                    App_Const::inputsMap_orig = App_Const::inputsMap;
-                else for(int i = 0; i < App_Const::inputsMap.size(); i++)
-                        App_Const::inputsMap_orig[i] = -1;
-
-                for(int i = 0; i < OF_Const::settingsTypesCount; i++)
-                    settingsTable_orig[i] = settingsTable[i];
-
-                App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
-                App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
-                App_Const::board.previousProfile = App_Const::board.selectedProfile;
-
-                for(uint8_t i = 0; i < PROFILES_COUNT; i++) {
-                    App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
-                    App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
-                    App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
-                    App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
-                    App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
-                }
-
-                // Reflect new names in UI
-                LabelsUpdate();
-
-                // update (clear) diffs
-                PixelsDiff();
-                DiffUpdate();
-            }
-
-            serialActive = false;
-            aliveTimer->start(ALIVE_TIMER);
-            serialQueue.clear();
-
-            if(!serialPort.atEnd())
-                serialPort.readAll();
-
-        } else printf("Wait, this port wasn't open to begin with!!!\n");
+        serialPort_progressSet(0);
+        ui->tabWidget->setEnabled(true);
+        ui->comPortSelector->setEnabled(true);
+        serialActive = false;
     } else { statusBar()->showMessage("Save operation canceled.", 3000); }
 }
 
 
 void guiWindow::aliveTimer_timeout()
 {
-    if(serialPort.isOpen()) {
-        serialPort.write(".");
-        if(!serialPort.waitForBytesWritten(1)) {
-            statusBar()->showMessage("Board hasn't responded to pulse; assuming it's been disconnected.");
-            serialPort.close();
-            ui->comPortSelector->setCurrentIndex(0);
-        }
-    }
+    serialSearchWatcher.setFuture(serialSearchFuture);
+    // Why did Qt6 change this syntax?
+#if QT_VERSION_MAJOR > 5
+    serialSearchFuture = QtConcurrent::run(&AppSerial::SearchPorts, &serial);
+#else
+    serialSearchFuture = QtConcurrent::run(&serial, &AppSerial::SearchPorts);
+#endif
 }
 
 
-void guiWindow::on_comPortSelector_currentIndexChanged(int index)
+void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 {
-    // Clear stale states if any, and unmount old board if mounted.
+    // Clear stale states if any
     if(testMode)
         if(caliWindow != nullptr)
             caliWindow->Shutdown();
 
-    if(serialPort.isOpen()) {
-        serialActive = true;
-        serialPort.write("XE");
-        serialPort.waitForBytesWritten(2000);
-        serialPort.waitForReadyRead(2000);
-        serialPort.readAll();
-        serialPort.close();
-        serialActive = false;
-    }
-
-    if(index > 0) {
+    if(ui->comPortSelector->currentIndex() > 0) {
         printf("COM port set to %d\n", ui->comPortSelector->currentIndex());
 
         // try to init serial port
         // if returns false, it failed, so just turn the index back to initial.
-        if(!SerialInit(index - 1)) {
-            ui->comPortSelector->setCurrentIndex(0);
-            aliveTimer->stop();
+        serialActive = true;
+        if(serial.GetSettings(text)) {
+            for(int i = 0; i < topOffset.count(); i++) {
+                delete topOffset.at(i);
+                delete bottomOffset.at(i);
+                delete leftOffset.at(i);
+                delete rightOffset.at(i);
+                delete TLled.at(i);
+                delete TRled.at(i);
+                delete renameBtn.at(i);
+                delete selectedProfile.at(i);
+                delete irSens.at(i);
+                delete runMode.at(i);
+                delete layoutMode.at(i);
+                delete color.at(i);
+                delete caliBtn.at(i);
+            }
 
-        // else, serial port is online! What do we got?
-        } else {
+            topOffset.clear();
+            bottomOffset.clear();
+            leftOffset.clear();
+            rightOffset.clear();
+            TLled.clear();
+            TRled.clear();
+            renameBtn.clear();
+            selectedProfile.clear();
+            irSens.clear();
+            runMode.clear();
+            layoutMode.clear();
+            color.clear();
+            caliBtn.clear();
+
+            int caliBtnRow;
+            for(uint8_t i = 0; i < App_Const::profilesTable.size(); i++) {
+                caliBtnRow = i/4;
+
+                // create new assets for this profile
+                renameBtn << new QPushButton();
+                renameBtn.at(i)->setFlat(true);
+                renameBtn.at(i)->setFixedWidth(20);
+                renameBtn.at(i)->setIcon(QIcon(":/icon/edit.png"));
+                renameBtn.at(i)->installEventFilter(this);
+                renameBtn.at(i)->setProperty("slot", i);
+                renameBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                renameBtn.at(i)->setAccessibleName(QString("Rename Profile %1").arg(i+1));
+                renameBtn.at(i)->setWhatsThis("<p>Click to rename this Calibration Profile.</p>"
+                                              "<p>Aside from differentiating between different profiles for different displays, "
+                                              "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
+                connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
+
+                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Const::profilesTable.at(i).profName));
+                if(i == App_Const::board.selectedProfile)
+                    selectedProfile.at(i)->setChecked(true);
+                selectedProfile.at(i)->setFont(QFont("Monospace"));
+                selectedProfile.at(i)->setProperty("slot", i);
+                connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
+
+                topOffset       << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).topOffset      ));
+                bottomOffset    << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).bottomOffset   ));
+                leftOffset      << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).leftOffset     ));
+                rightOffset     << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).rightOffset    ));
+                TLled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TLled          ));
+                TRled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TRled          ));
+
+                irSens << new QComboBox();
+                irSens.at(i)->addItems({"Default", "Higher", "Highest"});
+                irSens.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).irSensitivity);
+                irSens.at(i)->installEventFilter(this);
+                irSens.at(i)->setProperty("slot", i);
+                irSens.at(i)->setProperty("type", App_Const::pBoxIRsens);
+                irSens.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                irSens.at(i)->setAccessibleName(QString("Camera Sensitivity for Profile %1").arg(i+1));
+                irSens.at(i)->setWhatsThis("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
+                                           "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
+                                           "adjusting this setting higher might fix issues with tracking.<br>"
+                                           "Conversely, setting sensitivity too high may cause indirect IR sources "
+                                           "(such as sunlight or IR bouncing off of reflective surfaces) "
+                                           "to be picked up instead, causing the cursor to jitter or erratically jump across the screen.</p>");
+                connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
+
+                runMode << new QComboBox();
+                runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
+                runMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).runMode);
+                runMode.at(i)->installEventFilter(this);
+                runMode.at(i)->setProperty("slot", i);
+                runMode.at(i)->setProperty("type", App_Const::pBoxRunMode);
+                runMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                runMode.at(i)->setAccessibleName(QString("Camera Position Averaging Mode for Profile %1").arg(i+1));
+                runMode.at(i)->setWhatsThis("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
+                                            "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
+                                            "at the cost of a small increase in latency; conversely, disabling this position averaging can "
+                                            "reduce latency, at the cost of some added jitter in mouse movement.</p>"
+                                            "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>");
+                connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
+
+                layoutMode << new QComboBox();
+                layoutMode.at(i)->addItems({"Square", "Diamond"});
+                layoutMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).layoutType);
+                layoutMode.at(i)->installEventFilter(this);
+                layoutMode.at(i)->setProperty("slot", i);
+                layoutMode.at(i)->setProperty("type", App_Const::pBoxLayout);
+                layoutMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                layoutMode.at(i)->setAccessibleName(QString("IR Emitter Layout for Profile %1").arg(i+1));
+                layoutMode.at(i)->setWhatsThis("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
+                                               "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
+                                               "which uses two pairs of emitters on the top and bottom, and <i>Diamond Layout,</i> "
+                                               "which uses one emitter at the center of each side of the display.</p>"
+                                               "<p><i>Square Layout</i> generally has much higher accuracy at any angle and allows for "
+                                               "playing closer to the screen or using external Fish Eye lenses without viewport distortion, "
+                                               "while <i>Diamond Layout</i> is for screen compatibility with certain legacy lightgun systems "
+                                               "(allowing OpenFIRE guns to play with such other lightgun systems on the same display).</p>"
+                                               "<p>If unsure, use <b>Square Layout</b> "
+                                               "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>");
+                connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
+
+                color << new QPushButton();
+                color.at(i)->setFixedWidth(32);
+                color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Const::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
+                color.at(i)->installEventFilter(this);
+                color.at(i)->setProperty("slot", i);
+                color.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                color.at(i)->setAccessibleName(QString("Profile Menu Color for Cali Profile %1").arg(i+1));
+                color.at(i)->setWhatsThis("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
+                                          "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
+                                          "which is emitted by a 4-pin RGB LED and/or an active NeoPixel strand.</p>");
+                connect(color.at(i), &QPushButton::clicked, this, &guiWindow::colorBoxes_clicked);
+
+                caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
+                caliBtn.at(i)->installEventFilter(this);
+                caliBtn.at(i)->setProperty("slot", i);
+                caliBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                caliBtn.at(i)->setAccessibleName(QString("Open Calibration Window for Cali Profile %1").arg(i+1));
+                caliBtn.at(i)->setWhatsThis("Click to start the calibration process for this profile.");
+                connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
+
+                topOffset.at(i)     ->setAlignment(Qt::AlignCenter);
+                bottomOffset.at(i)  ->setAlignment(Qt::AlignCenter);
+                leftOffset.at(i)    ->setAlignment(Qt::AlignCenter);
+                rightOffset.at(i)   ->setAlignment(Qt::AlignCenter);
+                TLled.at(i)         ->setAlignment(Qt::AlignCenter);
+                TRled.at(i)         ->setAlignment(Qt::AlignCenter);
+
+                ui->profilesArea->addWidget(renameBtn.at(i),       i+1, 0);
+                ui->profilesArea->addWidget(selectedProfile.at(i), i+1, 1);
+                ui->profilesArea->addWidget(topOffset.at(i),       i+1, 3);
+                ui->profilesArea->addWidget(bottomOffset.at(i),    i+1, 5);
+                ui->profilesArea->addWidget(leftOffset.at(i),      i+1, 7);
+                ui->profilesArea->addWidget(rightOffset.at(i),     i+1, 9);
+                ui->profilesArea->addWidget(TLled.at(i),           i+1, 11);
+                ui->profilesArea->addWidget(TRled.at(i),           i+1, 13);
+                ui->profilesArea->addWidget(irSens.at(i),          i+1, 15);
+                ui->profilesArea->addWidget(runMode.at(i),         i+1, 17);
+                ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 19);
+                ui->profilesArea->addWidget(color.at(i),           i+1, 21);
+
+                ui->caliBtnsLayout->addWidget(caliBtn.at(i), caliBtnRow, i);
+            }
+
             // Clears old board layout items
             if(pinBoxes.count()) {
                 for(uint8_t i = 0; i < pinBoxes.count(); i++)
@@ -939,7 +654,6 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
-            aliveTimer->start(ALIVE_TIMER);
             ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(App_Const::board.versionNumber, App_Const::board.versionCodename));
 
             // update presets box if this board has any
@@ -971,25 +685,25 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                            OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
-                                            0);
+                                                OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                                0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                            OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
-                                            1);
+                                                OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                                1);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                            OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
-                                            1);
+                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                                 1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                            OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
-                                            0);
+                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                                 0);
                     } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
-                                                 1,
-                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                                                     1,
+                                                     OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
-                                                 0,
-                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                                                     0,
+                                                     OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                     }
                 }
             } else {
@@ -1000,25 +714,25 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 for(int i = 0; i < PINS_COUNT; i++) {
                     if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
-                                            0);
+                                                OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
+                                                0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
-                                            1);
+                                                OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
+                                                1);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                             OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
-                                             1);
+                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
+                                                 1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                            OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
-                                            0);
+                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posRight,
+                                                 0);
                     } else if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
-                                                 1,
-                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
+                                                     1,
+                                                     OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
-                                                 0,
-                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
+                                                     0,
+                                                     OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posMiddle);
                     }
                 }
             }
@@ -1043,52 +757,31 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
             }
 
             ui->tabWidget->setEnabled(true);
-            ui->customPinsEnabled->setChecked(boolSettings[OF_Const::customPins]);
+            ui->customPinsEnabled->setChecked(App_Const::boolSettings[OF_Const::customPins]);
 
-            if(App_Const::inputsMap.value(OF_Const::rumblePin) >= 0)
-                 ui->rumbleToggle->setEnabled(true),  ui->rumbleFFToggle->setEnabled(true);
-            else ui->rumbleToggle->setEnabled(false), ui->rumbleFFToggle->setEnabled(false);
-            ui->rumbleToggle->setChecked(boolSettings[OF_Const::rumble]);
-
-            if(App_Const::inputsMap.value(OF_Const::solenoidPin) >= 0)
-                 ui->solenoidToggle->setEnabled(true);
-            else ui->solenoidToggle->setEnabled(false);
-            ui->solenoidToggle->setChecked(boolSettings[OF_Const::solenoid]);
-
-            if((boolSettings[OF_Const::rumble] && boolSettings[OF_Const::rumbleFF]) || boolSettings[OF_Const::solenoid])
-                ui->autofireToggle->setEnabled(true);
-            else ui->autofireToggle->setEnabled(false);
-            ui->autofireToggle->setChecked(boolSettings[OF_Const::autofire]);
-
-            ui->simplePauseToggle->setChecked(boolSettings[OF_Const::simplePause]);
-            ui->holdToPauseToggle->setChecked(boolSettings[OF_Const::holdToPause]);
-
-            if(App_Const::inputsMap.value(OF_Const::ledR) >= 0 && App_Const::inputsMap.value(OF_Const::ledG) >= 0 && App_Const::inputsMap.value(OF_Const::ledB) >= 0)
-                 ui->commonAnodeToggle->setEnabled(true);
-            else ui->commonAnodeToggle->setEnabled(false);
-            ui->commonAnodeToggle->setChecked(boolSettings[OF_Const::commonAnode]);
-
-            ui->lowButtonsToggle->setChecked(boolSettings[OF_Const::lowButtonsMode]);
-            ui->rumbleFFToggle->setChecked(boolSettings[OF_Const::rumbleFF]);
-            ui->rumbleIntensityBox->setEnabled(boolSettings[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(settingsTable[OF_Const::rumbleStrength]);
-            ui->rumbleLengthBox->setEnabled(boolSettings[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(settingsTable[OF_Const::rumbleInterval]);
-            ui->holdToPauseLengthBox->setEnabled(boolSettings[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(settingsTable[OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setEnabled(boolSettings[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(settingsTable[OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setEnabled(boolSettings[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(settingsTable[OF_Const::solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setEnabled(boolSettings[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(settingsTable[OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(boolSettings[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(settingsTable[OF_Const::autofireWaitFactor]);
+            ui->rumbleToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumble]);
+            ui->solenoidToggle->setChecked(App_Const::boolSettings_orig[OF_Const::solenoid]);
+            ui->autofireToggle->setChecked(App_Const::boolSettings_orig[OF_Const::autofire]);
+            ui->simplePauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::simplePause]);
+            ui->holdToPauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::holdToPause]);
+            ui->commonAnodeToggle->setChecked(App_Const::boolSettings_orig[OF_Const::commonAnode]);
+            ui->lowButtonsToggle->setChecked(App_Const::boolSettings_orig[OF_Const::lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumbleFF]);
+            ui->rumbleIntensityBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(App_Const::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Const::settingsTable_orig[OF_Const::autofireWaitFactor]);
 
             ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
             ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-
-            if(App_Const::inputsMap.value(OF_Const::neoPixel) >= 0)
-                 ui->neopixelGroupBox->setEnabled(true);
-            else ui->neopixelGroupBox->setEnabled(false);
-            ui->neopixelStrandLengthBox->setValue(settingsTable[OF_Const::customLEDcount]);
-            ui->customLEDstaticSpinbox->setValue(settingsTable[OF_Const::customLEDstatic]);
-            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(settingsTable[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
+            ui->neopixelStrandLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
             switch(App_Const::tinyUSBtable.tinyUSBid.toInt()) {
             case 1:
@@ -1125,40 +818,34 @@ void guiWindow::on_comPortSelector_currentIndexChanged(int index)
                 ui->tinyUSBLayoutToggle->setChecked(true);
                 break;
             }
-        }
+
+        } else ui->comPortSelector->setCurrentIndex(0);
+
+        serialPort_progressSet(0);
     } else {
         ui->boardLabel->clear();
         ui->versionLabel->clear();
-
-        if(serialPort.isOpen()) {
-            serialActive = true;
-            serialPort.write("XE");
-            serialPort.waitForBytesWritten(500);
-            serialPort.waitForReadyRead(500);
-            serialPort.readAll();
-            serialPort.close();
-            testLabel[14]->setStyleSheet("");
-            testLabel[15]->setStyleSheet("");
-
-            // force disable test mode if it was set
-            if(testMode) {
-                testMode = false;
-
-                ui->buttonsTestArea->setEnabled(true);
-                ui->testBtn->setText("Enable IR Test Mode");
-                ui->pinsTab->setEnabled(true);
-                ui->settingsTab->setEnabled(true);
-                ui->profilesTab->setEnabled(true);
-                ui->feedbackTestsBox->setEnabled(true);
-                ui->dangerZoneBox->setEnabled(true);
-                serialActive = false;
-            }
-            serialActive = false;
-        }
-
-        aliveTimer->stop();
         ui->tabWidget->setEnabled(false);
+
+        if(serial.port.isOpen())
+            serial.Disconnect();
+
+        // reset stuff
+        testLabel[14]->setStyleSheet("");
+        testLabel[15]->setStyleSheet("");
+
+        // force disable test mode if it was set
+        if(testMode) {
+            testMode = false;
+            ui->buttonsTestArea->setEnabled(true);
+            ui->pinsTab->setEnabled(true);
+            ui->settingsTab->setEnabled(true);
+            ui->profilesTab->setEnabled(true);
+            ui->feedbackTestsBox->setEnabled(true);
+            ui->dangerZoneBox->setEnabled(true);
+        }
     }
+    serialActive = false;
 }
 
 
@@ -1383,7 +1070,7 @@ void guiWindow::colorBoxes_clicked()
 
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::customPins] = arg1;
+    App_Const::boolSettings[OF_Const::customPins] = arg1;
     BoxesUpdate();
 
     if(arg1)
@@ -1434,7 +1121,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::rumble] = arg1;
+    App_Const::boolSettings[OF_Const::rumble] = arg1;
     if(!arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->rumbleFFToggle->setEnabled(false);
@@ -1447,7 +1134,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
         ui->rumbleLengthBox->setEnabled(true);
         ui->rumbleTestBtn->setEnabled(true);
     }
-    if(!(arg1 && boolSettings[OF_Const::rumbleFF]) && !boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Const::boolSettings[OF_Const::rumbleFF]) && !App_Const::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1459,7 +1146,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::solenoid] = arg1;
+    App_Const::boolSettings[OF_Const::solenoid] = arg1;
     if(arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->solenoidNormalIntervalBox->setEnabled(true);
@@ -1472,7 +1159,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->solenoidHoldLengthBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
     }
-    if(!arg1 && !(boolSettings[OF_Const::rumble] && boolSettings[OF_Const::rumbleFF])) {
+    if(!arg1 && !(App_Const::boolSettings[OF_Const::rumble] && App_Const::boolSettings[OF_Const::rumbleFF])) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1484,7 +1171,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 
 void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::autofire] = arg1;
+    App_Const::boolSettings[OF_Const::autofire] = arg1;
     if(arg1) { ui->autofireWaitFactorBox->setEnabled(true); } else { ui->autofireWaitFactorBox->setEnabled(false); }
     DiffUpdate();
 }
@@ -1492,14 +1179,14 @@ void guiWindow::on_autofireToggle_stateChanged(int arg1)
 
 void guiWindow::on_simplePauseToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::simplePause] = arg1;
+    App_Const::boolSettings[OF_Const::simplePause] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::holdToPause] = arg1;
+    App_Const::boolSettings[OF_Const::holdToPause] = arg1;
     if(arg1) { ui->holdToPauseLengthBox->setEnabled(true); }
     else { ui->holdToPauseLengthBox->setEnabled(false); }
     DiffUpdate();
@@ -1508,23 +1195,23 @@ void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 
 void guiWindow::on_commonAnodeToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::commonAnode] = arg1;
+    App_Const::boolSettings[OF_Const::commonAnode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::lowButtonsMode] = arg1;
+    App_Const::boolSettings[OF_Const::lowButtonsMode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
-    boolSettings[OF_Const::rumbleFF] = arg1;
+    App_Const::boolSettings[OF_Const::rumbleFF] = arg1;
     if(arg1) { ui->solenoidToggle->setChecked(false); }
-    if(!(arg1 && boolSettings[OF_Const::rumble]) && !boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Const::boolSettings[OF_Const::rumble]) && !App_Const::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1536,49 +1223,49 @@ void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 
 void guiWindow::on_rumbleIntensityBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::rumbleStrength] = arg1;
+    App_Const::settingsTable[OF_Const::rumbleStrength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleLengthBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::rumbleInterval] = arg1;
+    App_Const::settingsTable[OF_Const::rumbleInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::holdToPauseLength] = arg1;
+    App_Const::settingsTable[OF_Const::holdToPauseLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::solenoidNormalInterval] = arg1;
+    App_Const::settingsTable[OF_Const::solenoidNormalInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::solenoidFastInterval] = arg1;
+    App_Const::settingsTable[OF_Const::solenoidFastInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::solenoidHoldLength] = arg1;
+    App_Const::settingsTable[OF_Const::solenoidHoldLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::autofireWaitFactor] = arg1;
+    App_Const::settingsTable[OF_Const::autofireWaitFactor] = arg1;
     DiffUpdate();
 }
 
@@ -1707,7 +1394,7 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
     if(isChecked && !serialActive) {
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
         if(sender()->property("slot").toInt() != App_Const::board.selectedProfile) {
-            serialPort.write(QString("XC%1").arg(sender()->property("slot").toInt()+1).toLocal8Bit());
+            serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1));
             App_Const::board.selectedProfile = sender()->property("slot").toInt();
             DiffUpdate();
         }
@@ -1717,8 +1404,8 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
 
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
-    settingsTable[OF_Const::customLEDcount] = arg1;
-    if(arg1 < settingsTable[OF_Const::customLEDstatic]) {
+    App_Const::settingsTable[OF_Const::customLEDcount] = arg1;
+    if(arg1 < App_Const::settingsTable[OF_Const::customLEDstatic]) {
         ui->customLEDstaticSpinbox->setValue(arg1);
     }
 
@@ -1731,10 +1418,10 @@ void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 {
-    if(arg1 > settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(settingsTable[OF_Const::customLEDcount]); }
-    else { settingsTable[OF_Const::customLEDstatic] = arg1; }
+    if(arg1 > App_Const::settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable[OF_Const::customLEDcount]); }
+    else { App_Const::settingsTable[OF_Const::customLEDstatic] = arg1; }
     if(OF_Const::customLEDstatic) {
-        switch(settingsTable[OF_Const::customLEDstatic]) {
+        switch(App_Const::settingsTable[OF_Const::customLEDstatic]) {
         case 1:
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(false);
@@ -1767,7 +1454,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticBtn1_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor1]);
+    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor1]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1777,7 +1464,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[OF_Const::customLEDcolor1] = packedColor;
+        App_Const::settingsTable[OF_Const::customLEDcolor1] = packedColor;
         ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1790,7 +1477,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
 
 void guiWindow::on_customLEDstaticBtn2_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor2]);
+    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor2]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1800,7 +1487,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[OF_Const::customLEDcolor2] = packedColor;
+        App_Const::settingsTable[OF_Const::customLEDcolor2] = packedColor;
         ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1813,7 +1500,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
 
 void guiWindow::on_customLEDstaticBtn3_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(settingsTable[OF_Const::customLEDcolor3]);
+    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor3]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1823,7 +1510,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        settingsTable[OF_Const::customLEDcolor3] = packedColor;
+        App_Const::settingsTable[OF_Const::customLEDcolor3] = packedColor;
         ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1842,13 +1529,10 @@ void guiWindow::caliBtns_clicked()
 
     caliWindow->showFullScreen();
 
-    serialPort.write(QString("XC%1CI%2L%3").arg(sender()->property("slot").toInt()+1)
-                                           .arg(App_Const::profilesTable.at(sender()->property("slot").toInt()).irSensitivity)
-                                           .arg(App_Const::profilesTable.at(sender()->property("slot").toInt()).layoutType)
-                                           .toLocal8Bit());
-
-    if(!serialPort.waitForBytesWritten(500))
-        ui->statusBar->showMessage("Could not send calibration request.");
+    serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1) +
+                       "C" + // Calibrate byte
+                       "I" + QByteArray::number(App_Const::profilesTable.at(sender()->property("slot").toInt()).irSensitivity) +
+                       "L" + QByteArray::number(App_Const::profilesTable.at(sender()->property("slot").toInt()).layoutType));
 }
 
 
@@ -1856,11 +1540,11 @@ void guiWindow::caliBtns_clicked()
 // TODO: move to appserial
 void guiWindow::serialPort_readyRead()
 {
-    debugWindow.AppendText(serialPort.peek(serialPort.bytesAvailable()));
+    debugWindow.AppendText(serial.port.peek(serial.port.bytesAvailable()));
 
     if(!serialActive) {
-        while(!serialPort.atEnd()) {
-            QString idleBuffer = serialPort.readLine();
+        while(!serial.port.atEnd()) {
+            QString idleBuffer = serial.port.readLine();
 
             if(idleBuffer.contains("Pressed:")) {
                 int btn = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
@@ -1882,10 +1566,11 @@ void guiWindow::serialPort_readyRead()
                 if(temp > tempShutoff) {        testLabel[14]->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
                 else if(temp > tempWarning) {   testLabel[14]->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
                 else {                          testLabel[14]->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
+            }
 
-            } else if(idleBuffer.contains("Analog:")) {
+            else if(idleBuffer.contains("Analog:")) {
                 // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
-                uint8_t analogDir = idleBuffer.trimmed().right(1).toInt();
+                uint8_t analogDir = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
 
                 // analog stick moved
                 if(analogDir) {
@@ -1906,9 +1591,10 @@ void guiWindow::serialPort_readyRead()
                     testLabel[15]->setText("Analog");
                     testLabel[15]->setStyleSheet("");
                 }
+            }
 
-            } else if(idleBuffer.contains("Profile: ")) {
-                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
+            else if(idleBuffer.contains("Profile: ")) {
+                uint8_t selection = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
 
                 if(selection != App_Const::board.selectedProfile) {
                     App_Const::board.selectedProfile = selection;
@@ -1916,57 +1602,50 @@ void guiWindow::serialPort_readyRead()
                 }
 
                 DiffUpdate();
+            }
 
-            } else if(idleBuffer.contains("UpdatedProf: ")) {
-                uint8_t selection = idleBuffer.trimmed().right(1).toInt();
-
-                if(selection != App_Const::board.selectedProfile)
-                    selectedProfile[selection]->setChecked(true);
-
-                App_Const::board.selectedProfile = selection;
-
-                // TODO: ummmm this seems very unsafe. :/
-                // to be deprecated as "CalUpd" sends the same information, just much safer
-                serialPort.waitForReadyRead(10);
-                topOffset[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].topOffset = topOffset[selection]->text().toInt();
-
-                serialPort.waitForReadyRead(10);
-                bottomOffset[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].bottomOffset = bottomOffset[selection]->text().toInt();
-
-                serialPort.waitForReadyRead(10);
-                leftOffset[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].leftOffset = leftOffset[selection]->text().toInt();
-
-                serialPort.waitForReadyRead(10);
-                rightOffset[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].rightOffset = rightOffset[selection]->text().toInt();
-
-                serialPort.waitForReadyRead(10);
-                TLled[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].TLled = TLled[selection]->text().toFloat();
-
-                serialPort.waitForReadyRead(10);
-                TRled[selection]->setText(serialPort.readLine().trimmed());
-                App_Const::profilesTable[selection].TRled = TRled[selection]->text().toFloat();
-
-                DiffUpdate();
-
-            } else if(idleBuffer.contains("CalStage:")) {
+            else if(idleBuffer.contains("CalStage:")) {
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
                         caliWindow->CaliModeSet(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt());
+            }
 
-            } else if(idleBuffer.contains("CalUpd:")) {
+            else if(idleBuffer.contains("CalUpd:")) {
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
                         caliWindow->CaliModeTextUpdate(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed());
             }
+
+            else if(idleBuffer.contains("Entering Test Mode...")) {
+                if(caliWindow != nullptr)
+                    caliWindow->Shutdown();
+
+                caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
+                connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+
+                caliWindow->showFullScreen();
+
+                testMode = true;
+
+                ui->buttonsTestArea->setEnabled(false);
+                ui->confirmButton->setEnabled(false);
+                ui->confirmButton->setText("[Disabled while in Test Mode]");
+                ui->pinsTab->setEnabled(false);
+                ui->settingsTab->setEnabled(false);
+                ui->profilesTab->setEnabled(false);
+                ui->feedbackTestsBox->setEnabled(false);
+                ui->dangerZoneBox->setEnabled(false);
+            }
+
+            else if(idleBuffer.contains("Cleared! Please reset the board.")) {
+                ui->comPortSelector->setCurrentIndex(0);
+                QMessageBox::information(this, "Successfully reset board settings",
+                                         "Please unplug the board and reinsert it into the PC.");
+            }
         }
 
     } else if(testMode) {
-        QString testBuffer = serialPort.readLine();
+        QString testBuffer = serial.port.readLine();
 
         if(testBuffer.contains(','))
             if(caliWindow != nullptr)
@@ -1976,78 +1655,130 @@ void guiWindow::serialPort_readyRead()
 }
 
 
+void guiWindow::serialPort_SearchFinished()
+{
+    // if ports have changed
+    if(serialSearchFuture.result()) {
+        // ports have changed, update COM ports list
+        // if comPort only has "Nothing", safe to add items
+        if(ui->comPortSelector->count() == 0) {
+            if(serial.currentPorts.count()) {
+                ui->comPortSelector->addItem("[Select a device]");
+                ui->comPortSelector->setCurrentIndex(0);
+                for(const auto port : serial.currentPorts)
+                    ui->comPortSelector->addItem(port.portName());
+            }
+            // if comPort is filled
+            // TODO: find some way to add new items without removing
+        } else {
+            if(serial.currentPorts.count()) {
+                // if no active comPort
+                if(ui->comPortSelector->currentIndex() <= 0) {
+                    while(ui->comPortSelector->count() > 1)
+                        ui->comPortSelector->removeItem(1);
+
+                    for(const auto port : serial.currentPorts)
+                        ui->comPortSelector->addItem(port.portName());
+                    // if comPort is active
+                } else {
+                    // remove all other comPorts
+                    int i = 1;
+                    while(ui->comPortSelector->count() > 2) {
+                        if(i == ui->comPortSelector->currentIndex())
+                            i++;
+                        else ui->comPortSelector->removeItem(i);
+                    }
+
+                    // check if current comPort is still in devices list
+                    // TODO: probably a better way of doing this, meh
+                    bool inList = false;
+                    for(const auto port : serial.currentPorts)
+                        if(ui->comPortSelector->currentText() == port.portName())
+                            inList = true;
+                    if(!inList) {
+                        statusBar()->showMessage("Current board has been disconnected.");
+                        ui->comPortSelector->removeItem(1);
+                    }
+
+                    // append new items to list
+                    for(const auto port : serial.currentPorts)
+                        ui->comPortSelector->addItem(port.portName());
+                }
+                // if ports list is cleared, assume no board can be connected.
+            } else {
+                if(ui->comPortSelector->currentIndex() > 0)
+                    statusBar()->showMessage("Current board has been disconnected.");
+                ui->comPortSelector->clear();
+            }
+        }
+    }
+}
+
+
+void guiWindow::serialPort_progressSet(const int &range)
+{
+    if(range) {
+        if(!statusProgressBar->isVisible())
+            statusProgressBar->setVisible(true);
+        statusProgressBar->setRange(0, range);
+    } else {
+        statusProgressBar->setVisible(false);
+        statusProgressBar->setValue(0);
+    }
+}
+
+
+void guiWindow::serialPort_progressUpdate(const int &pos, const char *statusText)
+{
+    if(statusProgressBar->isVisible())
+        statusProgressBar->setValue(pos);
+
+    if(statusText != nullptr)
+        ui->statusBar->showMessage(statusText, 5000);
+}
+
+
 void guiWindow::on_rumbleTestBtn_clicked()
 {
-    serialPort.write("Xtr");
-    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
-    else ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
+    if(serial.OneShotSend("Xtr"))
+        ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
 }
 
 
 void guiWindow::on_solenoidTestBtn_clicked()
 {
-    serialPort.write("Xts");
-    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
-    else ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
+    if(serial.OneShotSend("Xts"))
+        ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
 }
 
 
 void guiWindow::on_redLedTestBtn_clicked()
 {
-    serialPort.write("XtR");
-    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
-    else ui->statusBar->showMessage("Set LED to Red.", 2500);
+    if(serial.OneShotSend("XtR"))
+        ui->statusBar->showMessage("Set LED to Red.", 2500);
 }
 
 
 void guiWindow::on_greenLedTestBtn_clicked()
 {
-    serialPort.write("XtG");
-    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
-    else ui->statusBar->showMessage("Set LED to Green.", 2500);
+    if(serial.OneShotSend("XtG"))
+        ui->statusBar->showMessage("Set LED to Green.", 2500);
 }
 
 
 void guiWindow::on_blueLedTestBtn_clicked()
 {
-    serialPort.write("XtB");
-    if(!serialPort.waitForBytesWritten(500)) QMessageBox::critical(this, "Lost connection!", "Somehow this happened I guess???");
-    else ui->statusBar->showMessage("Set LED to Blue.", 2500);
+    if(serial.OneShotSend("XtB"))
+        ui->statusBar->showMessage("Set LED to Blue.", 2500);
 }
 
 
 void guiWindow::on_testBtn_clicked()
 {
-    if(serialPort.isOpen()) {
-        // Pre-emptively put a sock in the readyRead signal
-        serialActive = true;
-        aliveTimer->stop();
+    // Pre-emptively put a sock in the readyRead signal
+    serialActive = true;
 
-        if(caliWindow != nullptr)
-            caliWindow->Shutdown();
-
-        caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
-        connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-
-        serialPort.write("XT");
-        serialPort.waitForBytesWritten(500);
-        serialPort.waitForReadyRead(500);
-
-        if(serialPort.readLine().trimmed() == "Entering Test Mode...") {
-            caliWindow->showFullScreen();
-
-            testMode = true;
-
-            ui->buttonsTestArea->setEnabled(false);
-            ui->confirmButton->setEnabled(false);
-            ui->confirmButton->setText("[Disabled while in Test Mode]");
-            ui->pinsTab->setEnabled(false);
-            ui->settingsTab->setEnabled(false);
-            ui->profilesTab->setEnabled(false);
-            ui->feedbackTestsBox->setEnabled(false);
-            ui->dangerZoneBox->setEnabled(false);
-        }
-    }
+    serial.OneShotSend("XT");
 }
 
 
@@ -2096,23 +1827,18 @@ void guiWindow::CaliWindowExiting(const int &mode,
         break;
     }
     case AppCaliWindow::modeIRTest:
-        if(serialPort.isOpen()) {
-            serialPort.write("XT");
-            serialPort.waitForBytesWritten(500);
-            serialPort.waitForReadyRead(500);
+        if(serial.OneShotSend("XT")) {
+            testMode = false;
+
+            ui->buttonsTestArea->setEnabled(true);
+            ui->pinsTab->setEnabled(true);
+            ui->settingsTab->setEnabled(true);
+            ui->profilesTab->setEnabled(true);
+            ui->feedbackTestsBox->setEnabled(true);
+            ui->dangerZoneBox->setEnabled(true);
+
+            serialActive = false;
         }
-
-        testMode = false;
-
-        ui->buttonsTestArea->setEnabled(true);
-        ui->pinsTab->setEnabled(true);
-        ui->settingsTab->setEnabled(true);
-        ui->profilesTab->setEnabled(true);
-        ui->feedbackTestsBox->setEnabled(true);
-        ui->dangerZoneBox->setEnabled(true);
-
-        serialActive = false;
-        aliveTimer->start(ALIVE_TIMER);
         break;
     case AppCaliWindow::modeAlignment:
     default:
@@ -2129,10 +1855,7 @@ void guiWindow::CaliWindowExiting(const int &mode,
 
 void guiWindow::CaliWindowRequestedExit()
 {
-    if(serialPort.isOpen()) {
-        serialPort.write("X");
-        serialPort.waitForBytesWritten(500);
-    }
+    serial.OneShotSend("X");
 }
 
 
@@ -2151,38 +1874,16 @@ void guiWindow::on_clearEepromBtn_clicked()
     messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     messageBox.setDefaultButton(QMessageBox::Yes);
 
-    if(messageBox.exec() == QMessageBox::Yes) {
-        if(serialPort.isOpen()) {
-            serialActive = true;
-            // clear the buffer if anything's been sent.
-            while(!serialPort.atEnd())
-                serialPort.readLine();
-            serialPort.write("Xc");
-            serialPort.waitForBytesWritten(500);
-            if(serialPort.waitForReadyRead(2000)) {
-                QString buffer = serialPort.readLine();
-                if(buffer.trimmed() == "Cleared! Please reset the board.") {
-                    serialPort.write("XE");
-                    serialPort.waitForBytesWritten(2000);
-                    serialPort.close();
-                    serialActive = false;
-                    ui->comPortSelector->setCurrentIndex(0);
-                    QMessageBox::information(this, "Successfully reset board settings",
-                                                   "Please unplug the board and reinsert it into the PC.");
-                }
-            }
-        }
-    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
+    if(messageBox.exec() == QMessageBox::Yes)
+        serial.OneShotSend("Xc");
+    else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
 
 
 void guiWindow::on_baudResetBtn_clicked()
 {
     // No need for workarounds, bootloader reset is in the firmware now.
-    serialActive = true;
-    serialPort.write("Xxx");
-    serialPort.waitForBytesWritten(500);
-    serialPort.close();
+    serial.OneShotSend("Xxx");
 
 /* test stuff for potential app FW update functionality
     // At least on my system, the Bootloader device takes ~7s to appear
@@ -2203,7 +1904,6 @@ void guiWindow::on_baudResetBtn_clicked()
 */
     ui->statusBar->showMessage("Board reset to bootloader.", 5000);
     ui->comPortSelector->setCurrentIndex(0);
-    serialActive = false;
 }
 
 
