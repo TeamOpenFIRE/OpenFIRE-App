@@ -595,7 +595,6 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
 
                 tutorialBitmap->setPixmap(GenerateText({""}));
             } else {
-                qDebug() << topOffset << bottomOffset << leftOffset << rightOffset << topLeftLed << topRightLed;
                 caliStageBitmap->setPixmap( GenerateText({"WARNING: Possibly Malformed Calibration!!"}, QColor(225,25,25)));
                 caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
                                         scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
