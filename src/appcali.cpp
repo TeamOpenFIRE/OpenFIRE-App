@@ -406,6 +406,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
+        // reset calibration info, in case we're restarted to here
+        topOffset = -1, bottomOffset = -1, leftOffset = -1, rightOffset = -1, topLeftLed = -1, topRightLed = -1;
+
         if(bitmapText) {
             caliStageBitmap->setPixmap( GenerateText({"Initialize Calibration:"}));
             caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
@@ -559,12 +562,12 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         mouseCanBeTracked = true;
 
         if(bitmapText) {
-            if(topOffset >= -1000 && topOffset <= 1000 &&
+            if( topOffset    >= -1000 && topOffset    <= 1000 &&
                 bottomOffset >= -1000 && bottomOffset <= 1000 &&
-                leftOffset >= -1000 && leftOffset <= 1000 &&
-                rightOffset >= -1000 && rightOffset <= 1000 &&
-                topLeftLed >= 0 && topLeftLed <= 8000 &&
-                topRightLed <= 8000) {
+                leftOffset   >= -1000 && leftOffset   <= 1000 &&
+                rightOffset  >= -1000 && rightOffset  <= 1000 &&
+                topLeftLed   >= 0     && topLeftLed   <= 8000 &&
+                topRightLed  <= 8000) {
 
                 caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
                 caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
@@ -585,6 +588,12 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
                                                         "        by pressing Button C (if available).]        "}));
                 tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                        (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
+            } else if(topLeftLed == -1 || topRightLed == -1) {
+                caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
+                caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
+                                        scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
+
+                tutorialBitmap->setPixmap(GenerateText({""}));
             } else {
                 caliStageBitmap->setPixmap( GenerateText({"WARNING: Possibly Malformed Calibration!!"}, QColor(225,25,25)));
                 caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
@@ -658,6 +667,8 @@ void AppCaliWindow::CaliModeTextUpdate(const QString &text)
         case 6: // topright
             topRightLed = text.mid(text.indexOf('.')+1).trimmed().toFloat();
             profileBitmaps[5]->setPixmap(GenerateText({caliTypesPrefixes.at(5) + QString::number(topRightLed, 'g', 6)}));
+            // HACK: re-update final scene since this may happen AFTER the verification check stage
+            CaliModeSet(Cali_Verify);
             break;
         }
     } else {
