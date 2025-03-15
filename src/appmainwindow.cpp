@@ -419,7 +419,12 @@ void guiWindow::on_confirmButton_clicked()
 void guiWindow::aliveTimer_timeout()
 {
     serialSearchWatcher.setFuture(serialSearchFuture);
+    // Why did Qt6 change this syntax?
+#if QT_VERSION_MAJOR > 5
     serialSearchFuture = QtConcurrent::run(&AppSerial::SearchPorts, &serial);
+#else
+    serialSearchFuture = QtConcurrent::run(&serial, &AppSerial::SearchPorts);
+#endif
 }
 
 
