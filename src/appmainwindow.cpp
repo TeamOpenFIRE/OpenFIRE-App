@@ -856,10 +856,10 @@ void guiWindow::LabelsUpdate()
     for(uint8_t i = 0; i < 16; i++) {
         if(i < 14) {
             if(App_Const::inputsMap.value(i) >= 0) {
-                testLabel[i]->setText(OF_Const::valuesNameList[i+1]);
+                testLabel[i]->setText(App_Const::testLabelNames.at(i));
                 testLabel[i]->setEnabled(true);
             } else {
-                testLabel[i]->setText(OF_Const::valuesNameList[i+1] + " (N/C)");
+                testLabel[i]->setText(App_Const::testLabelNames.at(i) + " (N/C)");
                 testLabel[i]->setEnabled(false);
             }
         } else if(i == 14) {
