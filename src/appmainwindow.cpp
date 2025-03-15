@@ -1626,6 +1626,7 @@ void guiWindow::serialPort_readyRead()
                 caliWindow->showFullScreen();
 
                 testMode = true;
+                serialActive = true;
 
                 ui->buttonsTestArea->setEnabled(false);
                 ui->confirmButton->setEnabled(false);
@@ -1775,9 +1776,6 @@ void guiWindow::on_blueLedTestBtn_clicked()
 
 void guiWindow::on_testBtn_clicked()
 {
-    // Pre-emptively put a sock in the readyRead signal
-    serialActive = true;
-
     serial.OneShotSend("XT");
 }
 
