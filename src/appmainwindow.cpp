@@ -1634,7 +1634,6 @@ void guiWindow::serialPort_readyRead()
                 caliWindow->showFullScreen();
 
                 testMode = true;
-                serialActive = true;
 
                 ui->buttonsTestArea->setEnabled(false);
                 ui->confirmButton->setEnabled(false);
@@ -1834,8 +1833,6 @@ void guiWindow::CaliWindowExiting(const int &mode,
             ui->profilesTab->setEnabled(true);
             ui->feedbackTestsBox->setEnabled(true);
             ui->dangerZoneBox->setEnabled(true);
-
-            serialActive = false;
         }
         break;
     case AppCaliWindow::modeAlignment:
