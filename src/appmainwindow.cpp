@@ -226,7 +226,9 @@ void guiWindow::BoxesUpdate()
 
             // set pinboxes to copied values (pinbox index is off by 1)
             for(int i = 0; i < App_Common::inputsMap_orig.count(); i++)
-                if(App_Common::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Common::inputsMap_orig.value(i) < pinBoxes.count())
+                if(App_Common::inputsMap_orig.value(i) > OF_Const::btnUnmapped &&
+                   App_Common::inputsMap_orig.value(i) < pinBoxes.count() &&
+                   i < OF_Const::boardInputsCount)
                     pinBoxes.at(App_Common::inputsMap_orig.value(i))->setCurrentIndex(i+1);
 
         // else, if the board *was using default maps* before switching to custom (no need to re-set pinboxes)
@@ -235,13 +237,10 @@ void guiWindow::BoxesUpdate()
             App_Common::inputsMap = App_Common::inputsMap_orig;
 
             // copy presets to inputs map
-            if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString())) {
-                for(int i = 0; i < PINS_COUNT; i++) {
-                    if(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i] > OF_Const::btnUnmapped) {
+            if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
+                for(int i = 0; i < pinBoxes.count(); i++)
+                    if(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i] > OF_Const::btnUnmapped)
                         App_Common::inputsMap[OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i]] = i;
-                    }
-                }
-            }
         }
 
         return;
@@ -249,17 +248,13 @@ void guiWindow::BoxesUpdate()
     // disabling custom pins, reset to presets
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
-        for(int i = 0; i < PINS_COUNT; i++)
+        for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
-        // copy preset layout to pinboxes
+        // if available, copy preset layout to pinboxes
         if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
-            for(int i = 0; i < PINS_COUNT; i++)
+            for(int i = 0; i < pinBoxes.count(); i++)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i]+1);
-
-        // generics don't come with mappings
-        else for(int i = 0; i < PINS_COUNT; i++)
-            pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         return;
     }
@@ -714,7 +709,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
-                for(int i = 0; i < PINS_COUNT; i++) {
+                for(int i = 0; i < pinBoxes.count(); i++) {
                     if(OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
@@ -743,7 +738,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
-                for(int i = 0; i < PINS_COUNT; i++) {
+                for(int i = 0; i < pinBoxes.count(); i++) {
                     if(OF_Const::boardsBoxPositions.value("generic").pin[i] & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 OF_Const::boardsBoxPositions.value("generic").pin[i] ^ OF_Const::posLeft,
@@ -1127,12 +1122,12 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
             ui->customPinsEnabled->setChecked(true);
 
         // clear pinBoxes to be safe
-        for(uint8_t i = 0; i < PINS_COUNT; i++)
+        for(uint8_t i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
         QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Common::board.boardType.toStdString());
-        for(int i = 0; i < PINS_COUNT; i++)
+        for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setCurrentIndex(altPresets.at(index).pin[i]+1);
 
         DiffUpdate();
@@ -1958,14 +1953,17 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
             if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
                 ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
-                for(int i = 0; i < PINS_COUNT; i++)
+                for(int i = 0; i < pinBoxes.count(); i++)
                     pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
                 // import new maps
-                for(int i = 0; i < PINS_COUNT; i++)
-                    if(!fileIn.atEnd())
-                        pinBoxes.at(i)->setCurrentIndex(fileIn.read(1).toHex().toInt(nullptr, 16));
-                    else break;
+                for(int i = 0; i < pinBoxes.count(); i++) {
+                    if(!fileIn.atEnd()) {
+                        const int newIdx = fileIn.peek(1).toHex().toInt(nullptr, 16);
+                        if(newIdx <= OF_Const::boardInputsCount)
+                            pinBoxes.at(i)->setCurrentIndex(newIdx);
+                    } else break;
+                }
 
                 fileIn.close();
                 ui->statusBar->showMessage("Successfully imported custom layout!", 5000);
@@ -1989,7 +1987,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
         if(fileOut.open(QFile::WriteOnly)) {
             fileOut.write(QString("%1\n").arg(App_Common::board.boardType).toLocal8Bit());
 
-            for(int i = 0; i < PINS_COUNT; i++)
+            for(int i = 0; i < pinBoxes.count(); i++)
                 fileOut.putChar(pinBoxes.at(i)->currentIndex());
 
             fileOut.close();
