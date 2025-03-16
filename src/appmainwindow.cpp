@@ -1542,7 +1542,15 @@ void guiWindow::serialPort_readyRead()
 {
     debugWindow.AppendText(serial.port.peek(serial.port.bytesAvailable()));
 
-    if(!serialActive) {
+    if(testMode) {
+        QString testBuffer = serial.port.readLine();
+
+        if(testBuffer.contains(',')) {
+            if(caliWindow != nullptr)
+                if(caliWindow->GetWindowMode() == AppCaliWindow::modeIRTest)
+                    caliWindow->TestModeDraw(testBuffer.remove("\r\n").split(',', Qt::SkipEmptyParts));
+        }
+    } else if(!serialActive) {
         while(!serial.port.atEnd()) {
             QString idleBuffer = serial.port.readLine();
 
@@ -1643,14 +1651,6 @@ void guiWindow::serialPort_readyRead()
                                          "Please unplug the board and reinsert it into the PC.");
             }
         }
-
-    } else if(testMode) {
-        QString testBuffer = serial.port.readLine();
-
-        if(testBuffer.contains(','))
-            if(caliWindow != nullptr)
-                if(caliWindow->GetWindowMode() == AppCaliWindow::modeIRTest)
-                    caliWindow->TestModeDraw(testBuffer.remove("\r\n").split(',', Qt::SkipEmptyParts));
     }
 }
 
@@ -1668,8 +1668,8 @@ void guiWindow::serialPort_SearchFinished()
                 for(const auto port : serial.currentPorts)
                     ui->comPortSelector->addItem(port.portName());
             }
-            // if comPort is filled
-            // TODO: find some way to add new items without removing
+        // if comPort is filled
+        // TODO: find some way to add new items without removing
         } else {
             if(serial.currentPorts.count()) {
                 // if no active comPort
@@ -1679,7 +1679,7 @@ void guiWindow::serialPort_SearchFinished()
 
                     for(const auto port : serial.currentPorts)
                         ui->comPortSelector->addItem(port.portName());
-                    // if comPort is active
+                // if comPort is active
                 } else {
                     // remove all other comPorts
                     int i = 1;
@@ -1704,7 +1704,7 @@ void guiWindow::serialPort_SearchFinished()
                     for(const auto port : serial.currentPorts)
                         ui->comPortSelector->addItem(port.portName());
                 }
-                // if ports list is cleared, assume no board can be connected.
+            // if ports list is cleared, assume no board can be connected.
             } else {
                 if(ui->comPortSelector->currentIndex() > 0)
                     statusBar()->showMessage("Current board has been disconnected.");
@@ -1775,9 +1775,6 @@ void guiWindow::on_blueLedTestBtn_clicked()
 
 void guiWindow::on_testBtn_clicked()
 {
-    // Pre-emptively put a sock in the readyRead signal
-    serialActive = true;
-
     serial.OneShotSend("XT");
 }
 
