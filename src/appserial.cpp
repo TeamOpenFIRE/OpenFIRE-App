@@ -130,7 +130,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                                 port.clear();
 
-                                // get toggles
+                                // toggles
                                 port.write("Xlb");
                                 port.waitForBytesWritten(500);
                                 if(port.waitForReadyRead(500)) {
@@ -140,7 +140,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     // booleans
                                     for(uint8_t i = 0; i < buffer.count(); i++) {
                                         if(i < sizeof(App_Common::boolSettings)) {
-                                            App_Common::boolSettings[i] = buffer[i].toInt();
+                                            App_Common::boolSettings[i] = buffer.at(i).toInt();
                                             App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
                                         } else break;
                                     }
@@ -181,7 +181,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                         buffer = bufStr.split(',');
                                         for(uint8_t i = 0; i < buffer.count(); i++) {
                                             if(i < sizeof(App_Common::settingsTable) / 4) {
-                                                App_Common::settingsTable[i] = buffer[i].toInt();
+                                                App_Common::settingsTable[i] = buffer.at(i).toInt();
                                                 App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
                                             } else break;
                                         }
