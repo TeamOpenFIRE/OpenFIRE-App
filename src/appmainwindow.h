@@ -194,6 +194,11 @@ private:
     /// @details    Only one of these should be up at a time
     AppDebugWindow debugWindow;
 
+    /// @brief      Macro for making new CaliWindows
+    /// @param      int
+    ///             CaliWindow type (should be one of AppCaliWindow::AppCaliStates_e
+    void NewCaliWindow(const int &);
+
     /// @brief      Mass update all pinboxes with certain sets of values
     /// @details    Used when toggling custom pins, initial load, and setting presets
     void BoxesUpdate();
@@ -236,9 +241,6 @@ private:
     /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
     uint8_t tempWarning = 35;
     uint8_t tempShutoff = 42;
-
-    /// @brief      Indicator if the test window is activated (to block potentially sending noise)
-    bool testMode = false;
 
     /// @brief      Timer that probes the board if it's still plugged in
     /// @details    Timer interval is provided in ms by ALIVE_TIMER

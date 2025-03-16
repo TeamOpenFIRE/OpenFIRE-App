@@ -364,6 +364,37 @@ void guiWindow::PixelsDiff()
 }
 
 
+void guiWindow::NewCaliWindow(const int &type) {
+    if(caliWindow != nullptr)
+        caliWindow->Shutdown();
+
+    caliWindow = new AppCaliWindow(nullptr, type);
+    connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
+
+    switch(type) {
+    case AppCaliWindow::modeCalibrate:
+        caliWindow->setProperty("profile", sender()->property("slot").toInt());
+        connect(caliWindow, &AppCaliWindow::CaliRequestToExit,  this, &guiWindow::CaliWindowRequestedExit);
+        break;
+    case AppCaliWindow::modeIRTest:
+        ui->buttonsTestArea->setEnabled(false);
+        ui->confirmButton->setEnabled(false);
+        ui->confirmButton->setText("[Disabled while in Test Mode]");
+        ui->pinsTab->setEnabled(false);
+        ui->settingsTab->setEnabled(false);
+        ui->profilesTab->setEnabled(false);
+        ui->feedbackTestsBox->setEnabled(false);
+        ui->dangerZoneBox->setEnabled(false);
+        break;
+    case AppCaliWindow::modeAlignment:
+    default:
+        break;
+    }
+
+    caliWindow->showFullScreen();
+}
+
+
 void guiWindow::on_confirmButton_clicked()
 {
     QMessageBox messageBox(QMessageBox::Information, "Commit Confirmation", "Are these settings okay?", QMessageBox::Yes | QMessageBox::No);
@@ -434,8 +465,8 @@ void guiWindow::aliveTimer_timeout()
 void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 {
     // Clear stale states if any
-    if(testMode)
-        if(caliWindow != nullptr)
+    if(caliWindow != nullptr)
+        if(caliWindow->GetWindowMode() != AppCaliWindow::modeAlignment)
             caliWindow->Shutdown();
 
     if(ui->comPortSelector->currentIndex() > 0) {
@@ -830,20 +861,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         if(serial.port.isOpen())
             serial.Disconnect();
 
-        // reset stuff
+        // reset temp/analog labels' stylesheets to neutral
         testLabel[14]->setStyleSheet("");
         testLabel[15]->setStyleSheet("");
-
-        // force disable test mode if it was set
-        if(testMode) {
-            testMode = false;
-            ui->buttonsTestArea->setEnabled(true);
-            ui->pinsTab->setEnabled(true);
-            ui->settingsTab->setEnabled(true);
-            ui->profilesTab->setEnabled(true);
-            ui->feedbackTestsBox->setEnabled(true);
-            ui->dangerZoneBox->setEnabled(true);
-        }
     }
     serialActive = false;
 }
@@ -1522,12 +1542,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 
 void guiWindow::caliBtns_clicked()
 {
-    caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeCalibrate);
-    caliWindow->setProperty("profile", sender()->property("slot").toInt());
-    connect(caliWindow, &AppCaliWindow::WindowExiting,      this, &guiWindow::CaliWindowExiting);
-    connect(caliWindow, &AppCaliWindow::CaliRequestToExit,  this, &guiWindow::CaliWindowRequestedExit);
-
-    caliWindow->showFullScreen();
+    NewCaliWindow(AppCaliWindow::modeCalibrate);
 
     serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1) +
                        "C" + // Calibrate byte
@@ -1542,15 +1557,7 @@ void guiWindow::serialPort_readyRead()
 {
     debugWindow.AppendText(serial.port.peek(serial.port.bytesAvailable()));
 
-    if(testMode) {
-        QString testBuffer = serial.port.readLine();
-
-        if(testBuffer.contains(',')) {
-            if(caliWindow != nullptr)
-                if(caliWindow->GetWindowMode() == AppCaliWindow::modeIRTest)
-                    caliWindow->TestModeDraw(testBuffer.remove("\r\n").split(',', Qt::SkipEmptyParts));
-        }
-    } else if(!serialActive) {
+    if(!serialActive) {
         while(!serial.port.atEnd()) {
             QString idleBuffer = serial.port.readLine();
 
@@ -1624,25 +1631,14 @@ void guiWindow::serialPort_readyRead()
                         caliWindow->CaliModeTextUpdate(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed());
             }
 
-            else if(idleBuffer.contains("Entering Test Mode...")) {
-                if(caliWindow != nullptr)
-                    caliWindow->Shutdown();
+            else if(idleBuffer.startsWith("TM")) {
+                if(caliWindow != nullptr) {
+                    if(caliWindow->GetWindowMode() != AppCaliWindow::modeIRTest) {
+                        NewCaliWindow(AppCaliWindow::modeIRTest);
+                    }
+                } else NewCaliWindow(AppCaliWindow::modeIRTest);
 
-                caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeIRTest);
-                connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-
-                caliWindow->showFullScreen();
-
-                testMode = true;
-
-                ui->buttonsTestArea->setEnabled(false);
-                ui->confirmButton->setEnabled(false);
-                ui->confirmButton->setText("[Disabled while in Test Mode]");
-                ui->pinsTab->setEnabled(false);
-                ui->settingsTab->setEnabled(false);
-                ui->profilesTab->setEnabled(false);
-                ui->feedbackTestsBox->setEnabled(false);
-                ui->dangerZoneBox->setEnabled(false);
+                caliWindow->TestModeDraw(idleBuffer.mid(2).split(',', Qt::SkipEmptyParts));
             }
 
             else if(idleBuffer.contains("Cleared! Please reset the board.")) {
@@ -1825,8 +1821,6 @@ void guiWindow::CaliWindowExiting(const int &mode,
     }
     case AppCaliWindow::modeIRTest:
         if(serial.OneShotSend("XT")) {
-            testMode = false;
-
             ui->buttonsTestArea->setEnabled(true);
             ui->pinsTab->setEnabled(true);
             ui->settingsTab->setEnabled(true);
@@ -1946,13 +1940,7 @@ void guiWindow::on_actionOpenFIRE_Serial_Usage_triggered()
 
 void guiWindow::on_actionOpen_IR_Emitter_Alignment_Assistant_triggered()
 {
-    if(caliWindow == nullptr) {
-        caliWindow = new AppCaliWindow(nullptr, AppCaliWindow::modeAlignment);
-        connect(caliWindow, &AppCaliWindow::WindowExiting, this, &guiWindow::CaliWindowExiting);
-        caliWindow->setAttribute(Qt::WA_DeleteOnClose);
-
-        caliWindow->showFullScreen();
-    }
+    NewCaliWindow(AppCaliWindow::modeAlignment);
 }
 
 
