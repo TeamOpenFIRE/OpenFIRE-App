@@ -1008,22 +1008,27 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 
     // update settings panel to reflect pins map changes and prevent illegal values/combinations
     if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0)
-        ui->rumbleToggle->setEnabled(true), ui->rumbleFFToggle->setEnabled(true);
+        ui->rumbleFFBox->setEnabled(true);
     else {
-        ui->rumbleToggle->setChecked(false),   ui->rumbleToggle->setEnabled(false),
-        ui->rumbleFFToggle->setChecked(false), ui->rumbleFFToggle->setEnabled(false);
+        ui->rumbleToggle->setChecked(false);
+        ui->rumbleFFToggle->setChecked(false);
+        ui->rumbleFFBox->setEnabled(false);
     }
 
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
-        ui->solenoidToggle->setEnabled(true);
-    else ui->solenoidToggle->setChecked(false), ui->solenoidToggle->setEnabled(false);
+         ui->solenoidFFBox->setEnabled(true);
+    else ui->solenoidToggle->setChecked(false), ui->solenoidFFBox->setEnabled(false);
+
+    if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0 && App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
+         ui->forceFeedbackBox->setEnabled(true);
+    else ui->forceFeedbackBox->setEnabled(false);
 
     if(App_Common::inputsMap.value(OF_Const::neoPixel) >= 0)
-        ui->neopixelGroupBox->setEnabled(true);
+         ui->neopixelGroupBox->setEnabled(true);
     else ui->neopixelGroupBox->setEnabled(false);
 
     if(App_Common::inputsMap.value(OF_Const::ledR) >= 0 && App_Common::inputsMap.value(OF_Const::ledG) >= 0 && App_Common::inputsMap.value(OF_Const::ledB) >= 0)
-        ui->commonAnodeToggle->setEnabled(true);
+         ui->commonAnodeToggle->setEnabled(true);
     else ui->commonAnodeToggle->setEnabled(false);
 
     DiffUpdate();
@@ -1094,20 +1099,18 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
     else ui->customLayoutToolBtn->setEnabled(false);
 
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
-        ui->solenoidToggle->setEnabled(true);
+        ui->solenoidFFBox->setEnabled(true);
     } else {
         ui->solenoidToggle->setEnabled(false);
-        ui->solenoidToggle->setChecked(false);
+        ui->solenoidFFBox->setEnabled(false);
     }
 
     if(App_Common::inputsMap.value(OF_Const::rumblePin) > OF_Const::btnUnmapped) {
-        ui->rumbleToggle->setEnabled(true);
-        ui->rumbleFFToggle->setEnabled(true);
+        ui->rumbleFFBox->setEnabled(true);
     } else {
-        ui->rumbleToggle->setEnabled(false);
         ui->rumbleToggle->setChecked(false);
-        ui->rumbleFFToggle->setEnabled(false);
         ui->rumbleFFToggle->setChecked(false);
+        ui->rumbleFFBox->setEnabled(false);
     }
 
     DiffUpdate();
@@ -1138,24 +1141,23 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[OF_Const::rumble] = arg1;
-    if(!arg1) {
-        ui->rumbleFFToggle->setChecked(false);
-        ui->rumbleFFToggle->setEnabled(false);
-        ui->rumbleIntensityBox->setEnabled(false);
-        ui->rumbleLengthBox->setEnabled(false);
-        ui->rumbleTestBtn->setEnabled(false);
-    } else {
-        ui->rumbleFFToggle->setEnabled(true);
-        ui->rumbleIntensityBox->setEnabled(true);
-        ui->rumbleLengthBox->setEnabled(true);
+
+    if(arg1) {
+        ui->rumbleSettingsBox->setEnabled(true);
         ui->rumbleTestBtn->setEnabled(true);
+    } else {
+        ui->rumbleFFToggle->setChecked(false);
+        ui->rumbleSettingsBox->setEnabled(false);
+        ui->rumbleTestBtn->setEnabled(false);
     }
+
     if(!(arg1 && App_Common::boolSettings[OF_Const::rumbleFF]) && !App_Common::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
         ui->autofireToggle->setEnabled(true);
     }
+
     DiffUpdate();
 }
 
@@ -1163,24 +1165,23 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[OF_Const::solenoid] = arg1;
+
     if(arg1) {
         ui->rumbleFFToggle->setChecked(false);
-        ui->solenoidNormalIntervalBox->setEnabled(true);
-        ui->solenoidFastIntervalBox->setEnabled(true);
-        ui->solenoidHoldLengthBox->setEnabled(true);
+        ui->solenoidSettingsBox->setEnabled(true);
         ui->solenoidTestBtn->setEnabled(true);
     } else {
-        ui->solenoidNormalIntervalBox->setEnabled(false);
-        ui->solenoidFastIntervalBox->setEnabled(false);
-        ui->solenoidHoldLengthBox->setEnabled(false);
+        ui->solenoidSettingsBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
     }
+
     if(!arg1 && !(App_Common::boolSettings[OF_Const::rumble] && App_Common::boolSettings[OF_Const::rumbleFF])) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
         ui->autofireToggle->setEnabled(true);
     }
+
     DiffUpdate();
 }
 
@@ -1188,7 +1189,10 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[OF_Const::autofire] = arg1;
-    if(arg1) { ui->autofireWaitFactorBox->setEnabled(true); } else { ui->autofireWaitFactorBox->setEnabled(false); }
+
+    if(arg1) ui->autofireWaitFactorBox->setEnabled(true);
+    else     ui->autofireWaitFactorBox->setEnabled(false);
+
     DiffUpdate();
 }
 
@@ -1203,8 +1207,10 @@ void guiWindow::on_simplePauseToggle_stateChanged(int arg1)
 void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[OF_Const::holdToPause] = arg1;
-    if(arg1) { ui->holdToPauseLengthBox->setEnabled(true); }
-    else { ui->holdToPauseLengthBox->setEnabled(false); }
+
+    if(arg1) ui->holdToPauseLengthBox->setEnabled(true);
+    else     ui->holdToPauseLengthBox->setEnabled(false);
+
     DiffUpdate();
 }
 
@@ -1226,13 +1232,15 @@ void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[OF_Const::rumbleFF] = arg1;
-    if(arg1) { ui->solenoidToggle->setChecked(false); }
+    if(arg1) ui->solenoidToggle->setChecked(false);
+
     if(!(arg1 && App_Common::boolSettings[OF_Const::rumble]) && !App_Common::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
         ui->autofireToggle->setEnabled(true);
     }
+
     DiffUpdate();
 }
 
