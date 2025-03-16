@@ -1634,6 +1634,7 @@ void guiWindow::serialPort_readyRead()
                 caliWindow->showFullScreen();
 
                 testMode = true;
+                serialActive = true;
 
                 ui->buttonsTestArea->setEnabled(false);
                 ui->confirmButton->setEnabled(false);
