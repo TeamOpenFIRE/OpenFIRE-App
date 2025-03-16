@@ -1,5 +1,7 @@
 /*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
-    Copyright (C) 2024  Team OpenFIRE
+    Common shared assets & constants.
+
+    Copyright (C) 2025  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,15 +17,15 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef APPCOMMON_H
+#define APPCOMMON_H
 
 #include "../boards/OpenFIREshared.h"
 #include <QString>
 #include <QVector>
 #include <QMap>
 
-class App_Const
+class App_Common
 {
 public:
     enum {

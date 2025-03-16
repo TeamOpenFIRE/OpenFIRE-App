@@ -1,5 +1,7 @@
 /*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
-    Copyright (C) 2024  Team OpenFIRE
+    Main interface.
+
+    Copyright (C) 2025  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +19,7 @@
 
 #include "appmainwindow.h"
 #include "appabout.h"
-#include "constants.h"
+#include "appcommon.h"
 #include "ui_appmainwindow.h"
 
 #include <QGraphicsScene>
@@ -28,7 +30,6 @@
 #include <QProcess>
 //#include <QStorageInfo>
 #include <QtConcurrentRun>
-#include <QDebug>
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QInputDialog>
@@ -173,7 +174,7 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
 {
     if(event->type() == QEvent::Enter) {
         switch(object->property("trackable").toInt()) {
-        case App_Const::trackPinbox:
+        case App_Common::trackPinbox:
         {
             // Copy and modify board pic array to change opacity of selected pin element, if existing.
             highlightBoardPic = origBoardPicFile;
@@ -184,19 +185,19 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
             break;
         }
-        case App_Const::trackSettingsItem:
+        case App_Common::trackSettingsItem:
             ui->settingsDescBox->setTitle(object->property("accessibleName").toString());
             ui->settingsDescText->setText(object->property("whatsThis").toString());
             break;
-        case App_Const::trackProfileItem:
+        case App_Common::trackProfileItem:
             ui->profilesDescBox->setTitle(object->property("accessibleName").toString());
             ui->profilesDescText->setText(object->property("whatsThis").toString());
             break;
-        case App_Const::trackTestItem:
+        case App_Common::trackTestItem:
             break;
         }
     } else if(event->type() == QEvent::Leave) {
-        if(object->property("trackable").toInt() == App_Const::trackPinbox) {
+        if(object->property("trackable").toInt() == App_Common::trackPinbox) {
             boardPic.load(origBoardPicFile);
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
         }
@@ -212,32 +213,32 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
 void guiWindow::BoxesUpdate()
 {
     // enabling custom pins
-    if(App_Const::boolSettings[OF_Const::customPins]) {
+    if(App_Common::boolSettings[OF_Const::customPins]) {
         // enable pinboxes
         for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
-        if(App_Const::boolSettings_orig[OF_Const::customPins]) {
+        if(App_Common::boolSettings_orig[OF_Const::customPins]) {
             // reset pinboxes
             for(int i = 0; i < pinBoxes.count(); i++)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
-            for(int i = 0; i < App_Const::inputsMap_orig.count(); i++)
-                if(App_Const::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Const::inputsMap_orig.value(i) < pinBoxes.count())
-                    pinBoxes.at(App_Const::inputsMap_orig.value(i))->setCurrentIndex(i+1);
+            for(int i = 0; i < App_Common::inputsMap_orig.count(); i++)
+                if(App_Common::inputsMap_orig.value(i) > OF_Const::btnUnmapped && App_Common::inputsMap_orig.value(i) < pinBoxes.count())
+                    pinBoxes.at(App_Common::inputsMap_orig.value(i))->setCurrentIndex(i+1);
 
         // else, if the board *was using default maps* before switching to custom (no need to re-set pinboxes)
         } else {
             // copy original map, which clears this map (as boards using defaults comes with no actual map instated)
-            App_Const::inputsMap = App_Const::inputsMap_orig;
+            App_Common::inputsMap = App_Common::inputsMap_orig;
 
             // copy presets to inputs map
-            if(OF_Const::boardsPresetsMap.count(App_Const::board.boardType.toStdString())) {
+            if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString())) {
                 for(int i = 0; i < PINS_COUNT; i++) {
-                    if(OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i] > OF_Const::btnUnmapped) {
-                        App_Const::inputsMap[OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i]] = i;
+                    if(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i] > OF_Const::btnUnmapped) {
+                        App_Common::inputsMap[OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i]] = i;
                     }
                 }
             }
@@ -252,9 +253,9 @@ void guiWindow::BoxesUpdate()
             pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // copy preset layout to pinboxes
-        if(OF_Const::boardsPresetsMap.count(App_Const::board.boardType.toStdString()))
+        if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
             for(int i = 0; i < PINS_COUNT; i++)
-                pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Const::board.boardType.toStdString()).pin[i]+1);
+                pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).pin[i]+1);
 
         // generics don't come with mappings
         else for(int i = 0; i < PINS_COUNT; i++)
@@ -269,62 +270,62 @@ void guiWindow::DiffUpdate()
 {
     int settingsDiff = 0;
 
-    if(App_Const::boolSettings_orig[OF_Const::customPins] != App_Const::boolSettings[OF_Const::customPins])
+    if(App_Common::boolSettings_orig[OF_Const::customPins] != App_Common::boolSettings[OF_Const::customPins])
         settingsDiff++;
 
-    if(App_Const::boolSettings[OF_Const::customPins])
-        if(App_Const::inputsMap_orig != App_Const::inputsMap)
+    if(App_Common::boolSettings[OF_Const::customPins])
+        if(App_Common::inputsMap_orig != App_Common::inputsMap)
             settingsDiff++;
 
     for(uint8_t i = 1; i < OF_Const::boolTypesCount; i++)
-        if(App_Const::boolSettings_orig[i] != App_Const::boolSettings[i])
+        if(App_Common::boolSettings_orig[i] != App_Common::boolSettings[i])
             settingsDiff++;
 
     for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-        if(App_Const::settingsTable_orig[i] != App_Const::settingsTable[i])
+        if(App_Common::settingsTable_orig[i] != App_Common::settingsTable[i])
             settingsDiff++;
 
-    if(App_Const::tinyUSBtable_orig.tinyUSBid != App_Const::tinyUSBtable.tinyUSBid)
+    if(App_Common::tinyUSBtable_orig.tinyUSBid != App_Common::tinyUSBtable.tinyUSBid)
         settingsDiff++;
 
-    if(App_Const::tinyUSBtable_orig.tinyUSBname != App_Const::tinyUSBtable.tinyUSBname)
+    if(App_Common::tinyUSBtable_orig.tinyUSBname != App_Common::tinyUSBtable.tinyUSBname)
         settingsDiff++;
 
-    if(App_Const::board.selectedProfile != App_Const::board.previousProfile)
+    if(App_Common::board.selectedProfile != App_Common::board.previousProfile)
         settingsDiff++;
 
-    for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
-        if(App_Const::profilesTable_orig[i].profName != App_Const::profilesTable[i].profName)
+    for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
+        if(App_Common::profilesTable_orig[i].profName != App_Common::profilesTable[i].profName)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].topOffset != App_Const::profilesTable[i].topOffset)
+        if(App_Common::profilesTable_orig[i].topOffset != App_Common::profilesTable[i].topOffset)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].bottomOffset != App_Const::profilesTable[i].bottomOffset)
+        if(App_Common::profilesTable_orig[i].bottomOffset != App_Common::profilesTable[i].bottomOffset)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].leftOffset != App_Const::profilesTable[i].leftOffset)
+        if(App_Common::profilesTable_orig[i].leftOffset != App_Common::profilesTable[i].leftOffset)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].rightOffset != App_Const::profilesTable[i].rightOffset)
+        if(App_Common::profilesTable_orig[i].rightOffset != App_Common::profilesTable[i].rightOffset)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].TLled != App_Const::profilesTable[i].TLled)
+        if(App_Common::profilesTable_orig[i].TLled != App_Common::profilesTable[i].TLled)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].TRled != App_Const::profilesTable[i].TRled)
+        if(App_Common::profilesTable_orig[i].TRled != App_Common::profilesTable[i].TRled)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].irSensitivity != App_Const::profilesTable[i].irSensitivity)
+        if(App_Common::profilesTable_orig[i].irSensitivity != App_Common::profilesTable[i].irSensitivity)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].runMode != App_Const::profilesTable[i].runMode)
+        if(App_Common::profilesTable_orig[i].runMode != App_Common::profilesTable[i].runMode)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].layoutType != App_Const::profilesTable[i].layoutType)
+        if(App_Common::profilesTable_orig[i].layoutType != App_Common::profilesTable[i].layoutType)
             settingsDiff++;
 
-        if(App_Const::profilesTable_orig[i].color != App_Const::profilesTable[i].color)
+        if(App_Common::profilesTable_orig[i].color != App_Common::profilesTable[i].color)
             settingsDiff++;
     }
 
@@ -344,19 +345,19 @@ QString guiWindow::PrettifyName(QString name)
         name = "Unnamed Device";
 
     // append name of board to gun name string.
-    if(OF_Const::boardNames.contains(App_Const::board.boardType.toStdString()))
-         return name + " | " + OF_Const::boardNames[App_Const::board.boardType.toStdString()];
+    if(OF_Const::boardNames.contains(App_Common::board.boardType.toStdString()))
+         return name + " | " + OF_Const::boardNames[App_Common::board.boardType.toStdString()];
     else return name + " | " + OF_Const::boardNames["generic"];
 }
 
 
 void guiWindow::PixelsDiff()
 {
-    if( App_Const::settingsTable[OF_Const::customLEDcount]  == App_Const::settingsTable_orig[OF_Const::customLEDcount]  &&
-        App_Const::settingsTable[OF_Const::customLEDstatic] == App_Const::settingsTable_orig[OF_Const::customLEDstatic] &&
-        App_Const::settingsTable[OF_Const::customLEDcolor1] == App_Const::settingsTable_orig[OF_Const::customLEDcolor1] &&
-        App_Const::settingsTable[OF_Const::customLEDcolor2] == App_Const::settingsTable_orig[OF_Const::customLEDcolor2] &&
-        App_Const::settingsTable[OF_Const::customLEDcolor3] == App_Const::settingsTable_orig[OF_Const::customLEDcolor3]) {
+    if( App_Common::settingsTable[OF_Const::customLEDcount]  == App_Common::settingsTable_orig[OF_Const::customLEDcount]  &&
+        App_Common::settingsTable[OF_Const::customLEDstatic] == App_Common::settingsTable_orig[OF_Const::customLEDstatic] &&
+        App_Common::settingsTable[OF_Const::customLEDcolor1] == App_Common::settingsTable_orig[OF_Const::customLEDcolor1] &&
+        App_Common::settingsTable[OF_Const::customLEDcolor2] == App_Common::settingsTable_orig[OF_Const::customLEDcolor2] &&
+        App_Common::settingsTable[OF_Const::customLEDcolor3] == App_Common::settingsTable_orig[OF_Const::customLEDcolor3]) {
         ui->pixelChangeNotice->setVisible(false);
     } else {
         ui->pixelChangeNotice->setVisible(true);
@@ -412,26 +413,26 @@ void guiWindow::on_confirmButton_clicked()
 
             // sync settings
             for(int i = 0; i < OF_Const::boolTypesCount; i++)
-                App_Const::boolSettings_orig[i] = App_Const::boolSettings[i];
+                App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
 
-            if(App_Const::boolSettings_orig[OF_Const::customPins])
-                App_Const::inputsMap_orig = App_Const::inputsMap;
-            else for(int i = 0; i < App_Const::inputsMap.size(); i++)
-                    App_Const::inputsMap_orig[i] = -1;
+            if(App_Common::boolSettings_orig[OF_Const::customPins])
+                App_Common::inputsMap_orig = App_Common::inputsMap;
+            else for(int i = 0; i < App_Common::inputsMap.size(); i++)
+                    App_Common::inputsMap_orig[i] = -1;
 
             for(int i = 0; i < OF_Const::settingsTypesCount; i++)
-                App_Const::settingsTable_orig[i] = App_Const::settingsTable[i];
+                App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
 
-            App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
-            App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
-            App_Const::board.previousProfile = App_Const::board.selectedProfile;
+            App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
+            App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
+            App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
-            for(uint8_t i = 0; i < App_Const::profilesTable.count(); i++) {
-                App_Const::profilesTable_orig[i].irSensitivity = App_Const::profilesTable[i].irSensitivity;
-                App_Const::profilesTable_orig[i].runMode = App_Const::profilesTable[i].runMode;
-                App_Const::profilesTable_orig[i].layoutType = App_Const::profilesTable[i].layoutType;
-                App_Const::profilesTable_orig[i].color = App_Const::profilesTable[i].color;
-                App_Const::profilesTable_orig[i].profName = App_Const::profilesTable[i].profName;
+            for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
+                App_Common::profilesTable_orig[i].irSensitivity = App_Common::profilesTable[i].irSensitivity;
+                App_Common::profilesTable_orig[i].runMode = App_Common::profilesTable[i].runMode;
+                App_Common::profilesTable_orig[i].layoutType = App_Common::profilesTable[i].layoutType;
+                App_Common::profilesTable_orig[i].color = App_Common::profilesTable[i].color;
+                App_Common::profilesTable_orig[i].profName = App_Common::profilesTable[i].profName;
             }
 
             // Reflect new names in UI
@@ -507,7 +508,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             caliBtn.clear();
 
             int caliBtnRow;
-            for(uint8_t i = 0; i < App_Const::profilesTable.size(); i++) {
+            for(uint8_t i = 0; i < App_Common::profilesTable.size(); i++) {
                 caliBtnRow = i/4;
 
                 // create new assets for this profile
@@ -517,34 +518,34 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 renameBtn.at(i)->setIcon(QIcon(":/icon/edit.png"));
                 renameBtn.at(i)->installEventFilter(this);
                 renameBtn.at(i)->setProperty("slot", i);
-                renameBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                renameBtn.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 renameBtn.at(i)->setAccessibleName(QString("Rename Profile %1").arg(i+1));
                 renameBtn.at(i)->setWhatsThis("<p>Click to rename this Calibration Profile.</p>"
                                               "<p>Aside from differentiating between different profiles for different displays, "
                                               "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Const::profilesTable.at(i).profName));
-                if(i == App_Const::board.selectedProfile)
+                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Common::profilesTable.at(i).profName));
+                if(i == App_Common::board.selectedProfile)
                     selectedProfile.at(i)->setChecked(true);
                 selectedProfile.at(i)->setFont(QFont("Monospace"));
                 selectedProfile.at(i)->setProperty("slot", i);
                 connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
-                topOffset       << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).topOffset      ));
-                bottomOffset    << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).bottomOffset   ));
-                leftOffset      << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).leftOffset     ));
-                rightOffset     << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).rightOffset    ));
-                TLled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TLled          ));
-                TRled           << new QLabel(QString("%1").arg(App_Const::profilesTable.at(i).TRled          ));
+                topOffset       << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).topOffset      ));
+                bottomOffset    << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).bottomOffset   ));
+                leftOffset      << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).leftOffset     ));
+                rightOffset     << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).rightOffset    ));
+                TLled           << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).TLled          ));
+                TRled           << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).TRled          ));
 
                 irSens << new QComboBox();
                 irSens.at(i)->addItems({"Default", "Higher", "Highest"});
-                irSens.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).irSensitivity);
+                irSens.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).irSensitivity);
                 irSens.at(i)->installEventFilter(this);
                 irSens.at(i)->setProperty("slot", i);
-                irSens.at(i)->setProperty("type", App_Const::pBoxIRsens);
-                irSens.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                irSens.at(i)->setProperty("type", App_Common::pBoxIRsens);
+                irSens.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 irSens.at(i)->setAccessibleName(QString("Camera Sensitivity for Profile %1").arg(i+1));
                 irSens.at(i)->setWhatsThis("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
                                            "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
@@ -556,11 +557,11 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 runMode << new QComboBox();
                 runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
-                runMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).runMode);
+                runMode.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).runMode);
                 runMode.at(i)->installEventFilter(this);
                 runMode.at(i)->setProperty("slot", i);
-                runMode.at(i)->setProperty("type", App_Const::pBoxRunMode);
-                runMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                runMode.at(i)->setProperty("type", App_Common::pBoxRunMode);
+                runMode.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 runMode.at(i)->setAccessibleName(QString("Camera Position Averaging Mode for Profile %1").arg(i+1));
                 runMode.at(i)->setWhatsThis("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
                                             "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
@@ -571,11 +572,11 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 layoutMode << new QComboBox();
                 layoutMode.at(i)->addItems({"Square", "Diamond"});
-                layoutMode.at(i)->setCurrentIndex(App_Const::profilesTable.at(i).layoutType);
+                layoutMode.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).layoutType);
                 layoutMode.at(i)->installEventFilter(this);
                 layoutMode.at(i)->setProperty("slot", i);
-                layoutMode.at(i)->setProperty("type", App_Const::pBoxLayout);
-                layoutMode.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                layoutMode.at(i)->setProperty("type", App_Common::pBoxLayout);
+                layoutMode.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 layoutMode.at(i)->setAccessibleName(QString("IR Emitter Layout for Profile %1").arg(i+1));
                 layoutMode.at(i)->setWhatsThis("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
                                                "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
@@ -591,10 +592,10 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 color << new QPushButton();
                 color.at(i)->setFixedWidth(32);
-                color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Const::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
+                color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Common::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
                 color.at(i)->installEventFilter(this);
                 color.at(i)->setProperty("slot", i);
-                color.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                color.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 color.at(i)->setAccessibleName(QString("Profile Menu Color for Cali Profile %1").arg(i+1));
                 color.at(i)->setWhatsThis("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
                                           "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
@@ -604,7 +605,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
                 caliBtn.at(i)->installEventFilter(this);
                 caliBtn.at(i)->setProperty("slot", i);
-                caliBtn.at(i)->setProperty("trackable", App_Const::trackProfileItem);
+                caliBtn.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 caliBtn.at(i)->setAccessibleName(QString("Open Calibration Window for Cali Profile %1").arg(i+1));
                 caliBtn.at(i)->setWhatsThis("Click to start the calibration process for this profile.");
                 connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
@@ -651,7 +652,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
                 pinBoxes.at(i)->setProperty("prevMapping", OF_Const::btnUnmapped+1);
-                pinBoxes.at(i)->setProperty("trackable", App_Const::trackPinbox);
+                pinBoxes.at(i)->setProperty("trackable", App_Common::trackPinbox);
                 pinBoxes.at(i)->installEventFilter(this);
                 // install items
                 pinBoxes.at(i)->addItems(OF_Const::valuesNameList);
@@ -685,16 +686,16 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
-            ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(App_Const::board.versionNumber, App_Const::board.versionCodename));
+            ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(App_Common::board.versionNumber, App_Common::board.versionCodename));
 
             // update presets box if this board has any
             ui->presetsBox->clear();
 
-            if(OF_Const::boardsAltPresets.count(App_Const::board.boardType.toStdString())) {
+            if(OF_Const::boardsAltPresets.count(App_Common::board.boardType.toStdString())) {
                 ui->presetsBox->setHidden(false);
                 ui->presetsBox->setEnabled(true);
 
-                QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Const::board.boardType.toStdString());
+                QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Common::board.boardType.toStdString());
                 for(auto &entry : altPresets)
                     ui->presetsBox->addItem(entry.name);
             } else {
@@ -708,33 +709,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             LabelsUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            if(OF_Const::boardsBoxPositions.contains(App_Const::board.boardType.toStdString())) {
-                QFile resource(":/boardPics/" + App_Const::board.boardType);
+            if(OF_Const::boardsBoxPositions.contains(App_Common::board.boardType.toStdString())) {
+                QFile resource(":/boardPics/" + App_Common::board.boardType);
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < PINS_COUNT; i++) {
-                    if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
+                    if(OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                                OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
+                                                OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posLeft,
                                                 1);
-                    } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
+                    } else if(OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                                 OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
+                                                 OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posRight,
                                                  0);
-                    } else if(OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
+                    } else if(OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
-                                                     OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                                                     OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
-                                                     OF_Const::boardsBoxPositions.value(App_Const::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
+                                                     OF_Const::boardsBoxPositions.value(App_Common::board.boardType.toStdString()).pin[i] ^ OF_Const::posMiddle);
                     }
                 }
             } else {
@@ -788,33 +789,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             }
 
             ui->tabWidget->setEnabled(true);
-            ui->customPinsEnabled->setChecked(App_Const::boolSettings[OF_Const::customPins]);
+            ui->customPinsEnabled->setChecked(App_Common::boolSettings[OF_Const::customPins]);
 
-            ui->rumbleToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumble]);
-            ui->solenoidToggle->setChecked(App_Const::boolSettings_orig[OF_Const::solenoid]);
-            ui->autofireToggle->setChecked(App_Const::boolSettings_orig[OF_Const::autofire]);
-            ui->simplePauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::simplePause]);
-            ui->holdToPauseToggle->setChecked(App_Const::boolSettings_orig[OF_Const::holdToPause]);
-            ui->commonAnodeToggle->setChecked(App_Const::boolSettings_orig[OF_Const::commonAnode]);
-            ui->lowButtonsToggle->setChecked(App_Const::boolSettings_orig[OF_Const::lowButtonsMode]);
-            ui->rumbleFFToggle->setChecked(App_Const::boolSettings_orig[OF_Const::rumbleFF]);
-            ui->rumbleIntensityBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleStrength]);
-            ui->rumbleLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::rumbleInterval]);
-            ui->holdToPauseLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setEnabled(App_Const::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(App_Const::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Const::settingsTable_orig[OF_Const::autofireWaitFactor]);
+            ui->rumbleToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumble]);
+            ui->solenoidToggle->setChecked(App_Common::boolSettings_orig[OF_Const::solenoid]);
+            ui->autofireToggle->setChecked(App_Common::boolSettings_orig[OF_Const::autofire]);
+            ui->simplePauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::simplePause]);
+            ui->holdToPauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::holdToPause]);
+            ui->commonAnodeToggle->setChecked(App_Common::boolSettings_orig[OF_Const::commonAnode]);
+            ui->lowButtonsToggle->setChecked(App_Common::boolSettings_orig[OF_Const::lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumbleFF]);
+            ui->rumbleIntensityBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
 
-            ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
-            ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
-            ui->neopixelStrandLengthBox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDcount]);
-            ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable_orig[OF_Const::customLEDstatic]);
-            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Const::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
+            ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+            ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+            ui->neopixelStrandLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
-            switch(App_Const::tinyUSBtable.tinyUSBid.toInt()) {
+            switch(App_Common::tinyUSBtable.tinyUSBid.toInt()) {
             case 1:
                 ui->tUSB_p1->setChecked(true);
                 ui->tUSBLayoutAdvanced->setVisible(false);
@@ -872,18 +873,18 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 // Only runs either on initial load or save
 void guiWindow::LabelsUpdate()
 {
-    // because App_Const::inputsMap uses pin no. starting from 0
+    // because App_Common::inputsMap uses pin no. starting from 0
     for(uint8_t i = 0; i < 16; i++) {
         if(i < 14) {
-            if(App_Const::inputsMap.value(i) >= 0) {
-                testLabel[i]->setText(App_Const::testLabelNames.at(i));
+            if(App_Common::inputsMap.value(i) >= 0) {
+                testLabel[i]->setText(App_Common::testLabelNames.at(i));
                 testLabel[i]->setEnabled(true);
             } else {
-                testLabel[i]->setText(App_Const::testLabelNames.at(i) + " (N/C)");
+                testLabel[i]->setText(App_Common::testLabelNames.at(i) + " (N/C)");
                 testLabel[i]->setEnabled(false);
             }
         } else if(i == 14) {
-            if(App_Const::inputsMap.value(OF_Const::tempPin) >= 0) {
+            if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
                 testLabel[i]->setText("Temp Read...");
                 testLabel[i]->setEnabled(true);
             } else {
@@ -892,7 +893,7 @@ void guiWindow::LabelsUpdate()
             }
             testLabel[i]->setStyleSheet("");
         } else if(i == 15) {
-            if(App_Const::inputsMap.value(OF_Const::analogX) >=0 && App_Const::inputsMap.value(OF_Const::analogY) >= 0) {
+            if(App_Common::inputsMap.value(OF_Const::analogX) >=0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0) {
                 testLabel[i]->setText("Analog");
                 testLabel[i]->setEnabled(true);
             } else {
@@ -902,11 +903,11 @@ void guiWindow::LabelsUpdate()
             testLabel[i]->setStyleSheet("");
         }
     }
-    if(App_Const::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
-    if(App_Const::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
-    if(App_Const::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
 
-    ui->boardLabel->setText(PrettifyName(App_Const::tinyUSBtable.tinyUSBname));
+    ui->boardLabel->setText(PrettifyName(App_Common::tinyUSBtable.tinyUSBname));
 }
 
 void guiWindow::pinBoxes_currentIndexChanged(int index)
@@ -916,7 +917,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
     /*
-    if(index >= 0 && index <= App_Const::inputsMap.size()) {
+    if(index >= 0 && index <= App_Common::inputsMap.size()) {
         //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
     //*/
@@ -928,7 +929,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // if it's being set to 0 (unmapped), unmap this pin without question.
     if(index <= 0) {
         if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1) {
-            App_Const::inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
+            App_Common::inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
             sender()->setProperty("prevMapping", OF_Const::btnUnmapped+1);
         }
 
@@ -938,95 +939,95 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 
         // unmap pinbox's previous function, if mapped to any
         if(sender()->property("prevMapping").toInt() > OF_Const::btnUnmapped+1)
-            App_Const::inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
+            App_Common::inputsMap[sender()->property("prevMapping").toInt()-1] = OF_Const::btnUnmapped;
 
         // Remove whatever pin mapping that this function belonged to, if it was mapped
         // (making sure we don't disable the pin trying to be set)
-        if(App_Const::inputsMap.value(btnRequest)  > OF_Const::btnUnmapped &&
-           App_Const::inputsMap.value(btnRequest) != sender()->property("slot").toInt())
-            pinBoxes.at(App_Const::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
+        if(App_Common::inputsMap.value(btnRequest)  > OF_Const::btnUnmapped &&
+           App_Common::inputsMap.value(btnRequest) != sender()->property("slot").toInt())
+            pinBoxes.at(App_Common::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if function is I2C, check for other things
         if(btnRequest == OF_Const::camSDA) {
             // if it's mapped, check that cam clock pin isn't mapped to the opposite I2C channel
-            if(App_Const::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
-               (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
+            if(App_Common::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (App_Common::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral data isn't mapped to this I2C channel
-            } else if(App_Const::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
-                      (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
+            } else if(App_Common::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (App_Common::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels matched, unmap peripheral data
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral Data.", 10000);
             }
         } else if(btnRequest == OF_Const::camSCL) {
             // if it's mapped, check that cam clock pin isn't mapped to the opposite I2C channel
-            if(App_Const::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
-               (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
+            if(App_Common::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (App_Common::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pin mappings.", 10000);
             // check that peripheral clock isn't mapped to this I2C channel
-            } else if(App_Const::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
-                      (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
+            } else if(App_Common::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (App_Common::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels matched, unmap peripheral clock
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Clock pins clashed! Please remap Peripheral Clock.", 10000);
             }
         } else if(btnRequest == OF_Const::periphSDA) {
             // if it's mapped, check that current peripheral clock pin isn't mapped to the opposite I2C channel
-            if(App_Const::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
-               (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
+            if(App_Common::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (App_Common::inputsMap.value(OF_Const::periphSCL) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam data isn't mapped to this I2C channel
-            } else if(App_Const::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
-                      (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
+            } else if(App_Common::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (App_Common::inputsMap.value(OF_Const::camSDA) & 0b00000010)) {
                 // channels matched, unmap cam data
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Data.", 10000);
             }
         } else if(btnRequest == OF_Const::periphSCL) {
             // if it's mapped, check that current peripheral data pin isn't mapped to the opposite I2C channel
-            if(App_Const::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
-               (sender()->property("slot").toInt() & 0b00000010) != (App_Const::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
+            if(App_Common::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
+               (sender()->property("slot").toInt() & 0b00000010) != (App_Common::inputsMap.value(OF_Const::periphSDA) & 0b00000010)) {
                 // channels mismatched, unmap the other pin
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pin mappings.", 10000);
             // check that cam clock isn't mapped to this I2C channel
-            } else if(App_Const::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
-                      (sender()->property("slot").toInt() & 0b00000010) == (App_Const::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
+            } else if(App_Common::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
+                      (sender()->property("slot").toInt() & 0b00000010) == (App_Common::inputsMap.value(OF_Const::camSCL) & 0b00000010)) {
                 // channels matched, unmap cam clock
-                pinBoxes.at(App_Const::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                 ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera Clock.", 10000);
             }
         }
 
         // Then map the thing, and sync this change to the property value
-        App_Const::inputsMap[btnRequest] = sender()->property("slot").toInt();
+        App_Common::inputsMap[btnRequest] = sender()->property("slot").toInt();
         sender()->setProperty("prevMapping", index);
     }
 
     // update settings panel to reflect pins map changes and prevent illegal values/combinations
-    if(App_Const::inputsMap.value(OF_Const::rumblePin) >= 0)
+    if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0)
         ui->rumbleToggle->setEnabled(true), ui->rumbleFFToggle->setEnabled(true);
     else {
         ui->rumbleToggle->setChecked(false),   ui->rumbleToggle->setEnabled(false),
         ui->rumbleFFToggle->setChecked(false), ui->rumbleFFToggle->setEnabled(false);
     }
 
-    if(App_Const::inputsMap.value(OF_Const::solenoidPin) >= 0)
+    if(App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
         ui->solenoidToggle->setEnabled(true);
     else ui->solenoidToggle->setChecked(false), ui->solenoidToggle->setEnabled(false);
 
-    if(App_Const::inputsMap.value(OF_Const::neoPixel) >= 0)
+    if(App_Common::inputsMap.value(OF_Const::neoPixel) >= 0)
         ui->neopixelGroupBox->setEnabled(true);
     else ui->neopixelGroupBox->setEnabled(false);
 
-    if(App_Const::inputsMap.value(OF_Const::ledR) >= 0 && App_Const::inputsMap.value(OF_Const::ledG) >= 0 && App_Const::inputsMap.value(OF_Const::ledB) >= 0)
+    if(App_Common::inputsMap.value(OF_Const::ledR) >= 0 && App_Common::inputsMap.value(OF_Const::ledG) >= 0 && App_Common::inputsMap.value(OF_Const::ledB) >= 0)
         ui->commonAnodeToggle->setEnabled(true);
     else ui->commonAnodeToggle->setEnabled(false);
 
@@ -1036,14 +1037,14 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 void guiWindow::profileBoxes_activated(int index)
 {
     switch(sender()->property("type").toInt()) {
-    case App_Const::pBoxIRsens:
-        App_Const::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
+    case App_Common::pBoxIRsens:
+        App_Common::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
         break;
-    case App_Const::pBoxRunMode:
-        App_Const::profilesTable[sender()->property("slot").toInt()].runMode = index;
+    case App_Common::pBoxRunMode:
+        App_Common::profilesTable[sender()->property("slot").toInt()].runMode = index;
         break;
-    case App_Const::pBoxLayout:
-        App_Const::profilesTable[sender()->property("slot").toInt()].layoutType = index;
+    case App_Common::pBoxLayout:
+        App_Common::profilesTable[sender()->property("slot").toInt()].layoutType = index;
         break;
     default:
         break;
@@ -1062,7 +1063,7 @@ void guiWindow::renameBoxes_clicked()
 
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()).arg(newLabel.left(15)));
-        App_Const::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15);
+        App_Common::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15);
     }
 
     DiffUpdate();
@@ -1071,7 +1072,7 @@ void guiWindow::renameBoxes_clicked()
 
 void guiWindow::colorBoxes_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Const::profilesTable[sender()->property("slot").toInt()].color);
+    QColor colorPick = QColorDialog::getColor(App_Common::profilesTable[sender()->property("slot").toInt()].color);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1081,7 +1082,7 @@ void guiWindow::colorBoxes_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Const::profilesTable[sender()->property("slot").toInt()].color = packedColor;
+        App_Common::profilesTable[sender()->property("slot").toInt()].color = packedColor;
         color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
         DiffUpdate();
     }
@@ -1090,21 +1091,21 @@ void guiWindow::colorBoxes_clicked()
 
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::customPins] = arg1;
+    App_Common::boolSettings[OF_Const::customPins] = arg1;
     BoxesUpdate();
 
     if(arg1)
         ui->customLayoutToolBtn->setEnabled(true);
     else ui->customLayoutToolBtn->setEnabled(false);
 
-    if(App_Const::inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
+    if(App_Common::inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
         ui->solenoidToggle->setEnabled(true);
     } else {
         ui->solenoidToggle->setEnabled(false);
         ui->solenoidToggle->setChecked(false);
     }
 
-    if(App_Const::inputsMap.value(OF_Const::rumblePin) > OF_Const::btnUnmapped) {
+    if(App_Common::inputsMap.value(OF_Const::rumblePin) > OF_Const::btnUnmapped) {
         ui->rumbleToggle->setEnabled(true);
         ui->rumbleFFToggle->setEnabled(true);
     } else {
@@ -1130,7 +1131,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
             pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
-        QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Const::board.boardType.toStdString());
+        QList<OF_Const::boardAltPresetsMap_t> altPresets = OF_Const::boardsAltPresets.values(App_Common::board.boardType.toStdString());
         for(int i = 0; i < PINS_COUNT; i++)
             pinBoxes.at(i)->setCurrentIndex(altPresets.at(index).pin[i]+1);
 
@@ -1141,7 +1142,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::rumble] = arg1;
+    App_Common::boolSettings[OF_Const::rumble] = arg1;
     if(!arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->rumbleFFToggle->setEnabled(false);
@@ -1154,7 +1155,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
         ui->rumbleLengthBox->setEnabled(true);
         ui->rumbleTestBtn->setEnabled(true);
     }
-    if(!(arg1 && App_Const::boolSettings[OF_Const::rumbleFF]) && !App_Const::boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Common::boolSettings[OF_Const::rumbleFF]) && !App_Common::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1166,7 +1167,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::solenoid] = arg1;
+    App_Common::boolSettings[OF_Const::solenoid] = arg1;
     if(arg1) {
         ui->rumbleFFToggle->setChecked(false);
         ui->solenoidNormalIntervalBox->setEnabled(true);
@@ -1179,7 +1180,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->solenoidHoldLengthBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
     }
-    if(!arg1 && !(App_Const::boolSettings[OF_Const::rumble] && App_Const::boolSettings[OF_Const::rumbleFF])) {
+    if(!arg1 && !(App_Common::boolSettings[OF_Const::rumble] && App_Common::boolSettings[OF_Const::rumbleFF])) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1191,7 +1192,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 
 void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::autofire] = arg1;
+    App_Common::boolSettings[OF_Const::autofire] = arg1;
     if(arg1) { ui->autofireWaitFactorBox->setEnabled(true); } else { ui->autofireWaitFactorBox->setEnabled(false); }
     DiffUpdate();
 }
@@ -1199,14 +1200,14 @@ void guiWindow::on_autofireToggle_stateChanged(int arg1)
 
 void guiWindow::on_simplePauseToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::simplePause] = arg1;
+    App_Common::boolSettings[OF_Const::simplePause] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::holdToPause] = arg1;
+    App_Common::boolSettings[OF_Const::holdToPause] = arg1;
     if(arg1) { ui->holdToPauseLengthBox->setEnabled(true); }
     else { ui->holdToPauseLengthBox->setEnabled(false); }
     DiffUpdate();
@@ -1215,23 +1216,23 @@ void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 
 void guiWindow::on_commonAnodeToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::commonAnode] = arg1;
+    App_Common::boolSettings[OF_Const::commonAnode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::lowButtonsMode] = arg1;
+    App_Common::boolSettings[OF_Const::lowButtonsMode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
-    App_Const::boolSettings[OF_Const::rumbleFF] = arg1;
+    App_Common::boolSettings[OF_Const::rumbleFF] = arg1;
     if(arg1) { ui->solenoidToggle->setChecked(false); }
-    if(!(arg1 && App_Const::boolSettings[OF_Const::rumble]) && !App_Const::boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Common::boolSettings[OF_Const::rumble]) && !App_Common::boolSettings[OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1243,49 +1244,49 @@ void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 
 void guiWindow::on_rumbleIntensityBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::rumbleStrength] = arg1;
+    App_Common::settingsTable[OF_Const::rumbleStrength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleLengthBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::rumbleInterval] = arg1;
+    App_Common::settingsTable[OF_Const::rumbleInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::holdToPauseLength] = arg1;
+    App_Common::settingsTable[OF_Const::holdToPauseLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::solenoidNormalInterval] = arg1;
+    App_Common::settingsTable[OF_Const::solenoidNormalInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::solenoidFastInterval] = arg1;
+    App_Common::settingsTable[OF_Const::solenoidFastInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::solenoidHoldLength] = arg1;
+    App_Common::settingsTable[OF_Const::solenoidHoldLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::autofireWaitFactor] = arg1;
+    App_Common::settingsTable[OF_Const::autofireWaitFactor] = arg1;
     DiffUpdate();
 }
 
@@ -1293,10 +1294,10 @@ void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 void guiWindow::on_tUSB_p1_toggled(bool checked)
 {
     if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "1";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P1";
-        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        App_Common::tinyUSBtable.tinyUSBid = "1";
+        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P1";
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
     }
@@ -1306,10 +1307,10 @@ void guiWindow::on_tUSB_p1_toggled(bool checked)
 void guiWindow::on_tUSB_p2_toggled(bool checked)
 {
     if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "2";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P2";
-        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        App_Common::tinyUSBtable.tinyUSBid = "2";
+        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P2";
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
     }
@@ -1319,10 +1320,10 @@ void guiWindow::on_tUSB_p2_toggled(bool checked)
 void guiWindow::on_tUSB_p3_toggled(bool checked)
 {
     if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "3";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P3";
-        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        App_Common::tinyUSBtable.tinyUSBid = "3";
+        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P3";
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
     }
@@ -1332,10 +1333,10 @@ void guiWindow::on_tUSB_p3_toggled(bool checked)
 void guiWindow::on_tUSB_p4_toggled(bool checked)
 {
     if(checked) {
-        App_Const::tinyUSBtable.tinyUSBid = "4";
-        App_Const::tinyUSBtable.tinyUSBname = "FIRECon P4";
-        ui->productIdInput->setValue(App_Const::tinyUSBtable.tinyUSBid.toInt());
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        App_Common::tinyUSBtable.tinyUSBid = "4";
+        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P4";
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
     }
@@ -1344,7 +1345,7 @@ void guiWindow::on_tUSB_p4_toggled(bool checked)
 
 void guiWindow::on_productIdInput_valueChanged(int arg1)
 {
-    App_Const::tinyUSBtable.tinyUSBid = QString::number(arg1);
+    App_Common::tinyUSBtable.tinyUSBid = QString::number(arg1);
     if(ui->productNameInput->text().isEmpty()) {
         switch(arg1) {
         case 1:
@@ -1385,12 +1386,12 @@ void guiWindow::on_productNameInput_textEdited(const QString &arg1)
     }
 
     if(badInput) {
-        ui->productNameInput->setText(App_Const::tinyUSBtable.tinyUSBname);
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
         ui->productNameInput->setStyleSheet("color: red");
     } else {
         if(!ui->productNameInput->styleSheet().isEmpty())
             ui->productNameInput->setStyleSheet("");
-        App_Const::tinyUSBtable.tinyUSBname = arg1;
+        App_Common::tinyUSBtable.tinyUSBname = arg1;
         DiffUpdate();
     }
 }
@@ -1413,9 +1414,9 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
     // apparently we get two signals at once? So just filter for the on.
     if(isChecked && !serialActive) {
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-        if(sender()->property("slot").toInt() != App_Const::board.selectedProfile) {
+        if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
             serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1));
-            App_Const::board.selectedProfile = sender()->property("slot").toInt();
+            App_Common::board.selectedProfile = sender()->property("slot").toInt();
             DiffUpdate();
         }
     }
@@ -1424,8 +1425,8 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
 
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
-    App_Const::settingsTable[OF_Const::customLEDcount] = arg1;
-    if(arg1 < App_Const::settingsTable[OF_Const::customLEDstatic]) {
+    App_Common::settingsTable[OF_Const::customLEDcount] = arg1;
+    if(arg1 < App_Common::settingsTable[OF_Const::customLEDstatic]) {
         ui->customLEDstaticSpinbox->setValue(arg1);
     }
 
@@ -1438,10 +1439,10 @@ void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 {
-    if(arg1 > App_Const::settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(App_Const::settingsTable[OF_Const::customLEDcount]); }
-    else { App_Const::settingsTable[OF_Const::customLEDstatic] = arg1; }
+    if(arg1 > App_Common::settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable[OF_Const::customLEDcount]); }
+    else { App_Common::settingsTable[OF_Const::customLEDstatic] = arg1; }
     if(OF_Const::customLEDstatic) {
-        switch(App_Const::settingsTable[OF_Const::customLEDstatic]) {
+        switch(App_Common::settingsTable[OF_Const::customLEDstatic]) {
         case 1:
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(false);
@@ -1474,7 +1475,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticBtn1_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor1]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor1]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1484,7 +1485,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Const::settingsTable[OF_Const::customLEDcolor1] = packedColor;
+        App_Common::settingsTable[OF_Const::customLEDcolor1] = packedColor;
         ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1497,7 +1498,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
 
 void guiWindow::on_customLEDstaticBtn2_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor2]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor2]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1507,7 +1508,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Const::settingsTable[OF_Const::customLEDcolor2] = packedColor;
+        App_Common::settingsTable[OF_Const::customLEDcolor2] = packedColor;
         ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1520,7 +1521,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
 
 void guiWindow::on_customLEDstaticBtn3_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Const::settingsTable[OF_Const::customLEDcolor3]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor3]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1530,7 +1531,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Const::settingsTable[OF_Const::customLEDcolor3] = packedColor;
+        App_Common::settingsTable[OF_Const::customLEDcolor3] = packedColor;
         ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1546,8 +1547,8 @@ void guiWindow::caliBtns_clicked()
 
     serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1) +
                        "C" + // Calibrate byte
-                       "I" + QByteArray::number(App_Const::profilesTable.at(sender()->property("slot").toInt()).irSensitivity) +
-                       "L" + QByteArray::number(App_Const::profilesTable.at(sender()->property("slot").toInt()).layoutType));
+                       "I" + QByteArray::number(App_Common::profilesTable.at(sender()->property("slot").toInt()).irSensitivity) +
+                       "L" + QByteArray::number(App_Common::profilesTable.at(sender()->property("slot").toInt()).layoutType));
 }
 
 
@@ -1611,8 +1612,8 @@ void guiWindow::serialPort_readyRead()
             else if(idleBuffer.contains("Profile: ")) {
                 uint8_t selection = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
 
-                if(selection != App_Const::board.selectedProfile) {
-                    App_Const::board.selectedProfile = selection;
+                if(selection != App_Common::board.selectedProfile) {
+                    App_Common::board.selectedProfile = selection;
                     selectedProfile[selection]->setChecked(true);
                 }
 
@@ -1794,22 +1795,22 @@ void guiWindow::CaliWindowExiting(const int &mode,
             topRightLedNew >= 0 && topRightLedNew < 32768) {
             uint8_t selection = caliWindow->property("profile").toInt();
 
-            App_Const::profilesTable[selection].topOffset = topOffsetNew;
+            App_Common::profilesTable[selection].topOffset = topOffsetNew;
             topOffset[selection]->setText(QString::number(topOffsetNew));
 
-            App_Const::profilesTable[selection].bottomOffset = bottomOffsetNew;
+            App_Common::profilesTable[selection].bottomOffset = bottomOffsetNew;
             bottomOffset[selection]->setText(QString::number(bottomOffsetNew));
 
-            App_Const::profilesTable[selection].leftOffset = leftOffsetNew;
+            App_Common::profilesTable[selection].leftOffset = leftOffsetNew;
             leftOffset[selection]->setText(QString::number(leftOffsetNew));
 
-            App_Const::profilesTable[selection].rightOffset = rightOffsetNew;
+            App_Common::profilesTable[selection].rightOffset = rightOffsetNew;
             rightOffset[selection]->setText(QString::number(rightOffsetNew));
 
-            App_Const::profilesTable[selection].TLled = topLeftLedNew;
+            App_Common::profilesTable[selection].TLled = topLeftLedNew;
             TLled[selection]->setText(QString::number(topLeftLedNew));
 
-            App_Const::profilesTable[selection].TRled = topRightLedNew;
+            App_Common::profilesTable[selection].TRled = topRightLedNew;
             TRled[selection]->setText(QString::number(topRightLedNew));
 
             DiffUpdate();
@@ -1954,7 +1955,7 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
     if(!path.isEmpty()) {
         QFile fileIn(path);
         if(fileIn.open(QFile::ReadOnly)) {
-            if(fileIn.readLine().trimmed() == App_Const::board.boardType) {
+            if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
                 ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
                 for(int i = 0; i < PINS_COUNT; i++)
@@ -1986,7 +1987,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
     if(!path.isEmpty()) {
         QFile fileOut(path);
         if(fileOut.open(QFile::WriteOnly)) {
-            fileOut.write(QString("%1\n").arg(App_Const::board.boardType).toLocal8Bit());
+            fileOut.write(QString("%1\n").arg(App_Common::board.boardType).toLocal8Bit());
 
             for(int i = 0; i < PINS_COUNT; i++)
                 fileOut.putChar(pinBoxes.at(i)->currentIndex());

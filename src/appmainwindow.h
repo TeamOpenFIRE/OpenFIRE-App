@@ -1,5 +1,7 @@
 /*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
-    Copyright (C) 2024  Team OpenFIRE
+    Main interface.
+
+    Copyright (C) 2025  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +26,7 @@
 // Interval of the aliveTimer object that probes the board to ensure it's connected
 #define ALIVE_TIMER 5000
 
-#include "constants.h"
+#include "appcommon.h"
 #include "appcali.h"
 #include "appdebug.h"
 #include "appserial.h"

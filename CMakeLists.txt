@@ -30,7 +30,7 @@ set(TS_FILES
 
 set(PROJECT_SOURCES
         src/main.cpp
-        src/constants.h
+        src/appcommon.h
         src/appmainwindow.cpp
         src/appmainwindow.h
         src/appmainwindow.ui

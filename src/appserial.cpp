@@ -1,5 +1,24 @@
+/*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
+    Serial input/output routines.
+
+    Copyright (C) 2025  Team OpenFIRE
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "appserial.h"
-#include "constants.h"
+#include "appcommon.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
 
@@ -24,10 +43,10 @@ bool AppSerial::SearchPorts()
             printf("Current ports list does not match new list, overriding...\n");
             currentPortsNames = GeneratePortsList(currentPorts);
             return true;
-        } else for(const auto &port : serialFoundList) {
-            if(!currentPortsNames.contains(port.portName())) {
+        } else for(const auto &foundPort : serialFoundList) {
+            if(!currentPortsNames.contains(foundPort.portName())) {
                 currentPorts = serialFoundList;
-                printf("%s not found in current ports, overriding old serial devices list...\n", port.portName().toLocal8Bit().constData());
+                printf("%s not found in current ports, overriding old serial devices list...\n", foundPort.portName().toLocal8Bit().constData());
                 currentPortsNames = GeneratePortsList(currentPorts);
                 return true;
             }
@@ -40,8 +59,8 @@ QStringList AppSerial::GeneratePortsList(const QList<QSerialPortInfo> &portsList
 {
     QStringList newList;
 
-    for(const auto &port : portsList)
-        newList.append(port.portName());
+    for(const auto &newPort : portsList)
+        newList.append(newPort.portName());
 
     return newList;
 }
@@ -74,22 +93,22 @@ bool AppSerial::GetSettings(const QString &portName)
                         buffer.takeFirst();
                     }
 
-                    if(buffer.at(0).contains("OpenFIRE")) {
+                    if(buffer.size() == 5 && buffer.at(0).contains("OpenFIRE")) {
                         printf("OpenFIRE gun detected!\n");
 
                         emit Serial_SetProgressRange(5);
 
-                        App_Const::board.versionNumber = buffer.at(1).constData();
-                        printf("Version number: %s\n", App_Const::board.versionNumber.toLocal8Bit().constData());
+                        App_Common::board.versionNumber = buffer.at(1).constData();
+                        printf("Version number: %s\n", App_Common::board.versionNumber.toLocal8Bit().constData());
 
-                        App_Const::board.versionCodename = buffer.at(2).constData();
-                        printf("Version codename: %s\n", App_Const::board.versionCodename.toLocal8Bit().constData());
+                        App_Common::board.versionCodename = buffer.at(2).constData();
+                        printf("Version codename: %s\n", App_Common::board.versionCodename.toLocal8Bit().constData());
 
-                        App_Const::board.boardType = buffer.at(3).constData();
-                        printf("Board type: %s\n", App_Const::board.boardType.toLocal8Bit().constData());
+                        App_Common::board.boardType = buffer.at(3).constData();
+                        printf("Board type: %s\n", App_Common::board.boardType.toLocal8Bit().constData());
 
-                        App_Const::board.selectedProfile = buffer.at(4).toInt();
-                        App_Const::board.previousProfile = App_Const::board.selectedProfile;
+                        App_Common::board.selectedProfile = buffer.at(4).toInt();
+                        App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
                         // get TUSB info
                         port.write("Xli");
@@ -98,14 +117,14 @@ bool AppSerial::GetSettings(const QString &portName)
 
                         bufStr = port.readLine().trimmed();
                         buffer = bufStr.split(',');
-                        App_Const::tinyUSBtable.tinyUSBid = buffer.at(0);
-                        App_Const::tinyUSBtable_orig.tinyUSBid = App_Const::tinyUSBtable.tinyUSBid;
+                        App_Common::tinyUSBtable.tinyUSBid = buffer.at(0);
+                        App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
 
                         if(buffer[1] == "SERIALREADERR01")
-                            App_Const::tinyUSBtable.tinyUSBname = "";
-                        else App_Const::tinyUSBtable.tinyUSBname = buffer.at(1);
+                            App_Common::tinyUSBtable.tinyUSBname = "";
+                        else App_Common::tinyUSBtable.tinyUSBname = buffer.at(1);
 
-                        App_Const::tinyUSBtable_orig.tinyUSBname = App_Const::tinyUSBtable.tinyUSBname;
+                        App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
 
                         emit Serial_ProgressUpdate(1, "Getting Settings (1)");
 
@@ -121,35 +140,35 @@ bool AppSerial::GetSettings(const QString &portName)
                                 // booleans
                                 for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
                                     if(!buffer.isEmpty()) {
-                                        App_Const::boolSettings[i] = buffer[i].toInt();
-                                        App_Const::boolSettings_orig[i] = App_Const::boolSettings[i];
+                                        App_Common::boolSettings[i] = buffer[i].toInt();
+                                        App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
                                     } else break;
                                 }
 
                                 emit Serial_ProgressUpdate(2, "Getting Settings (2)");
 
                                 // pins
-                                if(App_Const::boolSettings[OF_Const::customPins]) {
+                                if(App_Common::boolSettings[OF_Const::customPins]) {
                                     port.clear();
                                     port.write("Xlp");
                                     port.waitForBytesWritten(500);
                                     port.waitForReadyRead(500);
-                                    App_Const::inputsMap_orig.clear(), App_Const::inputsMap.clear();
+                                    App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
                                     bufStr = port.readLine().trimmed();
                                     buffer = bufStr.split(',');
                                     for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
                                         if(!buffer.isEmpty())
-                                            App_Const::inputsMap_orig[i] = buffer[i].toInt();
+                                            App_Common::inputsMap_orig[i] = buffer[i].toInt();
                                         else break;
                                     }
                                 } else {
                                     for(int i = 0; i < OF_Const::boardInputsCount; i++)
-                                        App_Const::inputsMap_orig[i] = OF_Const::btnUnmapped;
+                                        App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
                                 }
 
                                 emit Serial_ProgressUpdate(3, "Getting Settings (3)");
 
-                                App_Const::inputsMap = App_Const::inputsMap_orig;
+                                App_Common::inputsMap = App_Common::inputsMap_orig;
 
                                 // settings
                                 port.clear();
@@ -160,15 +179,15 @@ bool AppSerial::GetSettings(const QString &portName)
                                 buffer = bufStr.split(',');
                                 for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
                                     if(!buffer.isEmpty()) {
-                                        App_Const::settingsTable[i] = buffer[i].toInt();
-                                        App_Const::settingsTable_orig[i] = App_Const::settingsTable[i];
+                                        App_Common::settingsTable[i] = buffer[i].toInt();
+                                        App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
                                     } else break;
                                 }
 
                                 emit Serial_ProgressUpdate(4, "Getting Profiles Data");
 
                                 // profiles
-                                App_Const::profilesTable.clear(), App_Const::profilesTable_orig.clear();
+                                App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
 
                                 for(uint8_t i = 0;; i++) {
                                     port.clear();
@@ -179,22 +198,22 @@ bool AppSerial::GetSettings(const QString &portName)
                                         bufStr = port.readLine().trimmed();
                                         buffer = bufStr.split(',');
 
-                                        App_Const::profilesTable << App_Const::profilesTable_s(), App_Const::profilesTable_orig << App_Const::profilesTable_s();
+                                        App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
 
                                         // copy settings
-                                        App_Const::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
-                                        App_Const::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
-                                        App_Const::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].runMode = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
-                                        App_Const::profilesTable[i].color = buffer.takeFirst().toLong(),
-                                        App_Const::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
+                                        App_Common::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
+                                        App_Common::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
+                                        App_Common::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].runMode = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
+                                        App_Common::profilesTable[i].color = buffer.takeFirst().toLong(),
+                                        App_Common::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
 
-                                        App_Const::profilesTable_orig[i] = App_Const::profilesTable.at(i);
+                                        App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
                                     } else break;
                                 }
 
@@ -202,10 +221,13 @@ bool AppSerial::GetSettings(const QString &portName)
 
                                 return true;
 
-                            } else QMessageBox::warning(nullptr, "Sync Error: Data hasn't arrived!!",
+                            } else {
+                                QMessageBox::warning(nullptr, "Sync Error: Data hasn't arrived!!",
                                                                  "Device was detected, but settings request wasn't received in time!\n"
                                                                  "This can happen if the app was closed in the middle of an operation.\n\n"
                                                                  "Try selecting the device again.");
+                                return false;
+                            }
                         } else {
                             printf("Couldn't send any data in time! Does the port even exist???\n");
                             return false;
@@ -232,7 +254,6 @@ bool AppSerial::GetSettings(const QString &portName)
             return false;
         }
     } else return false;
-    return false;
 }
 
 bool AppSerial::OneShotSend(const QByteArray &string)
@@ -254,25 +275,25 @@ bool AppSerial::CommitSettings()
 
         QStringList serialQueue;
         for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++)
-            serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(App_Const::boolSettings[i]));
+            serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(App_Common::boolSettings[i]));
 
-        if(App_Const::boolSettings[OF_Const::customPins])
-            for(uint8_t i = 0; i < App_Const::inputsMap.count(); i++)
-                serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(App_Const::inputsMap.value(i)));
+        if(App_Common::boolSettings[OF_Const::customPins])
+            for(uint8_t i = 0; i < App_Common::inputsMap.count(); i++)
+                serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(App_Common::inputsMap.value(i)));
 
         for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-            serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(App_Const::settingsTable[i]));
+            serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(App_Common::settingsTable[i]));
 
-        serialQueue.append(QString("Xm.3.0.%1").arg(App_Const::tinyUSBtable.tinyUSBid));
-        if(!App_Const::tinyUSBtable.tinyUSBname.isEmpty())
-            serialQueue.append(QString("Xm.3.1.%1").arg(App_Const::tinyUSBtable.tinyUSBname));
+        serialQueue.append(QString("Xm.3.0.%1").arg(App_Common::tinyUSBtable.tinyUSBid));
+        if(!App_Common::tinyUSBtable.tinyUSBname.isEmpty())
+            serialQueue.append(QString("Xm.3.1.%1").arg(App_Common::tinyUSBtable.tinyUSBname));
 
         for(uint8_t i = 0; i < 4; i++) {
-            serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Const::profilesTable[i].irSensitivity));
-            serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Const::profilesTable[i].runMode));
-            serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Const::profilesTable[i].layoutType));
-            serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Const::profilesTable[i].color));
-            serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(App_Const::profilesTable[i].profName));
+            serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Common::profilesTable[i].irSensitivity));
+            serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Common::profilesTable[i].runMode));
+            serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Common::profilesTable[i].layoutType));
+            serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Common::profilesTable[i].color));
+            serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(App_Common::profilesTable[i].profName));
         }
         serialQueue.append("XS");
 
