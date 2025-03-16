@@ -168,9 +168,9 @@ bool AppSerial::GetSettings(const QString &portName)
                                             App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
                                     }
 
-                                    emit Serial_ProgressUpdate(3, "Getting Settings (3)");
-
                                     App_Common::inputsMap = App_Common::inputsMap_orig;
+
+                                    emit Serial_ProgressUpdate(3, "Getting Settings (3)");
 
                                     // settings
                                     port.clear();
