@@ -911,7 +911,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     // and "prevMapping" to get previous index, as this method immediately overwrites what it was mapped to.
     // always remember to sync the change to "prevMapping" property at the end of its logic path!
 
-    /*
+    /* For debugging pinBoxes (too lazy to ifdef guard)
     if(index >= 0 && index <= App_Common::inputsMap.size()) {
         //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
@@ -1666,7 +1666,7 @@ void guiWindow::serialPort_SearchFinished()
                 ui->comPortSelector->addItem("[Select a device]");
                 ui->comPortSelector->setCurrentIndex(0);
                 for(const auto port : serial.currentPorts)
-                    ui->comPortSelector->addItem(port.portName());
+                    ui->comPortSelector->addItem(port.portName()+" (" + port.description() + ')');
             }
         // if comPort is filled
         // TODO: find some way to add new items without removing
@@ -1677,8 +1677,8 @@ void guiWindow::serialPort_SearchFinished()
                     while(ui->comPortSelector->count() > 1)
                         ui->comPortSelector->removeItem(1);
 
-                    for(const auto port : serial.currentPorts)
-                        ui->comPortSelector->addItem(port.portName());
+                    for(const auto newPort : serial.currentPorts)
+                        ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 // if comPort is active
                 } else {
                     // remove all other comPorts
@@ -1692,8 +1692,8 @@ void guiWindow::serialPort_SearchFinished()
                     // check if current comPort is still in devices list
                     // TODO: probably a better way of doing this, meh
                     bool inList = false;
-                    for(const auto port : serial.currentPorts)
-                        if(ui->comPortSelector->currentText() == port.portName())
+                    for(const auto newPort : serial.currentPorts)
+                        if(ui->comPortSelector->currentText() == newPort.portName()+" (" + newPort.description() + ')')
                             inList = true;
                     if(!inList) {
                         statusBar()->showMessage("Current board has been disconnected.");
@@ -1701,8 +1701,9 @@ void guiWindow::serialPort_SearchFinished()
                     }
 
                     // append new items to list
-                    for(const auto port : serial.currentPorts)
-                        ui->comPortSelector->addItem(port.portName());
+                    for(const auto newPort : serial.currentPorts)
+                        if(ui->comPortSelector->currentText() != newPort.portName()+" (" + newPort.description() + ')')
+                            ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 }
             // if ports list is cleared, assume no board can be connected.
             } else {

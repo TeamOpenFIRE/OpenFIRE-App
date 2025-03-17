@@ -67,8 +67,11 @@ QStringList AppSerial::GeneratePortsList(const QList<QSerialPortInfo> &portsList
 
 bool AppSerial::GetSettings(const QString &portName)
 {
+    if(port.isOpen())
+        port.close();
+
     for(const auto &curPort : currentPorts)
-        if(portName == curPort.portName())
+        if(portName == curPort.portName()+" (" + curPort.description() + ')')
             port.setPort(curPort);
 
     if(!port.portName().isEmpty()) {
