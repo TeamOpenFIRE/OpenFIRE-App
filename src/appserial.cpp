@@ -203,24 +203,28 @@ bool AppSerial::GetSettings(const QString &portName)
                                             if(port.waitForReadyRead(500)) {
                                                 // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
                                                 bufStr = port.readLine().trimmed();
-                                                buffer = bufStr.split(',');
+                                                if(bufStr.startsWith("PROFERR:")) {
+                                                    break;
+                                                } else {
+                                                    buffer = bufStr.split(',');
 
-                                                App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
+                                                    App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
 
-                                                // copy settings
-                                                App_Common::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
-                                                App_Common::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
-                                                App_Common::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].runMode = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
-                                                App_Common::profilesTable[i].color = buffer.takeFirst().toLong(),
-                                                App_Common::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
+                                                    // copy settings
+                                                    App_Common::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
+                                                    App_Common::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
+                                                    App_Common::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].runMode = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
+                                                    App_Common::profilesTable[i].color = buffer.takeFirst().toLong(),
+                                                    App_Common::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
 
-                                                App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
+                                                    App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
+                                                }
                                             } else break;
                                         }
 
