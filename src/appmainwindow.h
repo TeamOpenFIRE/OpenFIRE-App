@@ -238,6 +238,7 @@ private:
     QFuture<bool> serialSearchFuture;
     QFutureWatcher<bool> serialSearchWatcher;
 
+    // Flag that's set during I/O operations so that the readyRead signal doesn't interfere and absorb RX buffer mid-method.
     bool serialActive = false;
 
     /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
