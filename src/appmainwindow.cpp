@@ -1074,14 +1074,14 @@ void guiWindow::colorBoxes_clicked()
 {
     QColor colorPick = QColorDialog::getColor(App_Common::profilesTable[sender()->property("slot").toInt()].color);
     if(colorPick.isValid()) {
-        int *red = new int;
-        int *green = new int;
-        int *blue = new int;
-        colorPick.getRgb(red, green, blue);
+        int red;
+        int green;
+        int blue;
+        colorPick.getRgb(&red, &green, &blue);
         uint32_t packedColor = 0;
-        packedColor |= *red << 16;
-        packedColor |= *green << 8;
-        packedColor |= *blue;
+        packedColor |= red << 16;
+        packedColor |= green << 8;
+        packedColor |= blue;
         App_Common::profilesTable[sender()->property("slot").toInt()].color = packedColor;
         color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
         DiffUpdate();
