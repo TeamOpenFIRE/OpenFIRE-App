@@ -21,7 +21,6 @@
 #include "appcommon.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
-#include <QDebug>
 
 bool AppSerial::SearchPorts()
 {
@@ -142,7 +141,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                 if(port.waitForReadyRead(500)) {
                                     // booleans
                                     for(uint8_t i = 0;; i++) {
-                                        if(!port.atEnd() && i < sizeof(App_Common::boolSettings)) {
+                                        if(!port.atEnd() && i < OF_Const::boolTypesCount) {
                                             char buf;
                                             port.read(&buf, 1);
                                             App_Common::boolSettings[i] = buf-32;
@@ -161,10 +160,9 @@ bool AppSerial::GetSettings(const QString &portName)
                                             App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
                                             for(uint8_t i = 0;; i++)
-                                                if(!port.atEnd() && i < sizeof(OF_Const::boardInputsCount)) {
+                                                if(!port.atEnd() && i < OF_Const::boardInputsCount) {
                                                     port.read((char*)&App_Common::inputsMap_orig[i], 1);
                                                     App_Common::inputsMap_orig[i] -= 32;
-                                                    printf("%i ", App_Common::inputsMap_orig.value(i));
                                                 } else break;
                                         } else {
                                             printf("Didn't receive any data in time!\n");
