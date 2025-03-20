@@ -21,6 +21,7 @@
 #include "appcommon.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
+#include <QDebug>
 
 bool AppSerial::SearchPorts()
 {
@@ -139,13 +140,12 @@ bool AppSerial::GetSettings(const QString &portName)
                                 port.write("Xlb");
                                 port.waitForBytesWritten(500);
                                 if(port.waitForReadyRead(500)) {
-                                    QString bufStr = port.readLine().trimmed();
-                                    QStringList buffer = bufStr.split(',');
-
                                     // booleans
-                                    for(uint8_t i = 0; i < buffer.count(); i++) {
-                                        if(i < sizeof(App_Common::boolSettings)) {
-                                            App_Common::boolSettings[i] = buffer.at(i).toInt();
+                                    for(uint8_t i = 0;; i++) {
+                                        if(!port.atEnd() && i < sizeof(App_Common::boolSettings)) {
+                                            char buf;
+                                            port.read(&buf, 1);
+                                            App_Common::boolSettings[i] = buf-32;
                                             App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
                                         } else break;
                                     }
@@ -160,10 +160,12 @@ bool AppSerial::GetSettings(const QString &portName)
                                         if(port.waitForReadyRead(500)) {
                                             App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
-                                            bufStr = port.readLine().trimmed();
-                                            buffer = bufStr.split(',');
-                                            for(uint8_t i = 0; i < buffer.count(); i++)
-                                                App_Common::inputsMap_orig[i] = buffer.at(i).toInt();
+                                            for(uint8_t i = 0;; i++)
+                                                if(!port.atEnd() && i < sizeof(OF_Const::boardInputsCount)) {
+                                                    port.read((char*)&App_Common::inputsMap_orig[i], 1);
+                                                    App_Common::inputsMap_orig[i] -= 32;
+                                                    printf("%i ", App_Common::inputsMap_orig.value(i));
+                                                } else break;
                                         } else {
                                             printf("Didn't receive any data in time!\n");
                                             return false;
@@ -182,12 +184,18 @@ bool AppSerial::GetSettings(const QString &portName)
                                     port.write("Xls");
                                     port.waitForBytesWritten(500);
                                     if(port.waitForReadyRead(500)) {
-                                        bufStr = port.readLine().trimmed();
-                                        buffer = bufStr.split(',');
-                                        for(uint8_t i = 0; i < buffer.count(); i++) {
-                                            if(i < sizeof(App_Common::settingsTable) / 4) {
-                                                App_Common::settingsTable[i] = buffer.at(i).toInt();
-                                                App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
+                                        for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
+                                            if(i < OF_Const::settingsTypesCount) {
+                                                if(port.atEnd()) if(!port.waitForReadyRead(2000)) break;
+                                                if(port.peek(1).at(0) == (char)0xFF) break;
+                                                else {
+                                                    bufStr.clear();
+                                                    while(port.peek(1).at(0) != ' ')
+                                                        bufStr.append(port.read(1));
+                                                    port.skip(1);
+                                                    App_Common::settingsTable[i] = bufStr.toUInt(nullptr, 16);
+                                                    App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
+                                                }
                                             } else break;
                                         }
 
@@ -221,7 +229,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                                     App_Common::profilesTable[i].runMode = buffer.takeFirst().toInt(),
                                                     App_Common::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
                                                     App_Common::profilesTable[i].color = buffer.takeFirst().toLong(),
-                                                    App_Common::profilesTable[i].profName = buffer.takeFirst().toLocal8Bit();
+                                                    App_Common::profilesTable[i].profName = buffer.takeFirst();
 
                                                     App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
                                                 }
