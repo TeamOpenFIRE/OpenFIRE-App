@@ -1062,7 +1062,7 @@ void guiWindow::renameBoxes_clicked()
                                              QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
 
     if(!newLabel.isEmpty()) {
-        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()).arg(newLabel.left(15)));
+        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
         App_Common::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
     }
 
