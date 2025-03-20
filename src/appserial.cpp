@@ -179,7 +179,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                         memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
                                         while(true) {
                                             if(!port.bytesAvailable()) if(!port.waitForReadyRead(2000)) break;
-                                            if(port.peek(1).at(0) == (char)0xFF) break;
+                                            if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
                                             else {
                                                 uint8_t i = port.read(1).at(0);
                                                 if(i < OF_Const::settingsTypesCount)
@@ -198,24 +198,24 @@ bool AppSerial::GetSettings(const QString &portName)
                                             port.write("XlP" + QByteArray::number(i));
                                             port.waitForBytesWritten(500);
                                             if(port.waitForReadyRead(500)) {
-                                                if(port.peek(1).at(0) == (char)0xFE) {
+                                                if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
                                                     break;
                                                 } else {
                                                     App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
 
                                                     while(port.bytesAvailable()) {
                                                         switch(port.read(1).at(0)) {
-                                                        case 0: port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
-                                                        case 1: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
-                                                        case 2: port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
-                                                        case 3: port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
-                                                        case 4: port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
-                                                        case 5: port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
-                                                        case 6: port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
-                                                        case 7: port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
-                                                        case 8: port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
-                                                        case 9: port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
-                                                        case (char)0xFA:          App_Common::profilesTable[i].profName = port.read(16);         break;
+                                                        case (char)OF_Const::profTopOffset:    port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
+                                                        case (char)OF_Const::profBottomOffset: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
+                                                        case (char)OF_Const::profLeftOffset:   port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
+                                                        case (char)OF_Const::profRightOffset:  port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
+                                                        case (char)OF_Const::profTLled:        port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
+                                                        case (char)OF_Const::profTRled:        port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
+                                                        case (char)OF_Const::profIrSens:       port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
+                                                        case (char)OF_Const::profRunMode:      port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
+                                                        case (char)OF_Const::profIrLayout:     port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
+                                                        case (char)OF_Const::profColor:        port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
+                                                        case (char)OF_Const::profName:                           App_Common::profilesTable[i].profName = port.read(16);         break;
                                                         default: break;
                                                         }
                                                     }
