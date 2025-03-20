@@ -87,8 +87,7 @@ bool AppSerial::GetSettings(const QString &portName)
             port.write("XP");
             if(port.waitForBytesWritten(500)) {
                 if(port.waitForReadyRead(500)) {
-                    QByteArray bufStr = port.readLine().trimmed();
-                    QList<QByteArray> buffer = bufStr.split(',');
+                    QList<QByteArray> buffer = port.readLine().trimmed().split(',');
 
                     if(buffer.at(0) == "CAMERROR: Not available") {
                         QMessageBox::warning(nullptr,  "Device Error: Camera not available!",
@@ -119,8 +118,7 @@ bool AppSerial::GetSettings(const QString &portName)
                         port.write("Xli");
                         port.waitForBytesWritten(500);
                         if(port.waitForReadyRead(500)) {
-                            bufStr = port.readLine().trimmed();
-                            buffer = bufStr.split(',');
+                            buffer = port.readLine().trimmed().split(',');
                             if(buffer.size() == 2) {
                                 App_Common::tinyUSBtable.tinyUSBid = buffer.at(0);
                                 App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
@@ -143,7 +141,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     memset(App_Common::boolSettings, false, OF_Const::boolTypesCount);
                                     for(uint8_t i = 0;; i++) {
                                         if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
-                                            port.read((char*)&App_Common::boolSettings[i], 1);
+                                            port.read((char*)&App_Common::boolSettings[i], sizeof(bool));
                                         else break;
                                     }
                                     memcpy(App_Common::boolSettings_orig, App_Common::boolSettings, sizeof(App_Common::boolSettings));
@@ -160,7 +158,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                                             for(uint8_t i = 0;; i++)
                                                 if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
-                                                    port.read((char*)&App_Common::inputsMap_orig[i], 1);
+                                                    port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
                                                 else break;
                                         } else {
                                             printf("Didn't receive any data in time!\n");
@@ -179,18 +177,14 @@ bool AppSerial::GetSettings(const QString &portName)
                                     port.waitForBytesWritten(500);
                                     if(port.waitForReadyRead(500)) {
                                         memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
-                                        for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
-                                            if(i < OF_Const::settingsTypesCount) {
-                                                if(port.atEnd()) if(!port.waitForReadyRead(2000)) break;
-                                                if(port.peek(1).at(0) == (char)0xFF) break;
-                                                else {
-                                                    bufStr.clear();
-                                                    while(port.peek(1).at(0) != ' ')
-                                                        bufStr.append(port.read(1));
-                                                    port.skip(1);
-                                                    App_Common::settingsTable[i] = bufStr.toUInt(nullptr, 16);
-                                                }
-                                            } else break;
+                                        while(true) {
+                                            if(!port.bytesAvailable()) if(!port.waitForReadyRead(2000)) break;
+                                            if(port.peek(1).at(0) == (char)0xFF) break;
+                                            else {
+                                                uint8_t i = port.read(1).at(0);
+                                                if(i < OF_Const::settingsTypesCount)
+                                                    port.read((char*)&App_Common::settingsTable[i], sizeof(uint32_t));
+                                            }
                                         }
                                         memcpy(App_Common::settingsTable_orig, App_Common::settingsTable, sizeof(App_Common::settingsTable));
 
@@ -204,27 +198,27 @@ bool AppSerial::GetSettings(const QString &portName)
                                             port.write("XlP" + QByteArray::number(i));
                                             port.waitForBytesWritten(500);
                                             if(port.waitForReadyRead(500)) {
-                                                // TODO (in fw): could be safer if each line was prepended with what type of profile table value it is.
-                                                bufStr = port.readLine().trimmed();
-                                                if(bufStr.startsWith("PROFERR:")) {
+                                                if(port.peek(1).at(0) == (char)0xFE) {
                                                     break;
                                                 } else {
-                                                    buffer = bufStr.split(',');
-
                                                     App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
 
-                                                    // copy settings
-                                                    App_Common::profilesTable[i].topOffset = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].bottomOffset = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].leftOffset = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].rightOffset = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].TLled = buffer.takeFirst().toFloat(),
-                                                    App_Common::profilesTable[i].TRled = buffer.takeFirst().toFloat(),
-                                                    App_Common::profilesTable[i].irSensitivity = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].runMode = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].layoutType = buffer.takeFirst().toInt(),
-                                                    App_Common::profilesTable[i].color = buffer.takeFirst().toLong(),
-                                                    App_Common::profilesTable[i].profName = buffer.takeFirst();
+                                                    while(port.bytesAvailable()) {
+                                                        switch(port.read(1).at(0)) {
+                                                        case 0: port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
+                                                        case 1: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
+                                                        case 2: port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
+                                                        case 3: port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
+                                                        case 4: port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
+                                                        case 5: port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
+                                                        case 6: port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
+                                                        case 7: port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
+                                                        case 8: port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
+                                                        case 9: port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
+                                                        case (char)0xFA:          App_Common::profilesTable[i].profName = port.read(16);         break;
+                                                        default: break;
+                                                        }
+                                                    }
 
                                                     App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
                                                 }
@@ -242,7 +236,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     return false;
                                 }
                             } else {
-                                printf("Port did not respond with expected response! Got: %s", bufStr.constData());
+                                printf("Port did not respond with expected response! Got: %s", buffer.at(0).constData());
                                 return false;
                             }
                         } else {
@@ -306,11 +300,11 @@ bool AppSerial::CommitSettings()
             serialQueue.append(QString("Xm.3.1.%1").arg(App_Common::tinyUSBtable.tinyUSBname));
 
         for(uint8_t i = 0; i < 4; i++) {
-            serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Common::profilesTable[i].irSensitivity));
-            serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Common::profilesTable[i].runMode));
-            serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Common::profilesTable[i].layoutType));
-            serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Common::profilesTable[i].color));
-            serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(App_Common::profilesTable[i].profName));
+            serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).irSensitivity));
+            serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).runMode));
+            serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).layoutType));
+            serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).color));
+            serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(QString(App_Common::profilesTable.at(i).profName)));
         }
         serialQueue.append("XS");
 

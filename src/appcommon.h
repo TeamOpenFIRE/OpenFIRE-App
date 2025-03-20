@@ -77,17 +77,17 @@ public:
     } tinyUSBtable_s;
 
     typedef struct profilesTable_t {
-        uint16_t topOffset      = 0;
-        uint16_t bottomOffset   = 0;
-        uint16_t leftOffset     = 0;
-        uint16_t rightOffset    = 0;
-        uint16_t TLled          = 0;
-        uint16_t TRled          = 0;
-        uint8_t irSensitivity   = 0;
-        uint8_t runMode         = 0;
-        uint8_t layoutType      = false;
+        int32_t  topOffset      = 0;
+        int32_t  bottomOffset   = 0;
+        int32_t  leftOffset     = 0;
+        int32_t  rightOffset    = 0;
+        float    TLled          = 0;
+        float    TRled          = 0;
+        uint8_t  irSensitivity  = 0;
+        uint8_t  runMode        = 0;
+        uint8_t  layoutType     = false;
         uint32_t color          = 0;
-        QString profName        = "";
+        QByteArray profName     = "";
     } profilesTable_s;
 
     // Currently loaded board object

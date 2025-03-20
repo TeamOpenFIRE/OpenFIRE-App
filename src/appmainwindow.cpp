@@ -520,7 +520,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                               "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Common::profilesTable.at(i).profName));
+                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(QString(App_Common::profilesTable.at(i).profName)));
                 if(i == App_Common::board.selectedProfile)
                     selectedProfile.at(i)->setChecked(true);
                 selectedProfile.at(i)->setFont(QFont("Monospace"));
@@ -1063,7 +1063,7 @@ void guiWindow::renameBoxes_clicked()
 
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()).arg(newLabel.left(15)));
-        App_Common::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15);
+        App_Common::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
     }
 
     DiffUpdate();
