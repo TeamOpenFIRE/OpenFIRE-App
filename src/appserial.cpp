@@ -140,14 +140,13 @@ bool AppSerial::GetSettings(const QString &portName)
                                 port.waitForBytesWritten(500);
                                 if(port.waitForReadyRead(500)) {
                                     // booleans
+                                    memset(App_Common::boolSettings, false, OF_Const::boolTypesCount);
                                     for(uint8_t i = 0;; i++) {
-                                        if(!port.atEnd() && i < OF_Const::boolTypesCount) {
-                                            char buf;
-                                            port.read(&buf, 1);
-                                            App_Common::boolSettings[i] = buf-32;
-                                            App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
-                                        } else break;
+                                        if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
+                                            port.read((char*)&App_Common::boolSettings[i], 1);
+                                        else break;
                                     }
+                                    memcpy(App_Common::boolSettings_orig, App_Common::boolSettings, sizeof(App_Common::boolSettings));
 
                                     emit Serial_ProgressUpdate(2, "Getting Settings (2)");
 
@@ -160,18 +159,15 @@ bool AppSerial::GetSettings(const QString &portName)
                                             App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
                                             for(uint8_t i = 0;; i++)
-                                                if(!port.atEnd() && i < OF_Const::boardInputsCount) {
+                                                if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
                                                     port.read((char*)&App_Common::inputsMap_orig[i], 1);
-                                                    App_Common::inputsMap_orig[i] -= 32;
-                                                } else break;
+                                                else break;
                                         } else {
                                             printf("Didn't receive any data in time!\n");
                                             return false;
                                         }
-                                    } else {
-                                        for(int i = 0; i < OF_Const::boardInputsCount; i++)
+                                    } else for(int i = 0; i < OF_Const::boardInputsCount; i++)
                                             App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
-                                    }
 
                                     App_Common::inputsMap = App_Common::inputsMap_orig;
 
@@ -182,6 +178,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     port.write("Xls");
                                     port.waitForBytesWritten(500);
                                     if(port.waitForReadyRead(500)) {
+                                        memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
                                         for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
                                             if(i < OF_Const::settingsTypesCount) {
                                                 if(port.atEnd()) if(!port.waitForReadyRead(2000)) break;
@@ -192,10 +189,10 @@ bool AppSerial::GetSettings(const QString &portName)
                                                         bufStr.append(port.read(1));
                                                     port.skip(1);
                                                     App_Common::settingsTable[i] = bufStr.toUInt(nullptr, 16);
-                                                    App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
                                                 }
                                             } else break;
                                         }
+                                        memcpy(App_Common::settingsTable_orig, App_Common::settingsTable, sizeof(App_Common::settingsTable));
 
                                         emit Serial_ProgressUpdate(4, "Getting Profiles Data");
 
