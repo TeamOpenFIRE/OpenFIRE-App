@@ -273,7 +273,7 @@ bool AppSerial::CommitSettings()
 
         serialQueue.append(QString("Xm.3.0.%1").arg(App_Common::tinyUSBtable.tinyUSBid));
         if(!App_Common::tinyUSBtable.tinyUSBname.isEmpty())
-            serialQueue.append(QString("Xm.3.1.%1").arg(App_Common::tinyUSBtable.tinyUSBname));
+            serialQueue.append("Xm.3.1." + App_Common::tinyUSBtable.tinyUSBname);
 
         for(uint8_t i = 0; i < 4; i++) {
             serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).irSensitivity));

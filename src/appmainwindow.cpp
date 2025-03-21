@@ -1997,7 +1997,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
     if(!path.isEmpty()) {
         QFile fileOut(path);
         if(fileOut.open(QFile::WriteOnly)) {
-            fileOut.write(QString("%1\n").arg(App_Common::board.boardType).toLocal8Bit());
+            fileOut.write(App_Common::board.boardType + '\n');
 
             for(int i = 0; i < pinBoxes.count(); i++)
                 fileOut.putChar(pinBoxes.at(i)->currentIndex());
