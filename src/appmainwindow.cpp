@@ -1170,6 +1170,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->rumbleFFToggle->setChecked(false);
         ui->solenoidSettingsBox->setEnabled(true);
         ui->solenoidTestBtn->setEnabled(true);
+        ui->solenoidFFBox->setEnabled(true);
     } else {
         ui->solenoidSettingsBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
@@ -1968,7 +1969,7 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
                 // import new maps
                 for(int i = 0; i < pinBoxes.count(); i++) {
                     if(!fileIn.atEnd()) {
-                        const int newIdx = fileIn.peek(1).toHex().toInt(nullptr, 16);
+                        const int newIdx = fileIn.read(1).toHex().toInt(nullptr, 16);
                         if(newIdx <= OF_Const::boardInputsCount)
                             pinBoxes.at(i)->setCurrentIndex(newIdx);
                     } else break;
