@@ -114,7 +114,7 @@ bool AppSerial::GetSettings(const QString &portName)
                         App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
                         memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(4).constData(), 2);
-                        App_Common::tinyUSBtable.tinyUSBname.append(&buffer.at(4).constData()[2]);
+                        App_Common::tinyUSBtable.tinyUSBname = &buffer.at(4).constData()[2];
                         App_Common::tinyUSBtable_orig = App_Common::tinyUSBtable;
 
                         // toggles
