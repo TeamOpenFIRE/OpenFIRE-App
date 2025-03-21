@@ -64,16 +64,16 @@ public:
     };
 
     typedef struct boardInfo_t {
-        uint8_t selectedProfile;
-        uint8_t previousProfile;
-        QString boardType;
-        QString versionNumber;
-        QString versionCodename;
+        uint8_t    selectedProfile;
+        uint8_t    previousProfile;
+        QByteArray boardType;
+        QByteArray versionNumber;
+        QByteArray versionCodename;
     } boardInfo_s;
 
     typedef struct tinyUSBtable_t {
-        QString tinyUSBid;
-        QString tinyUSBname;
+        uint16_t   tinyUSBid;
+        QByteArray tinyUSBname;
     } tinyUSBtable_s;
 
     typedef struct profilesTable_t {

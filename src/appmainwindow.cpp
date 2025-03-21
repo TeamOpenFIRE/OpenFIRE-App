@@ -802,7 +802,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->solenoidHoldLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
 
-            ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+            ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
             ui->neopixelStrandLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDcount]);
             ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDstatic]);
@@ -810,7 +810,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
             ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
-            switch(App_Common::tinyUSBtable.tinyUSBid.toInt()) {
+            switch(App_Common::tinyUSBtable.tinyUSBid) {
             case 1:
                 ui->tUSB_p1->setChecked(true);
                 ui->tUSBLayoutAdvanced->setVisible(false);
@@ -1297,9 +1297,9 @@ void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 void guiWindow::on_tUSB_p1_toggled(bool checked)
 {
     if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = "1";
+        App_Common::tinyUSBtable.tinyUSBid = 1;
         App_Common::tinyUSBtable.tinyUSBname = "FIRECon P1";
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
@@ -1310,9 +1310,9 @@ void guiWindow::on_tUSB_p1_toggled(bool checked)
 void guiWindow::on_tUSB_p2_toggled(bool checked)
 {
     if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = "2";
+        App_Common::tinyUSBtable.tinyUSBid = 2;
         App_Common::tinyUSBtable.tinyUSBname = "FIRECon P2";
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
@@ -1323,9 +1323,9 @@ void guiWindow::on_tUSB_p2_toggled(bool checked)
 void guiWindow::on_tUSB_p3_toggled(bool checked)
 {
     if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = "3";
+        App_Common::tinyUSBtable.tinyUSBid = 3;
         App_Common::tinyUSBtable.tinyUSBname = "FIRECon P3";
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
@@ -1336,9 +1336,9 @@ void guiWindow::on_tUSB_p3_toggled(bool checked)
 void guiWindow::on_tUSB_p4_toggled(bool checked)
 {
     if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = "4";
+        App_Common::tinyUSBtable.tinyUSBid = 4;
         App_Common::tinyUSBtable.tinyUSBname = "FIRECon P4";
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid.toInt());
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
         DiffUpdate();
@@ -1348,7 +1348,7 @@ void guiWindow::on_tUSB_p4_toggled(bool checked)
 
 void guiWindow::on_productIdInput_valueChanged(int arg1)
 {
-    App_Common::tinyUSBtable.tinyUSBid = QString::number(arg1);
+    App_Common::tinyUSBtable.tinyUSBid = arg1;
     if(ui->productNameInput->text().isEmpty()) {
         switch(arg1) {
         case 1:
@@ -1394,7 +1394,7 @@ void guiWindow::on_productNameInput_textEdited(const QString &arg1)
     } else {
         if(!ui->productNameInput->styleSheet().isEmpty())
             ui->productNameInput->setStyleSheet("");
-        App_Common::tinyUSBtable.tinyUSBname = arg1;
+        App_Common::tinyUSBtable.tinyUSBname = arg1.toLocal8Bit();
         DiffUpdate();
     }
 }

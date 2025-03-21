@@ -87,7 +87,7 @@ bool AppSerial::GetSettings(const QString &portName)
             port.write("XP");
             if(port.waitForBytesWritten(500)) {
                 if(port.waitForReadyRead(500)) {
-                    QList<QByteArray> buffer = port.readLine().trimmed().split(',');
+                    QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
                     if(buffer.at(0) == "CAMERROR: Not available") {
                         QMessageBox::warning(nullptr,  "Device Error: Camera not available!",
@@ -97,150 +97,126 @@ bool AppSerial::GetSettings(const QString &portName)
                         buffer.takeFirst();
                     }
 
-                    if(buffer.size() == 5 && buffer.at(0).contains("OpenFIRE")) {
-                        printf("OpenFIRE gun detected!\n");
-
+                    if(buffer.size() == 5) {
                         emit Serial_SetProgressRange(5);
+                        emit Serial_ProgressUpdate(1, "Getting Board Info");
 
-                        App_Common::board.versionNumber = buffer.at(1).constData();
-                        printf("Version number: %s\n", App_Common::board.versionNumber.toLocal8Bit().constData());
+                        App_Common::board.versionNumber = buffer.at(0).constData();
+                        printf("Version number: %s\n", App_Common::board.versionNumber.constData());
 
-                        App_Common::board.versionCodename = buffer.at(2).constData();
-                        printf("Version codename: %s\n", App_Common::board.versionCodename.toLocal8Bit().constData());
+                        App_Common::board.versionCodename = buffer.at(1).constData();
+                        printf("Version codename: %s\n", App_Common::board.versionCodename.constData());
 
-                        App_Common::board.boardType = buffer.at(3).constData();
-                        printf("Board type: %s\n", App_Common::board.boardType.toLocal8Bit().constData());
+                        App_Common::board.boardType = buffer.at(2).constData();
+                        printf("Board type: %s\n", App_Common::board.boardType.constData());
 
-                        App_Common::board.selectedProfile = buffer.at(4).toInt();
+                        App_Common::board.selectedProfile = buffer.at(3).toInt();
                         App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
-                        // get TUSB info
-                        port.write("Xli");
+                        memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(4).constData(), 2);
+                        App_Common::tinyUSBtable.tinyUSBname.append(&buffer.at(4).constData()[2]);
+                        App_Common::tinyUSBtable_orig = App_Common::tinyUSBtable;
+
+                        // toggles
+                        port.write("Xlb");
                         port.waitForBytesWritten(500);
                         if(port.waitForReadyRead(500)) {
-                            buffer = port.readLine().trimmed().split(',');
-                            if(buffer.size() == 2) {
-                                App_Common::tinyUSBtable.tinyUSBid = buffer.at(0);
-                                App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
+                            // booleans
+                            memset(App_Common::boolSettings, false, OF_Const::boolTypesCount);
+                            for(uint8_t i = 0;; i++) {
+                                if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
+                                    port.read((char*)&App_Common::boolSettings[i], sizeof(bool));
+                                else break;
+                            }
+                            memcpy(App_Common::boolSettings_orig, App_Common::boolSettings, sizeof(App_Common::boolSettings));
 
-                                if(buffer.at(1) == "SERIALREADERR01")
-                                    App_Common::tinyUSBtable.tinyUSBname = "";
-                                else App_Common::tinyUSBtable.tinyUSBname = buffer.at(1);
+                            emit Serial_ProgressUpdate(2, "Getting Settings (1)");
 
-                                App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
-
-                                emit Serial_ProgressUpdate(1, "Getting Settings (1)");
-
+                            // pins
+                            if(App_Common::boolSettings[OF_Const::customPins]) {
                                 port.clear();
-
-                                // toggles
-                                port.write("Xlb");
+                                port.write("Xlp");
                                 port.waitForBytesWritten(500);
                                 if(port.waitForReadyRead(500)) {
-                                    // booleans
-                                    memset(App_Common::boolSettings, false, OF_Const::boolTypesCount);
-                                    for(uint8_t i = 0;; i++) {
-                                        if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
-                                            port.read((char*)&App_Common::boolSettings[i], sizeof(bool));
+                                    App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
+
+                                    for(uint8_t i = 0;; i++)
+                                        if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
+                                            port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
                                         else break;
-                                    }
-                                    memcpy(App_Common::boolSettings_orig, App_Common::boolSettings, sizeof(App_Common::boolSettings));
-
-                                    emit Serial_ProgressUpdate(2, "Getting Settings (2)");
-
-                                    // pins
-                                    if(App_Common::boolSettings[OF_Const::customPins]) {
-                                        port.clear();
-                                        port.write("Xlp");
-                                        port.waitForBytesWritten(500);
-                                        if(port.waitForReadyRead(500)) {
-                                            App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
-
-                                            for(uint8_t i = 0;; i++)
-                                                if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
-                                                    port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
-                                                else break;
-                                        } else {
-                                            printf("Didn't receive any data in time!\n");
-                                            return false;
-                                        }
-                                    } else for(int i = 0; i < OF_Const::boardInputsCount; i++)
-                                            App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
-
-                                    App_Common::inputsMap = App_Common::inputsMap_orig;
-
-                                    emit Serial_ProgressUpdate(3, "Getting Settings (3)");
-
-                                    // settings
-                                    port.clear();
-                                    port.write("Xls");
-                                    port.waitForBytesWritten(500);
-                                    if(port.waitForReadyRead(500)) {
-                                        memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
-                                        while(true) {
-                                            if(!port.bytesAvailable()) if(!port.waitForReadyRead(2000)) break;
-                                            if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                            else {
-                                                uint8_t i = port.read(1).at(0);
-                                                if(i < OF_Const::settingsTypesCount)
-                                                    port.read((char*)&App_Common::settingsTable[i], sizeof(uint32_t));
-                                            }
-                                        }
-                                        memcpy(App_Common::settingsTable_orig, App_Common::settingsTable, sizeof(App_Common::settingsTable));
-
-                                        emit Serial_ProgressUpdate(4, "Getting Profiles Data");
-
-                                        // profiles
-                                        App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
-
-                                        for(uint8_t i = 0;; i++) {
-                                            port.clear();
-                                            port.write("XlP" + QByteArray::number(i));
-                                            port.waitForBytesWritten(500);
-                                            if(port.waitForReadyRead(500)) {
-                                                if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
-                                                    break;
-                                                } else {
-                                                    App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
-
-                                                    while(port.bytesAvailable()) {
-                                                        switch(port.read(1).at(0)) {
-                                                        case (char)OF_Const::profTopOffset:    port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
-                                                        case (char)OF_Const::profBottomOffset: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
-                                                        case (char)OF_Const::profLeftOffset:   port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
-                                                        case (char)OF_Const::profRightOffset:  port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
-                                                        case (char)OF_Const::profTLled:        port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
-                                                        case (char)OF_Const::profTRled:        port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
-                                                        case (char)OF_Const::profIrSens:       port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
-                                                        case (char)OF_Const::profRunMode:      port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
-                                                        case (char)OF_Const::profIrLayout:     port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
-                                                        case (char)OF_Const::profColor:        port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
-                                                        case (char)OF_Const::profName:                           App_Common::profilesTable[i].profName = port.read(16);         break;
-                                                        default: break;
-                                                        }
-                                                    }
-
-                                                    App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
-                                                }
-                                            } else break;
-                                        }
-
-                                        emit Serial_ProgressUpdate(5, "Successfully synced data!");
-                                        return true;
-                                    } else {
-                                        printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
-                                        return false;
-                                    }
                                 } else {
-                                    printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
+                                    printf("Didn't receive any data in time!\n");
                                     return false;
                                 }
+                            } else for(int i = 0; i < OF_Const::boardInputsCount; i++)
+                                    App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
+
+                            App_Common::inputsMap = App_Common::inputsMap_orig;
+
+                            emit Serial_ProgressUpdate(3, "Getting Settings (2)");
+
+                            // settings
+                            port.clear();
+                            port.write("Xls");
+                            port.waitForBytesWritten(500);
+                            if(port.waitForReadyRead(500)) {
+                                memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
+                                while(true) {
+                                    if(!port.bytesAvailable()) if(!port.waitForReadyRead(2000)) break;
+                                    if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+                                    else {
+                                        uint8_t i = port.read(1).at(0);
+                                        if(i < OF_Const::settingsTypesCount)
+                                            port.read((char*)&App_Common::settingsTable[i], sizeof(uint32_t));
+                                    }
+                                }
+                                memcpy(App_Common::settingsTable_orig, App_Common::settingsTable, sizeof(App_Common::settingsTable));
+
+                                emit Serial_ProgressUpdate(4, "Getting Profiles Data");
+
+                                // profiles
+                                App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
+
+                                for(uint8_t i = 0;; i++) {
+                                    port.clear();
+                                    port.write("XlP" + QByteArray::number(i));
+                                    port.waitForBytesWritten(500);
+                                    if(port.waitForReadyRead(500)) {
+                                        if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
+                                            break;
+                                        } else {
+                                            App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
+
+                                            while(port.bytesAvailable()) {
+                                                switch(port.read(1).at(0)) {
+                                                case (char)OF_Const::profTopOffset:    port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
+                                                case (char)OF_Const::profBottomOffset: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
+                                                case (char)OF_Const::profLeftOffset:   port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
+                                                case (char)OF_Const::profRightOffset:  port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
+                                                case (char)OF_Const::profTLled:        port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
+                                                case (char)OF_Const::profTRled:        port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
+                                                case (char)OF_Const::profIrSens:       port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
+                                                case (char)OF_Const::profRunMode:      port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
+                                                case (char)OF_Const::profIrLayout:     port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
+                                                case (char)OF_Const::profColor:        port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
+                                                case (char)OF_Const::profName:                           App_Common::profilesTable[i].profName = port.read(16);         break;
+                                                default: break;
+                                                }
+                                            }
+
+                                            App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
+                                        }
+                                    } else break;
+                                }
+
+                                emit Serial_ProgressUpdate(5, "Successfully synced data!");
+                                return true;
                             } else {
-                                printf("Port did not respond with expected response! Got: %s", buffer.at(0).constData());
+                                printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
                                 return false;
                             }
                         } else {
-                            printf("Couldn't send any data in time! Does the port even exist???\n");
+                            printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
                             return false;
                         }
                     } else {
