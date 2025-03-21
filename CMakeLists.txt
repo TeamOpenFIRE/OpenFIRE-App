@@ -13,6 +13,8 @@ if(NOT OFAPP_QT_VERSIONS)
     set(OFAPP_QT_VERSIONS Qt6)
 endif()
 
+add_compile_definitions(OF_APP)
+
 if(OFAPP_VERSION)
     add_compile_definitions(OFAPP_VERSION="${OFAPP_VERSION}")
 endif()
