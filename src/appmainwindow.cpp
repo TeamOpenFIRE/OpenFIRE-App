@@ -787,20 +787,23 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customPinsEnabled->setChecked(App_Common::boolSettings[OF_Const::customPins]);
 
             ui->rumbleToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumble]);
+            ui->rumbleSettingsBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]);
             ui->solenoidToggle->setChecked(App_Common::boolSettings_orig[OF_Const::solenoid]);
+            ui->solenoidSettingsBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]);
             ui->autofireToggle->setChecked(App_Common::boolSettings_orig[OF_Const::autofire]);
+            ui->autofireToggle->setEnabled((App_Common::boolSettings_orig[OF_Const::solenoid] || App_Common::boolSettings_orig[OF_Const::rumbleFF]));
             ui->simplePauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::simplePause]);
             ui->holdToPauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::holdToPause]);
             ui->commonAnodeToggle->setChecked(App_Common::boolSettings_orig[OF_Const::commonAnode]);
             ui->lowButtonsToggle->setChecked(App_Common::boolSettings_orig[OF_Const::lowButtonsMode]);
             ui->rumbleFFToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumbleFF]);
-            ui->rumbleIntensityBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]),          ui->rumbleIntensityBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleStrength]);
-            ui->rumbleLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]),             ui->rumbleLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleInterval]);
-            ui->holdToPauseLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::holdToPause]),   ui->holdToPauseLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]), ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]),   ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]),     ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]),     ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
+            ui->rumbleIntensityBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
@@ -1170,7 +1173,6 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->rumbleFFToggle->setChecked(false);
         ui->solenoidSettingsBox->setEnabled(true);
         ui->solenoidTestBtn->setEnabled(true);
-        ui->solenoidFFBox->setEnabled(true);
     } else {
         ui->solenoidSettingsBox->setEnabled(false);
         ui->solenoidTestBtn->setEnabled(false);
