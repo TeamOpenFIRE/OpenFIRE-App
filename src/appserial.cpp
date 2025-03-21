@@ -220,7 +220,7 @@ bool AppSerial::GetSettings(const QString &portName)
                             return false;
                         }
                     } else {
-                        printf("Port did not respond with expected response! Got: %s\n", buffer.join(',').constData());
+                        printf("Port did not respond with expected response! Got: %s\n", buffer.join(' ').constData());
                         return false;
                     }
                 } else {
