@@ -65,7 +65,7 @@ public:
     /// @returns    Success (true) or failure (false)
     /// @param      QString
     ///             String to send to device
-    bool OneShotSend(const QByteArray &, const unsigned int & = 0, const bool & = false);
+    bool OneShotSend(const char*, const unsigned int & = 0, const bool & = false);
     bool OneShotSend(const char &, const bool & = false);
 
     /// @brief      Commits settings (App_Const) to currently connected Serial device

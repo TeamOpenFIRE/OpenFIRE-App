@@ -657,34 +657,33 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
     }
 }
 
-void AppCaliWindow::CaliModeTextUpdate(const QString &text)
+void AppCaliWindow::CaliModeTextUpdate(const uint8_t &type, const char* data)
 {
-    int type = text.front().digitValue();
-
     if(bitmapText) {
         switch(type) {
         case 1: // top offset
-            topOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            memcpy(&topOffset, data, 4);
+            qDebug() << topOffset;
             profileBitmaps[0]->setPixmap(GenerateText({caliTypesPrefixes.at(0) + QString::number(topOffset)}));
             break;
         case 2: // bottom offset
-            bottomOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            memcpy(&bottomOffset, data, 4);
             profileBitmaps[1]->setPixmap(GenerateText({caliTypesPrefixes.at(1) + QString::number(bottomOffset)}));
             break;
         case 3: // left offset
-            leftOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            memcpy(&leftOffset, data, 4);
             profileBitmaps[2]->setPixmap(GenerateText({caliTypesPrefixes.at(2) + QString::number(leftOffset)}));
             break;
         case 4: // right offset
-            rightOffset = text.mid(text.indexOf('.')+1).trimmed().toInt();
+            memcpy(&rightOffset, data, 4);
             profileBitmaps[3]->setPixmap(GenerateText({caliTypesPrefixes.at(3) + QString::number(rightOffset)}));
             break;
         case 5: // topleft
-            topLeftLed = text.mid(text.indexOf('.')+1).trimmed().toFloat();
+            memcpy(&topLeftLed, data, 4);
             profileBitmaps[4]->setPixmap(GenerateText({caliTypesPrefixes.at(4) + QString::number(topLeftLed, 'g', 6)}));
             break;
         case 6: // topright
-            topRightLed = text.mid(text.indexOf('.')+1).trimmed().toFloat();
+            memcpy(&topRightLed, data, 4);
             profileBitmaps[5]->setPixmap(GenerateText({caliTypesPrefixes.at(5) + QString::number(topRightLed, 'g', 6)}));
             // HACK: re-update final scene since this may happen AFTER the verification check stage
             CaliModeSet(Cali_Verify);
@@ -708,18 +707,18 @@ void AppCaliWindow::CaliModeTextUpdate(const QString &text)
     }
 }
 
-void AppCaliWindow::TestModeDraw(const QStringList &coordsList)
+void AppCaliWindow::TestModeDraw(const int coordsList[12])
 {
-    testPoints[testPointTL]->setRect(   coordsList[0].toInt()  - 25,  coordsList[1].toInt()  - 25, 50, 50);
-    testPoints[testPointTR]->setRect(   coordsList[2].toInt()  - 25,  coordsList[3].toInt()  - 25, 50, 50);
-    testPoints[testPointBL]->setRect(   coordsList[4].toInt()  - 25,  coordsList[5].toInt()  - 25, 50, 50);
-    testPoints[testPointBR]->setRect(   coordsList[6].toInt()  - 25,  coordsList[7].toInt()  - 25, 50, 50);
-    testPoints[testPointMed]->setRect(  coordsList[8].toInt()  - 25,  coordsList[9].toInt()  - 25, 50, 50);
-    testPoints[testPointD]->setRect(    coordsList[10].toInt() - 25,  coordsList[11].toInt() - 25, 50, 50);
+    testPoints[testPointTL]->setRect(   coordsList[0]  - 25,  coordsList[1]  - 25, 50, 50);
+    testPoints[testPointTR]->setRect(   coordsList[2]  - 25,  coordsList[3]  - 25, 50, 50);
+    testPoints[testPointBL]->setRect(   coordsList[4]  - 25,  coordsList[5]  - 25, 50, 50);
+    testPoints[testPointBR]->setRect(   coordsList[6]  - 25,  coordsList[7]  - 25, 50, 50);
+    testPoints[testPointMed]->setRect(  coordsList[8]  - 25,  coordsList[9]  - 25, 50, 50);
+    testPoints[testPointD]->setRect(    coordsList[10] - 25,  coordsList[11] - 25, 50, 50);
 
-    testBox->setPolygon(QPolygonF() << QPointF(coordsList[0].toInt(), coordsList[1].toInt())
-                                    << QPointF(coordsList[2].toInt(), coordsList[3].toInt())
-                                    << QPointF(coordsList[6].toInt(), coordsList[7].toInt())
-                                    << QPointF(coordsList[4].toInt(), coordsList[5].toInt())
-                                    << QPointF(coordsList[0].toInt(), coordsList[1].toInt()));
+    testBox->setPolygon(QPolygonF() << QPointF(coordsList[0], coordsList[1])
+                                    << QPointF(coordsList[2], coordsList[3])
+                                    << QPointF(coordsList[6], coordsList[7])
+                                    << QPointF(coordsList[4], coordsList[5])
+                                    << QPointF(coordsList[0], coordsList[1]));
 }

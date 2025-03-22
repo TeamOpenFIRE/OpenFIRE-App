@@ -227,7 +227,7 @@ bool AppSerial::GetSettings(const QString &portName)
     } else return false;
 }
 
-bool AppSerial::OneShotSend(const QByteArray &string, const unsigned int &len, const bool &waitForResponse)
+bool AppSerial::OneShotSend(const char* string, const unsigned int &len, const bool &waitForResponse)
 {
     if(port.isOpen()) {
         port.write((len > 0) ? string : string, len);

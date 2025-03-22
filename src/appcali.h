@@ -88,14 +88,21 @@ public:
     ~AppCaliWindow();
 
     /// @brief      Update calibration window with new status
-    /// @details    Stuff
+    /// @param      int
+    ///             One of CaliSteps_e
     void CaliModeSet(const int &);
 
     /// @brief      Update calibration window's profile text with new data
-    void CaliModeTextUpdate(const QString &);
+    /// @param      uint8_t
+    ///             Type of text to update
+    /// @param      Char string
+    ///             Buffer data
+    void CaliModeTextUpdate(const uint8_t &, const char*);
 
     /// @brief      Update test mode window with list of new coords
-    void TestModeDraw(const QStringList &);
+    /// @param      Array of ints
+    ///             Coordinates of the twelve test points used to draw
+    void TestModeDraw(const int[12]);
 
     int GetWindowMode() { return mode; }
 

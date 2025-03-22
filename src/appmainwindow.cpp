@@ -1558,10 +1558,10 @@ void guiWindow::caliBtns_clicked()
 {
     NewCaliWindow(AppCaliWindow::modeCalibrate);
 
-    serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1) +
-                       "C" + // Calibrate byte
-                       "I" + QByteArray::number(App_Common::profilesTable.at(sender()->property("slot").toInt()).irSensitivity) +
-                       "L" + QByteArray::number(App_Common::profilesTable.at(sender()->property("slot").toInt()).layoutType));
+    serial.OneShotSend((char[]){(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt()),
+                                (char)OF_Const::sCaliStart,
+                                static_cast<char>(App_Common::profilesTable.at(sender()->property("slot").toInt()).irSensitivity +
+                                (App_Common::profilesTable.at(sender()->property("slot").toInt()).layoutType << 4))}, 4);
 }
 
 
@@ -1573,57 +1573,61 @@ void guiWindow::serialPort_readyRead()
 
     if(!serialActive) {
         while(serial.port.bytesAvailable()) {
-            QString idleBuffer = serial.port.readLine();
-
-            if(idleBuffer.contains("Pressed:")) {
-                int btn = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+            switch(serial.port.read(1).at(0)) {
+            case OF_Const::sBtnPressed:
+            {
+                int btn = serial.port.read(1).at(0);
                 if(btn < 16)
                     testLabel[btn]->setStyleSheet("background-color: #FF0000; font: bold");
+                break;
             }
-
-            else if(idleBuffer.contains("Released:")) {
-                int btn = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+            case OF_Const::sBtnReleased:
+            {
+                int btn = serial.port.read(1).at(0);
                 if(btn < 16)
                     testLabel[btn]->setStyleSheet("");
+                break;
             }
-
-            else if(idleBuffer.contains("Temperature:")) {
-                unsigned int temp = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+            case OF_Const::sTemperatureUpd:
+            {
+                unsigned int temp = serial.port.read(1).at(0);
 
                 testLabel[14]->setText(QString("Temp: %1°C").arg(temp));
 
                 if(temp > tempShutoff) {        testLabel[14]->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
                 else if(temp > tempWarning) {   testLabel[14]->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
                 else {                          testLabel[14]->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
-            }
 
-            else if(idleBuffer.contains("Analog:")) {
+                break;
+            }
+            case OF_Const::sAnalogPosUpd:
+            {
                 // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
-                uint8_t analogDir = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+                uint8_t analogDir = serial.port.read(1).at(0);
 
                 // analog stick moved
                 if(analogDir) {
                     switch(analogDir) {
-                        case 1: testLabel[15]->setText("Analog 🡹"); break;
-                        case 2: testLabel[15]->setText("Analog 🡼"); break;
-                        case 3: testLabel[15]->setText("Analog 🡸"); break;
-                        case 4: testLabel[15]->setText("Analog 🡿"); break;
-                        case 5: testLabel[15]->setText("Analog 🡻"); break;
-                        case 6: testLabel[15]->setText("Analog 🡾"); break;
-                        case 7: testLabel[15]->setText("Analog 🡺"); break;
-                        case 8: testLabel[15]->setText("Analog 🡽"); break;
+                    case 1: testLabel[15]->setText("Analog 🡹"); break;
+                    case 2: testLabel[15]->setText("Analog 🡼"); break;
+                    case 3: testLabel[15]->setText("Analog 🡸"); break;
+                    case 4: testLabel[15]->setText("Analog 🡿"); break;
+                    case 5: testLabel[15]->setText("Analog 🡻"); break;
+                    case 6: testLabel[15]->setText("Analog 🡾"); break;
+                    case 7: testLabel[15]->setText("Analog 🡺"); break;
+                    case 8: testLabel[15]->setText("Analog 🡽"); break;
                     }
 
                     testLabel[15]->setStyleSheet("background-color: #FF0000; font: bold");
-                // no analog direction
+                    // no analog direction
                 } else {
                     testLabel[15]->setText("Analog");
                     testLabel[15]->setStyleSheet("");
                 }
             }
-
-            else if(idleBuffer.contains("Profile: ")) {
-                uint8_t selection = idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt();
+            case OF_Const::sCurrentProf:
+            {
+                uint8_t selection = serial.port.read(1).at(0);
 
                 if(selection != App_Common::board.selectedProfile) {
                     App_Common::board.selectedProfile = selection;
@@ -1631,34 +1635,39 @@ void guiWindow::serialPort_readyRead()
                 }
 
                 DiffUpdate();
+                break;
             }
-
-            else if(idleBuffer.contains("CalStage:")) {
+            case OF_Const::sCaliStageUpd:
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
-                        caliWindow->CaliModeSet(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed().toInt());
-            }
-
-            else if(idleBuffer.contains("CalUpd:")) {
+                        caliWindow->CaliModeSet(serial.port.read(1).at(0));
+                break;
+            case OF_Const::sCaliInfoUpd:
                 if(caliWindow != nullptr)
-                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
-                        caliWindow->CaliModeTextUpdate(idleBuffer.mid(idleBuffer.indexOf(' ')).trimmed());
-            }
-
-            else if(idleBuffer.startsWith("TM")) {
+                    if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate) {
+                        uint8_t type;
+                        serial.port.read((char*)&type, 1);
+                        caliWindow->CaliModeTextUpdate(type, serial.port.read(4).constData());
+                    }
+                break;
+            case OF_Const::sTestCoords:
                 if(caliWindow != nullptr) {
                     if(caliWindow->GetWindowMode() != AppCaliWindow::modeIRTest) {
                         NewCaliWindow(AppCaliWindow::modeIRTest);
                     }
                 } else NewCaliWindow(AppCaliWindow::modeIRTest);
 
-                caliWindow->TestModeDraw(idleBuffer.mid(2).split(',', Qt::SkipEmptyParts));
-            }
+                int coordsList[12];
+                for(int i = 0; i < sizeof(coordsList) / sizeof(int); i++)
+                    serial.port.read((char*)&coordsList[i], 4);
 
-            else if(idleBuffer.contains("Cleared! Please reset the board.")) {
+                caliWindow->TestModeDraw(coordsList);
+                break;
+            case OF_Const::sClearFlash:
                 ui->comPortSelector->setCurrentIndex(0);
                 QMessageBox::information(this, "Successfully reset board settings",
                                          "Please unplug the board and reinsert it into the PC.");
+                break;
             }
         }
     }
@@ -1751,42 +1760,42 @@ void guiWindow::serialPort_progressUpdate(const int &pos, const char *statusText
 
 void guiWindow::on_rumbleTestBtn_clicked()
 {
-    if(serial.OneShotSend("Xtr"))
+    if(serial.OneShotSend((char)OF_Const::sTestRumble))
         ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
 }
 
 
 void guiWindow::on_solenoidTestBtn_clicked()
 {
-    if(serial.OneShotSend("Xts"))
+    if(serial.OneShotSend((char)OF_Const::sTestSolenoid))
         ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
 }
 
 
 void guiWindow::on_redLedTestBtn_clicked()
 {
-    if(serial.OneShotSend("XtR"))
+    if(serial.OneShotSend((char)OF_Const::sTestLEDR))
         ui->statusBar->showMessage("Set LED to Red.", 2500);
 }
 
 
 void guiWindow::on_greenLedTestBtn_clicked()
 {
-    if(serial.OneShotSend("XtG"))
+    if(serial.OneShotSend((char)OF_Const::sTestLEDG))
         ui->statusBar->showMessage("Set LED to Green.", 2500);
 }
 
 
 void guiWindow::on_blueLedTestBtn_clicked()
 {
-    if(serial.OneShotSend("XtB"))
+    if(serial.OneShotSend((char)OF_Const::sTestLEDB))
         ui->statusBar->showMessage("Set LED to Blue.", 2500);
 }
 
 
 void guiWindow::on_testBtn_clicked()
 {
-    serial.OneShotSend("XT");
+    serial.OneShotSend((char)OF_Const::sIRTest);
 }
 
 
@@ -1835,7 +1844,7 @@ void guiWindow::CaliWindowExiting(const int &mode,
         break;
     }
     case AppCaliWindow::modeIRTest:
-        if(serial.OneShotSend("XT")) {
+        if(serial.OneShotSend((char)OF_Const::sIRTest)) {
             ui->buttonsTestArea->setEnabled(true);
             ui->pinsTab->setEnabled(true);
             ui->settingsTab->setEnabled(true);
@@ -1859,7 +1868,7 @@ void guiWindow::CaliWindowExiting(const int &mode,
 
 void guiWindow::CaliWindowRequestedExit()
 {
-    serial.OneShotSend("X");
+    serial.OneShotSend((char)OF_Const::serialTerminator);
 }
 
 
