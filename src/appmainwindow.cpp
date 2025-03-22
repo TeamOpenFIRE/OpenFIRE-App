@@ -1641,8 +1641,20 @@ void guiWindow::serialPort_readyRead()
                 DiffUpdate();
                 break;
             }
-            // placeholder in case board generates an error outside of saving
+            // This should eventually have its own child branches for different error types,
+            // but for now it's just for missing IR camera errors only
             case OF_Const::sError:
+                serial.ShowError("Device Error: Camera not available!",
+                                 "Data received from the board indicates that the camera is in a bad state.\n"
+                                 "This can happen if, for example, the camera wires are crossed\n"
+                                 "(data wire to clock pin, clock wire to data pin),\n"
+                                 "or the camera pins are wired to a different component,\n"
+                                 "such as a button or Force Feedback output.\n\n"
+                                 "You are able to change the camera pins in the <i>Boards Layout</i> tab\n"
+                                 "if they should be mapped different GPIO;\n"
+                                 "Otherwise, the camera wires must be resoldered to resolve this error.\n\n"
+                                 "IR Testing and Calibration will not be available while in this state.",
+                                 QMessageBox::Critical);
                 break;
             case OF_Const::sCaliStageUpd:
                 if(caliWindow != nullptr)

@@ -76,6 +76,16 @@ public:
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();
 
+    /// @brief      Show error message popup regarding serial
+    void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
+        if(!syncError.isVisible()) {
+            syncError.setWindowTitle(titleText);
+            syncError.setText(text);
+            syncError.setIcon(icon);
+            syncError.show();
+        }
+    }
+
 private:
     QMessageBox syncError;
 

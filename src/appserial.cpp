@@ -106,19 +106,17 @@ bool AppSerial::GetSettings(const QString &portName)
                     App_Common::tinyUSBtable.tinyUSBname = &buffer.takeFirst().constData()[2];
                     App_Common::tinyUSBtable_orig = App_Common::tinyUSBtable;
 
-                    if(buffer.size()) if(buffer.takeFirst().at(0) == OF_Const::sError) {
-                        syncError.setIcon(QMessageBox::Warning);
-                        syncError.setWindowTitle("Device Error: Camera not available!");
-                        syncError.setText("Data received from the board indicates that the camera is in a bad state.\n"
-                                          "This can happen if, for example, the camera wires are crossed\n"
-                                          "(data wire to clock pin, clock wire to data pin),\n"
-                                          "or the camera pins are wired to a different component,\n"
-                                          "such as a button or Force Feedback output.\n\n"
-                                          "You are able to change the camera pins in the <i>Boards Layout</i> tab\n"
-                                          "if they should be mapped different GPIO;\n"
-                                          "Otherwise, the camera wires must be resoldered to resolve this error.");
-                        syncError.show();
-                    }
+                    if(buffer.size()) if(buffer.takeFirst().at(0) == OF_Const::sError)
+                        ShowError("Device Error: Camera not available!",
+                                  "Data received from the board indicates that the camera is in a bad state.\n"
+                                  "This can happen if, for example, the camera wires are crossed\n"
+                                  "(data wire to clock pin, clock wire to data pin),\n"
+                                  "or the camera pins are wired to a different component,\n"
+                                  "such as a button or Force Feedback output.\n\n"
+                                  "You are able to change the camera pins in the <i>Boards Layout</i> tab\n"
+                                  "if they should be mapped different GPIO;\n"
+                                  "Otherwise, the camera wires must be resoldered to resolve this error.",
+                                  QMessageBox::Warning);
 
                     // toggles
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {
