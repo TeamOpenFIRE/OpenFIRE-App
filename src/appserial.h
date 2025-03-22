@@ -21,6 +21,7 @@
 #define APPSERIAL_H
 
 #include <QObject>
+#include <QMessageBox>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
@@ -74,6 +75,9 @@ public:
 
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();
+
+private:
+    QMessageBox syncError;
 
 signals:
     /// @brief

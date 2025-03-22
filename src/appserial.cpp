@@ -21,6 +21,7 @@
 #include "appcommon.h"
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
+#include <qtconcurrentrun.h>
 
 bool AppSerial::SearchPorts()
 {
@@ -85,33 +86,39 @@ bool AppSerial::GetSettings(const QString &portName)
             if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
-                if(buffer.at(0) == "CAMERROR: Not available") {
-                    QMessageBox::warning(nullptr,  "Device Error: Camera not available!",
-                                         "Data received from the board indicates that the camera is in a bad state.\n"
-                                         "This can happen if the camera wires are crossed (data wire to clock pin, clock wire to data pin).\n\n"
-                                         "The camera must be removed or resoldered to resolve this.");
-                    buffer.takeFirst();
-                }
-
-                if(buffer.size() == 5) {
+                if(buffer.size() >= 5) {
                     emit Serial_SetProgressRange(5);
                     emit Serial_ProgressUpdate(1, "Getting Board Info");
 
-                    App_Common::board.versionNumber = buffer.at(0).constData();
+                    App_Common::board.versionNumber = buffer.takeFirst().constData();
                     printf("Version number: %s\n", App_Common::board.versionNumber.constData());
 
-                    App_Common::board.versionCodename = buffer.at(1).constData();
+                    App_Common::board.versionCodename = buffer.takeFirst().constData();
                     printf("Version codename: %s\n", App_Common::board.versionCodename.constData());
 
-                    App_Common::board.boardType = buffer.at(2).constData();
+                    App_Common::board.boardType = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.boardType.constData());
 
-                    App_Common::board.selectedProfile = buffer.at(3).toInt();
+                    App_Common::board.selectedProfile = buffer.takeFirst().toInt();
                     App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
-                    memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(4).constData(), 2);
-                    App_Common::tinyUSBtable.tinyUSBname = &buffer.at(4).constData()[2];
+                    memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(0).constData(), 2);
+                    App_Common::tinyUSBtable.tinyUSBname = &buffer.takeFirst().constData()[2];
                     App_Common::tinyUSBtable_orig = App_Common::tinyUSBtable;
+
+                    if(buffer.size()) if(buffer.takeFirst().at(0) == OF_Const::sError) {
+                        syncError.setIcon(QMessageBox::Warning);
+                        syncError.setWindowTitle("Device Error: Camera not available!");
+                        syncError.setText("Data received from the board indicates that the camera is in a bad state.\n"
+                                          "This can happen if, for example, the camera wires are crossed\n"
+                                          "(data wire to clock pin, clock wire to data pin),\n"
+                                          "or the camera pins are wired to a different component,\n"
+                                          "such as a button or Force Feedback output.\n\n"
+                                          "You are able to change the camera pins in the <i>Boards Layout</i> tab\n"
+                                          "if they should be mapped different GPIO;\n"
+                                          "Otherwise, the camera wires must be resoldered to resolve this error.");
+                        syncError.show();
+                    }
 
                     // toggles
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {

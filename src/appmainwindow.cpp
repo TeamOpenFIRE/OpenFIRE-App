@@ -1641,6 +1641,9 @@ void guiWindow::serialPort_readyRead()
                 DiffUpdate();
                 break;
             }
+            // placeholder in case board generates an error outside of saving
+            case OF_Const::sError:
+                break;
             case OF_Const::sCaliStageUpd:
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
