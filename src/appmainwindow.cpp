@@ -1428,7 +1428,7 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
     if(isChecked && !serialActive) {
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
         if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
-            serial.OneShotSend("XC" + QByteArray::number(sender()->property("slot").toInt()+1));
+            serial.OneShotSend((char[]){(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())}, 4);
             App_Common::board.selectedProfile = sender()->property("slot").toInt();
             DiffUpdate();
         }
@@ -1888,7 +1888,7 @@ void guiWindow::on_clearEepromBtn_clicked()
     messageBox.setDefaultButton(QMessageBox::Yes);
 
     if(messageBox.exec() == QMessageBox::Yes)
-        serial.OneShotSend("Xc");
+        serial.OneShotSend((char)OF_Const::sClearFlash);
     else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
 
@@ -1896,27 +1896,29 @@ void guiWindow::on_clearEepromBtn_clicked()
 void guiWindow::on_baudResetBtn_clicked()
 {
     // No need for workarounds, bootloader reset is in the firmware now.
-    serial.OneShotSend("Xxx");
+    if(serial.OneShotSend((char[]){(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader})) {
 
 /* test stuff for potential app FW update functionality
-    // At least on my system, the Bootloader device takes ~7s to appear
-    QThread::msleep(7000);
-    // Class-ify this function, maybe.
-    QString picoPath;
-    foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
-        if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
-            picoPath = storageDevices.device();
-            qDebug() << "Found a Pico bootloader!";
-            break;
-        } else {
-            qDebug() << "nope";
+        // At least on my system, the Bootloader device takes ~7s to appear
+        QThread::msleep(7000);
+        // Class-ify this function, maybe.
+        QString picoPath;
+        foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
+            if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
+                picoPath = storageDevices.device();
+                qDebug() << "Found a Pico bootloader!";
+                break;
+            } else {
+                qDebug() << "nope";
+            }
         }
-    }
-    qDebug() << picoPath;
-    // QFile::copy("file", picoPath+"file");
+        qDebug() << picoPath;
+        // QFile::copy("file", picoPath+"file");
 */
-    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
-    ui->comPortSelector->setCurrentIndex(0);
+
+        ui->statusBar->showMessage("Board reset to bootloader.", 5000);
+        ui->comPortSelector->setCurrentIndex(0);
+    }
 }
 
 

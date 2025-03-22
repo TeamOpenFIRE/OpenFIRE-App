@@ -308,7 +308,7 @@ bool AppSerial::CommitSettings()
 
 void AppSerial::Disconnect()
 {
-    OneShotSend((char)OF_Const::serialTerminator);
+    OneShotSend((char[]){(char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator});
     port.close();
 
     port.setPortName("");
