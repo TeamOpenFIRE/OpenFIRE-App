@@ -1572,7 +1572,7 @@ void guiWindow::serialPort_readyRead()
     debugWindow.AppendText(serial.port.peek(serial.port.bytesAvailable()));
 
     if(!serialActive) {
-        while(!serial.port.atEnd()) {
+        while(serial.port.bytesAvailable()) {
             QString idleBuffer = serial.port.readLine();
 
             if(idleBuffer.contains("Pressed:")) {
