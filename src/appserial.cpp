@@ -82,7 +82,7 @@ bool AppSerial::GetSettings(const QString &portName)
             // windows needs DTR enabled to actually read responses.
             port.setDataTerminalReady(true);
 
-            if(OneShotSend((char[]){(char)OF_Const::sDock1, (char)OF_Const::sDock2}, 2, true)) {
+            if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
                 if(buffer.at(0) == "CAMERROR: Not available") {
@@ -169,7 +169,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                             for(uint8_t i = 0;; i++) {
                                 port.clear();
-                                if(OneShotSend((char[]){(char)OF_Const::sGetProfile, (char)i}, 2, true)) {
+                                if(char buf[] = {(char)OF_Const::sGetProfile, (char)i}; OneShotSend(buf, 2, true)) {
                                     if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
                                         break;
                                     } else {
@@ -308,7 +308,8 @@ bool AppSerial::CommitSettings()
 
 void AppSerial::Disconnect()
 {
-    OneShotSend((char[]){(char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator});
+    char buf[] = {(char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator, (char)OF_Const::serialTerminator};
+    OneShotSend(buf);
     port.close();
 
     port.setPortName("");

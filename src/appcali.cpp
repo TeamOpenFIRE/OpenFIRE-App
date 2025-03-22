@@ -663,7 +663,6 @@ void AppCaliWindow::CaliModeTextUpdate(const uint8_t &type, const char* data)
         switch(type) {
         case 1: // top offset
             memcpy(&topOffset, data, 4);
-            qDebug() << topOffset;
             profileBitmaps[0]->setPixmap(GenerateText({caliTypesPrefixes.at(0) + QString::number(topOffset)}));
             break;
         case 2: // bottom offset

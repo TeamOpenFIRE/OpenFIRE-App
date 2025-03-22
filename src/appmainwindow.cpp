@@ -1428,7 +1428,8 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
     if(isChecked && !serialActive) {
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
         if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
-            serial.OneShotSend((char[]){(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())}, 4);
+            char buf[] = {(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())};
+            serial.OneShotSend(buf, 4);
             App_Common::board.selectedProfile = sender()->property("slot").toInt();
             DiffUpdate();
         }
@@ -1558,10 +1559,12 @@ void guiWindow::caliBtns_clicked()
 {
     NewCaliWindow(AppCaliWindow::modeCalibrate);
 
-    serial.OneShotSend((char[]){(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt()),
-                                (char)OF_Const::sCaliStart,
-                                static_cast<char>(App_Common::profilesTable.at(sender()->property("slot").toInt()).irSensitivity +
-                                (App_Common::profilesTable.at(sender()->property("slot").toInt()).layoutType << 4))}, 4);
+    char buf[] = {(char)OF_Const::sCaliProfile,
+                  static_cast<char>(sender()->property("slot").toInt()),
+                  (char)OF_Const::sCaliStart,
+                  static_cast<char>(App_Common::profilesTable.at(sender()->property("slot").toInt()).irSensitivity +
+                                    (App_Common::profilesTable.at(sender()->property("slot").toInt()).layoutType << 4))};
+    serial.OneShotSend(buf, 4);
 }
 
 
@@ -1896,7 +1899,7 @@ void guiWindow::on_clearEepromBtn_clicked()
 void guiWindow::on_baudResetBtn_clicked()
 {
     // No need for workarounds, bootloader reset is in the firmware now.
-    if(serial.OneShotSend((char[]){(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader})) {
+    if(char buf[] = {(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader}; serial.OneShotSend(buf)) {
 
 /* test stuff for potential app FW update functionality
         // At least on my system, the Bootloader device takes ~7s to appear
