@@ -34,6 +34,7 @@
 #include <QColorDialog>
 #include <QInputDialog>
 #include <QDesktopServices>
+#include <QFontDatabase>
 #include <QUrl>
 
 guiWindow::guiWindow(QWidget *parent)
@@ -520,10 +521,10 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                               "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(QString(App_Common::profilesTable.at(i).profName)));
+                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(QString(App_Common::profilesTable.at(i).profName.constData())));
                 if(i == App_Common::board.selectedProfile)
                     selectedProfile.at(i)->setChecked(true);
-                selectedProfile.at(i)->setFont(QFont("Monospace"));
+                selectedProfile.at(i)->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
                 selectedProfile.at(i)->setProperty("slot", i);
                 connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
