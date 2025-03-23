@@ -108,14 +108,14 @@ bool AppSerial::GetSettings(const QString &portName)
 
                     if(buffer.size()) if(buffer.takeFirst().at(0) == OF_Const::sError)
                         ShowError("Device Error: Camera not available!",
-                                  "Data received from the board indicates that the camera is in a bad state.\n"
-                                  "This can happen if, for example, the camera wires are crossed\n"
-                                  "(data wire to clock pin, clock wire to data pin),\n"
-                                  "or the camera pins are wired to a different component,\n"
-                                  "such as a button or Force Feedback output.\n\n"
-                                  "You are able to change the camera pins in the <i>Boards Layout</i> tab\n"
-                                  "if they should be mapped different GPIO;\n"
-                                  "Otherwise, the camera wires must be resoldered to resolve this error.",
+                                  "<p>Data received from the board indicates that the camera is in a bad state.<br>"
+                                  "This can happen if, for example, the camera wires are crossed<br>"
+                                  "(data wire to clock pin, clock wire to data pin),<br>"
+                                  "or the camera pins are wired to a different component,<br>"
+                                  "such as a button or Force Feedback output.</p>"
+                                  "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
+                                  "if they should be mapped different GPIO;<br>"
+                                  "Otherwise, the camera wires must be resoldered to resolve this error.</p>",
                                   QMessageBox::Warning);
 
                     // toggles
