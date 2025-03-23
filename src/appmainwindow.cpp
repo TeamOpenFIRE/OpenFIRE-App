@@ -1916,30 +1916,30 @@ void guiWindow::on_clearEepromBtn_clicked()
 
 void guiWindow::on_baudResetBtn_clicked()
 {
-    // No need for workarounds, bootloader reset is in the firmware now.
-    if(char buf[] = {(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader}; serial.OneShotSend(buf, 2)) {
+    // The py script had this backwards. huh.
+    serial.port.setBaudRate(QSerialPort::Baud1200);
+    serial.port.setDataTerminalReady(false);
 
 /* test stuff for potential app FW update functionality
-        // At least on my system, the Bootloader device takes ~7s to appear
-        QThread::msleep(7000);
-        // Class-ify this function, maybe.
-        QString picoPath;
-        foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
-            if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
-                picoPath = storageDevices.device();
-                qDebug() << "Found a Pico bootloader!";
-                break;
-            } else {
-                qDebug() << "nope";
-            }
+    // At least on my system, the Bootloader device takes ~7s to appear
+    QThread::msleep(7000);
+    // Class-ify this function, maybe.
+    QString picoPath;
+    foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
+        if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
+            picoPath = storageDevices.device();
+            qDebug() << "Found a Pico bootloader!";
+            break;
+        } else {
+            qDebug() << "nope";
         }
-        qDebug() << picoPath;
-        // QFile::copy("file", picoPath+"file");
+    }
+    qDebug() << picoPath;
+    // QFile::copy("file", picoPath+"file");
 */
 
-        ui->statusBar->showMessage("Board reset to bootloader.", 5000);
-        ui->comPortSelector->setCurrentIndex(0);
-    }
+    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
+    ui->comPortSelector->setCurrentIndex(0);
 }
 
 
