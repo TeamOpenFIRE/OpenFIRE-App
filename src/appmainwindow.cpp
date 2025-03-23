@@ -1644,6 +1644,8 @@ void guiWindow::serialPort_readyRead()
             // This should eventually have its own child branches for different error types,
             // but for now it's just for missing IR camera errors only
             case OF_Const::sError:
+                if(caliWindow != nullptr)
+                    caliWindow->Shutdown();
                 serial.ShowError("Device Error: Camera not available!",
                                  "Data received from the board indicates that the camera is in a bad state.\n"
                                  "This can happen if, for example, the camera wires are crossed\n"
