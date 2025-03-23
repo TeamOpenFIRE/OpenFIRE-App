@@ -1917,7 +1917,7 @@ void guiWindow::on_clearEepromBtn_clicked()
 void guiWindow::on_baudResetBtn_clicked()
 {
     // No need for workarounds, bootloader reset is in the firmware now.
-    if(char buf[] = {(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader}; serial.OneShotSend(buf)) {
+    if(char buf[] = {(char)OF_Const::sGotoBootloader, (char)OF_Const::sGotoBootloader}; serial.OneShotSend(buf, 2)) {
 
 /* test stuff for potential app FW update functionality
         // At least on my system, the Bootloader device takes ~7s to appear
