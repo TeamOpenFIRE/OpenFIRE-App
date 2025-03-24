@@ -261,54 +261,77 @@ bool AppSerial::OneShotSend(const char &chara, const bool &waitForResponse)
 bool AppSerial::CommitSettings()
 {
     if(port.isOpen()) {
-        // send a signal so the gun pauses its test outputs for the save op.
-        port.write("Xm");
-        port.waitForBytesWritten(1000);
+        emit Serial_SetProgressRange(7);
 
-        QStringList serialQueue;
-        for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++)
-            serialQueue.append(QString("Xm.0.%1.%2").arg(i).arg(App_Common::boolSettings[i]));
+        if(OneShotSend((char)OF_Const::sCommitStart)) {
+            emit Serial_ProgressUpdate(1, "Sending Toggles...");
+            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
+                if(char buf[3] = {(char)OF_Const::sCommitToggles, (char)i, (char)App_Common::boolSettings[i]}; OneShotSend(buf, 3, true)) {
+                    if(port.read(1).at(0) != App_Common::boolSettings[i]) {
+                        OneShotSend((char)OF_Const::serialTerminator);
+                        return false;
+                    }
+                } else return false;
+            }
 
-        if(App_Common::boolSettings[OF_Const::customPins])
-            for(uint8_t i = 0; i < App_Common::inputsMap.count(); i++)
-                serialQueue.append(QString("Xm.1.%1.%2").arg(i).arg(App_Common::inputsMap.value(i)));
+            if(App_Common::boolSettings[OF_Const::customPins]) {
+                emit Serial_ProgressUpdate(2, "Sending Pins Map...");
+                for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
+                    if(char buf[3] = {(char)OF_Const::sCommitPins, (char)i, (char)App_Common::inputsMap.value(i)}; OneShotSend(buf, 3, true)) {
+                        if(port.read(1).at(0) != App_Common::inputsMap.value(i)) {
+                            OneShotSend((char)OF_Const::serialTerminator);
+                            return false;
+                        }
+                    } else return false;
+                }
+            }
 
-        for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-            serialQueue.append(QString("Xm.2.%1.%2").arg(i).arg(App_Common::settingsTable[i]));
+            emit Serial_ProgressUpdate(3, "Sending Settings...");
+            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
+                char buf[6] = {(char)OF_Const::sCommitSettings, (char)i};
+                memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[i], sizeof(uint32_t));
+                if(OneShotSend(buf, sizeof(buf), true)) {
+                    if(memcmp(port.read(4).constData(), &App_Common::settingsTable[i], sizeof(uint32_t))) {
+                        OneShotSend((char)OF_Const::serialTerminator);
+                        return false;
+                    }
+                } else return false;
+            }
 
-        serialQueue.append(QString("Xm.3.0.%1").arg(App_Common::tinyUSBtable.tinyUSBid));
-        if(!App_Common::tinyUSBtable.tinyUSBname.isEmpty())
-            serialQueue.append("Xm.3.1." + App_Common::tinyUSBtable.tinyUSBname);
+            emit Serial_ProgressUpdate(4, "Sending Profile Data...");
+            for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
 
-        for(uint8_t i = 0; i < 4; i++) {
-            serialQueue.append(QString("Xm.P.i.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).irSensitivity));
-            serialQueue.append(QString("Xm.P.r.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).runMode));
-            serialQueue.append(QString("Xm.P.l.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).layoutType));
-            serialQueue.append(QString("Xm.P.c.%1.%2").arg(i).arg(App_Common::profilesTable.at(i).color));
-            serialQueue.append(QString("Xm.P.n.%1.%2").arg(i).arg(QString(App_Common::profilesTable.at(i).profName)));
-        }
-        serialQueue.append(QString((char)OF_Const::sSave));
+            }
 
-        emit Serial_SetProgressRange(serialQueue.length()-1);
+            emit Serial_ProgressUpdate(5, "Sending TinyUSB ID Data...");
+            char buf[18] = {(char)OF_Const::sCommitID, (char)OF_Const::usbPID};
+            memcpy(&buf[2], (uint8_t*)&App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t));
+            if(OneShotSend(buf, 4, true)) {
+                if(memcmp(port.read(2).constData(), &App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t))) {
+                    OneShotSend((char)OF_Const::serialTerminator);
+                    return false;
+                } else {
+                    memset(&buf[1], '\0', sizeof(buf)-1);
+                    buf[1] = (char)OF_Const::usbName;
+                    memcpy(&buf[2], (uint8_t*)App_Common::tinyUSBtable.tinyUSBname.constData(), App_Common::tinyUSBtable.tinyUSBname.size());
+                    if(OneShotSend(buf, sizeof(buf), true)) {
+                        if(strcmp(port.read(16).constData(), App_Common::tinyUSBtable.tinyUSBname.constData())) {
+                            OneShotSend((char)OF_Const::serialTerminator);
+                            return false;
+                        }
+                    } else return false;
+                }
+            } else return false;
 
-        // throw out whatever's in the buffer if there's anything there.
-        port.clear();
-
-        for(uint8_t i = 0; i < serialQueue.length(); i++) {
-            port.write(serialQueue.at(i).toLocal8Bit());
-            port.waitForBytesWritten(1000);
-            if(port.waitForReadyRead(1000)) {
-                QString buffer = port.readLine();
-                if(buffer.contains("OK:") || buffer.contains("NOENT:")) {
-                    emit Serial_ProgressUpdate(i, "Committing settings to microcontroller...");
-                } else if(i == serialQueue.length() - 1 && buffer.contains("Saving preferences...")) {
-                    emit Serial_ProgressUpdate(serialQueue.length()-1, "Successfully synced settings!");
+            emit Serial_ProgressUpdate(6, "Saving...");
+            if(OneShotSend((char)OF_Const::sSave, true)) {
+                if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf))) {
+                    emit Serial_ProgressUpdate(7);
                     return true;
                 } else return false;
             } else return false;
-        }
+        } else return false;
     } else return false;
-    return false;
 }
 
 void AppSerial::Disconnect()

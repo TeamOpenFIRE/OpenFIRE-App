@@ -1578,21 +1578,21 @@ void guiWindow::serialPort_readyRead()
     if(!serialActive) {
         while(serial.port.bytesAvailable()) {
             switch(serial.port.read(1).at(0)) {
-            case OF_Const::sBtnPressed:
+            case (char)OF_Const::sBtnPressed:
             {
                 int btn = serial.port.read(1).at(0);
                 if(btn < 16)
                     testLabel[btn]->setStyleSheet("background-color: #FF0000; font: bold");
                 break;
             }
-            case OF_Const::sBtnReleased:
+            case (char)OF_Const::sBtnReleased:
             {
                 int btn = serial.port.read(1).at(0);
                 if(btn < 16)
                     testLabel[btn]->setStyleSheet("");
                 break;
             }
-            case OF_Const::sTemperatureUpd:
+            case (char)OF_Const::sTemperatureUpd:
             {
                 unsigned int temp = serial.port.read(1).at(0);
 
@@ -1604,7 +1604,7 @@ void guiWindow::serialPort_readyRead()
 
                 break;
             }
-            case OF_Const::sAnalogPosUpd:
+            case (char)OF_Const::sAnalogPosUpd:
             {
                 // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
                 uint8_t analogDir = serial.port.read(1).at(0);
@@ -1629,7 +1629,7 @@ void guiWindow::serialPort_readyRead()
                     testLabel[15]->setStyleSheet("");
                 }
             }
-            case OF_Const::sCurrentProf:
+            case (char)OF_Const::sCurrentProf:
             {
                 uint8_t selection = serial.port.read(1).at(0);
 
@@ -1643,7 +1643,7 @@ void guiWindow::serialPort_readyRead()
             }
             // This should eventually have its own child branches for different error types,
             // but for now it's just for missing IR camera errors only
-            case OF_Const::sError:
+            case (char)OF_Const::sError:
                 if(caliWindow != nullptr)
                     caliWindow->Shutdown();
                 serial.ShowError("Device Error: Camera not available!",
@@ -1658,12 +1658,12 @@ void guiWindow::serialPort_readyRead()
                                  "<p>IR Testing and Calibration will not be available while in this state.</p>",
                                  QMessageBox::Critical);
                 break;
-            case OF_Const::sCaliStageUpd:
+            case (char)OF_Const::sCaliStageUpd:
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate)
                         caliWindow->CaliModeSet(serial.port.read(1).at(0));
                 break;
-            case OF_Const::sCaliInfoUpd:
+            case (char)OF_Const::sCaliInfoUpd:
                 if(caliWindow != nullptr)
                     if(caliWindow->GetWindowMode() == AppCaliWindow::modeCalibrate) {
                         uint8_t type;
@@ -1671,7 +1671,7 @@ void guiWindow::serialPort_readyRead()
                         caliWindow->CaliModeTextUpdate(type, serial.port.read(4).constData());
                     }
                 break;
-            case OF_Const::sTestCoords:
+            case (char)OF_Const::sTestCoords:
                 if(caliWindow != nullptr) {
                     if(caliWindow->GetWindowMode() != AppCaliWindow::modeIRTest) {
                         NewCaliWindow(AppCaliWindow::modeIRTest);
@@ -1684,7 +1684,7 @@ void guiWindow::serialPort_readyRead()
 
                 caliWindow->TestModeDraw(coordsList);
                 break;
-            case OF_Const::sClearFlash:
+            case (char)OF_Const::sClearFlash:
                 ui->comPortSelector->setCurrentIndex(0);
                 QMessageBox::information(this, "Successfully reset board settings",
                                          "Please unplug the board and reinsert it into the PC.");
