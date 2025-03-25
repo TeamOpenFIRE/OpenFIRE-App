@@ -107,34 +107,27 @@ guiWindow::guiWindow(QWidget *parent)
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Setup test screen buttons
-    for(int i = 0; i < 16; i++) {
-        testLabel[i] = new QLabel;
+    for(int i = 0; i < 13; i++) {
+        testLabel << new QLabel(OF_Const::valuesNameList[i+1]);
 
-        // temperature sensor
-        if(i == 14) testLabel[i]->setText(OF_Const::valuesNameList[OF_Const::tempPin]);
-        // analog stick
-        else if(i == 15) testLabel[i]->setText("Analog Stick");
-        // every other standard input
-        else testLabel[i]->setText(OF_Const::valuesNameList[i+1]);
+        testLabel.at(i)->setEnabled(false);
+        testLabel.at(i)->setAlignment(Qt::AlignCenter);
+        testLabel.at(i)->setFrameStyle(QFrame::Box | QFrame::Raised);
 
-        testLabel[i]->setEnabled(false);
-        testLabel[i]->setAlignment(Qt::AlignCenter);
-        testLabel[i]->setFrameStyle(QFrame::Box | QFrame::Raised);
-
-        // analog stick
-        if(i == 15)      ui->buttonsTestLayout->addWidget(testLabel[i], 3, 3);
-        // temp sensor
-        else if(i == 14) ui->buttonsTestLayout->addWidget(testLabel[i], 3, 1);
         // third/second/first row of buttons
-        else if(i > 9)   ui->buttonsTestLayout->addWidget(testLabel[i], 2, i-10);
-        else if(i > 4)   ui->buttonsTestLayout->addWidget(testLabel[i], 1, i-5);
-        else             ui->buttonsTestLayout->addWidget(testLabel[i], 0, i);
+        if(i > 9)        ui->btnsLayout->addWidget(testLabel.at(i), 2, i-10);
+        else if(i > 4)   ui->btnsLayout->addWidget(testLabel.at(i), 1, i-5);
+        else             ui->btnsLayout->addWidget(testLabel.at(i), 0, i);
     }
 
-    ui->buttonsTestLayout->setRowMinimumHeight(0, 32);
-    ui->buttonsTestLayout->setRowMinimumHeight(1, 32);
-    ui->buttonsTestLayout->setRowMinimumHeight(2, 32);
-    ui->buttonsTestLayout->setRowMinimumHeight(3, 32);
+    // Setup analog stick viewer
+    ui->analogGfxView->setScene(&analogGfxScene);
+    analogGfxScene.setSceneRect(ui->analogGfxView->rect());
+    analogPos = analogGfxScene.addEllipse(analogGfxScene.sceneRect().center().x()-8,
+                                          analogGfxScene.sceneRect().center().y()-8,
+                                          16, 16,
+                                          QPen(QColor(255,100,0), 0), QBrush(QColor(255,125,0)));
+    analogPos->setTransform(QTransform::fromScale(analogGfxScene.sceneRect().width() / 256, analogGfxScene.sceneRect().height() / 256));
 
     // hiding tUSB elements by default since this can't be done from the off
     ui->tUSBLayoutAdvanced->setVisible(false);
@@ -865,9 +858,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         if(serial.port.isOpen())
             serial.Disconnect();
 
-        // reset temp/analog labels' stylesheets to neutral
-        testLabel[14]->setStyleSheet("");
-        testLabel[15]->setStyleSheet("");
+        // reset temp label stylesheet to neutral
+        ui->tmp36Label->setStyleSheet("");
     }
     serialActive = false;
 }
@@ -877,38 +869,32 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 void guiWindow::LabelsUpdate()
 {
     // because App_Common::inputsMap uses pin no. starting from 0
-    for(uint8_t i = 0; i < 16; i++) {
-        if(i < 14) {
-            if(App_Common::inputsMap.value(i) >= 0) {
-                testLabel[i]->setText(App_Common::testLabelNames.at(i));
-                testLabel[i]->setEnabled(true);
-            } else {
-                testLabel[i]->setText(App_Common::testLabelNames.at(i) + " (N/C)");
-                testLabel[i]->setEnabled(false);
-            }
-        } else if(i == 14) {
-            if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
-                testLabel[i]->setText("Temp Read...");
-                testLabel[i]->setEnabled(true);
-            } else {
-                testLabel[i]->setText("Temp (N/C)");
-                testLabel[i]->setEnabled(false);
-            }
-            testLabel[i]->setStyleSheet("");
-        } else if(i == 15) {
-            if(App_Common::inputsMap.value(OF_Const::analogX) >=0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0) {
-                testLabel[i]->setText("Analog");
-                testLabel[i]->setEnabled(true);
-            } else {
-                testLabel[i]->setText("Analog (N/C)");
-                testLabel[i]->setEnabled(false);
-            }
-            testLabel[i]->setStyleSheet("");
+    for(uint8_t i = 0; i < testLabel.count(); i++) {
+        testLabel.at(i)->setStyleSheet("");
+        if(App_Common::inputsMap.value(i) >= 0) {
+            testLabel.at(i)->setText(App_Common::testLabelNames.at(i));
+            testLabel.at(i)->setEnabled(true);
+        } else {
+            testLabel.at(i)->setText(App_Common::testLabelNames.at(i) + " (N/C)");
+            testLabel.at(i)->setEnabled(false);
         }
     }
+
+    ui->tmp36Label->setStyleSheet("");
+    if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
+        ui->tmp36Label->setText("Temperature Read...");
+        ui->tmp36Label->setEnabled(true);
+    } else {
+        ui->tmp36Label->setText("Temperature Sensor (N/C)");
+        ui->tmp36Label->setEnabled(false);
+    }
+
     if(App_Common::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
     if(App_Common::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
     if(App_Common::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0)
+         ui->analogGroup->setEnabled(true),  ui->aPosLabel->clear();
+    else ui->analogGroup->setEnabled(false), ui->aPosLabel->setText("Not Connected");
 
     ui->boardLabel->setText(PrettifyName(App_Common::tinyUSBtable.tinyUSBname));
 }
@@ -1581,53 +1567,41 @@ void guiWindow::serialPort_readyRead()
             case (char)OF_Const::sBtnPressed:
             {
                 int btn = serial.port.read(1).at(0);
-                if(btn < 16)
-                    testLabel[btn]->setStyleSheet("background-color: #FF0000; font: bold");
+                if(btn < testLabel.count()) testLabel.at(btn)->setStyleSheet("background-color: #FF0000; font: bold");
                 break;
             }
             case (char)OF_Const::sBtnReleased:
             {
                 int btn = serial.port.read(1).at(0);
-                if(btn < 16)
-                    testLabel[btn]->setStyleSheet("");
+                if(btn < testLabel.count()) testLabel.at(btn)->setStyleSheet("");
                 break;
             }
             case (char)OF_Const::sTemperatureUpd:
             {
                 unsigned int temp = serial.port.read(1).at(0);
 
-                testLabel[14]->setText(QString("Temp: %1°C").arg(temp));
+                ui->tmp36Label->setText(QString("Temperature: %1°C").arg(temp));
 
-                if(temp > tempShutoff) {        testLabel[14]->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
-                else if(temp > tempWarning) {   testLabel[14]->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
-                else {                          testLabel[14]->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
+                if(temp > tempShutoff) {        ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
+                else if(temp > tempWarning) {   ui->tmp36Label->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
+                else {                          ui->tmp36Label->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
 
                 break;
             }
             case (char)OF_Const::sAnalogPosUpd:
             {
-                // TODO: perhaps we should be using a small box area with a glyph depicting the aStick's coords instead of only showing cardinal directionality?
-                uint8_t analogDir = serial.port.read(1).at(0);
+                uint16_t oriPosX, oriPosY;
+                serial.port.read((char*)&oriPosX, 2);
+                serial.port.read((char*)&oriPosY, 2);
+                uint8_t posX = oriPosX/16;
+                uint8_t posY = oriPosY/16;
+                posX = ~posX;
+                posY = ~posY;
 
-                // analog stick moved
-                if(analogDir) {
-                    switch(analogDir) {
-                    case 1: testLabel[15]->setText("Analog 🡹"); break;
-                    case 2: testLabel[15]->setText("Analog 🡼"); break;
-                    case 3: testLabel[15]->setText("Analog 🡸"); break;
-                    case 4: testLabel[15]->setText("Analog 🡿"); break;
-                    case 5: testLabel[15]->setText("Analog 🡻"); break;
-                    case 6: testLabel[15]->setText("Analog 🡾"); break;
-                    case 7: testLabel[15]->setText("Analog 🡺"); break;
-                    case 8: testLabel[15]->setText("Analog 🡽"); break;
-                    }
+                analogPos->setRect(posX - 8, posY - 8, 16, 16);
+                ui->aPosLabel->setText(QString("%1 , %2").arg(oriPosX).arg(oriPosY));
 
-                    testLabel[15]->setStyleSheet("background-color: #FF0000; font: bold");
-                    // no analog direction
-                } else {
-                    testLabel[15]->setText("Analog");
-                    testLabel[15]->setStyleSheet("");
-                }
+                break;
             }
             case (char)OF_Const::sCurrentProf:
             {
@@ -1746,6 +1720,7 @@ void guiWindow::serialPort_SearchFinished()
                             ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 }
             // if ports list is cleared, assume no board can be connected.
+            // TODO: for whatever reason, this path specifically doesn't kick in under Windows VM?
             } else {
                 if(ui->comPortSelector->currentIndex() > 0)
                     statusBar()->showMessage("Current board has been disconnected.");

@@ -271,7 +271,11 @@ private:
     QVector<QWidget*> padding;
 
     /// @brief      Test "Buttons" in the test screen representing each button
-    QLabel *testLabel[16];
+    QVector<QLabel*> testLabel;
+
+    /// @brief      Analog stick graphic view
+    QGraphicsScene analogGfxScene;
+    QGraphicsEllipseItem* analogPos;
 
     /// @brief      Objects that makes up the elements of the profiles tab
     QVector<QRadioButton*> selectedProfile;
