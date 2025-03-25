@@ -82,6 +82,7 @@ bool AppSerial::GetSettings(const QString &portName)
         if(port.open(QIODevice::ReadWrite)) {
             // windows needs DTR enabled to actually read responses.
             port.setDataTerminalReady(true);
+            port.clear();
 
             if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
@@ -264,6 +265,8 @@ bool AppSerial::CommitSettings()
         emit Serial_SetProgressRange(7);
 
         if(OneShotSend((char)OF_Const::sCommitStart)) {
+            port.clear();
+
             emit Serial_ProgressUpdate(1, "Sending Toggles...");
             for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
                 if(char buf[3] = {(char)OF_Const::sCommitToggles, (char)i, (char)App_Common::boolSettings[i]}; OneShotSend(buf, 3, true)) {
