@@ -1892,9 +1892,7 @@ void guiWindow::on_clearEepromBtn_clicked()
 
 void guiWindow::on_baudResetBtn_clicked()
 {
-    // The py script had this backwards. huh.
-    serial.port.setBaudRate(QSerialPort::Baud1200);
-    serial.port.setDataTerminalReady(false);
+    serial.RebootToBootldr();
 
 /* test stuff for potential app FW update functionality
     // At least on my system, the Bootloader device takes ~7s to appear

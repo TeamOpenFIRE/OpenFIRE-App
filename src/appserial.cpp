@@ -215,13 +215,15 @@ bool AppSerial::GetSettings(const QString &portName)
                     }
                 } else {
                     printf("Port did not respond with expected response! Got: %s\n", buffer.join(' ').constData());
+                    RequestToReboot();
                     return false;
                 }
             } else {
                 QMessageBox::warning(nullptr,   "Data hasn't arrived! (Stale state?)",
-                                     "Device was detected, but initial settings request wasn't received in time!\n"
-                                     "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
-                                     "Try selecting the device again.");
+                                                "Device was detected, but initial settings request wasn't received in time!\n"
+                                                "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
+                                                "Try selecting the device again.");
+                RequestToReboot();
                 return false;
             }
         } else {
@@ -344,4 +346,23 @@ void AppSerial::Disconnect()
     port.close();
 
     port.setPortName("");
+}
+
+void AppSerial::RequestToReboot()
+{
+    if(QMessageBox::critical(nullptr, "Reset Board to Bootloader?",
+                                      "<p>The board you selected did not respond to the app properly.</p>"
+                                      "<p>This can usually be resolved by rebooting the microcontroller to its bootloader, and then updating the board to the latest firmware, which can be found at:</p>"
+                                      "<p><a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/releases/latest'><span style=' text-decoration: underline; color:#8ab4f8;'>https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/releases/latest</span></a></p>"
+                                      "<p>Would you like to reboot this board to apply an update?</p>",
+                                      QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
+        RebootToBootldr();
+}
+
+void AppSerial::RebootToBootldr()
+{
+    // The py script had this backwards. huh.
+    port.setBaudRate(QSerialPort::Baud1200);
+    port.setDataTerminalReady(false);
+    port.close();
 }

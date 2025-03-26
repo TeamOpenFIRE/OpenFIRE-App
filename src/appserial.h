@@ -76,6 +76,12 @@ public:
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();
 
+    /// @brief      Prompts user to reboot to bootloader
+    void RequestToReboot();
+
+    /// @brief      Sends magic baud 1200 signal to reset connected board to bootloader
+    void RebootToBootldr();
+
     /// @brief      Show error message popup regarding serial
     void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
         if(!syncError.isVisible()) {
