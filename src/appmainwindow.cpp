@@ -260,20 +260,15 @@ void guiWindow::DiffUpdate()
 {
     int settingsDiff = 0;
 
-    if(App_Common::boolSettings_orig[OF_Const::customPins] != App_Common::boolSettings[OF_Const::customPins])
+    if(memcmp(App_Common::boolSettings, App_Common::boolSettings_orig, sizeof(App_Common::boolSettings)))
         settingsDiff++;
 
     if(App_Common::boolSettings[OF_Const::customPins])
         if(App_Common::inputsMap_orig != App_Common::inputsMap)
             settingsDiff++;
 
-    for(uint8_t i = 1; i < OF_Const::boolTypesCount; i++)
-        if(App_Common::boolSettings_orig[i] != App_Common::boolSettings[i])
-            settingsDiff++;
-
-    for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++)
-        if(App_Common::settingsTable_orig[i] != App_Common::settingsTable[i])
-            settingsDiff++;
+    if(memcmp(App_Common::settingsTable, App_Common::settingsTable_orig, sizeof(App_Common::settingsTable)))
+        settingsDiff++;
 
     if(App_Common::tinyUSBtable_orig.tinyUSBid != App_Common::tinyUSBtable.tinyUSBid)
         settingsDiff++;
@@ -282,6 +277,9 @@ void guiWindow::DiffUpdate()
         settingsDiff++;
 
     if(App_Common::board.selectedProfile != App_Common::board.previousProfile)
+        settingsDiff++;
+
+    if(memcmp(App_Common::i2cPeriphs, App_Common::i2cPeriphs_orig, sizeof(App_Common::i2cPeriphs)))
         settingsDiff++;
 
     for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
@@ -803,6 +801,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidFastInterval]);
             ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
+            ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs_orig[OF_Const::i2cOLED]);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
@@ -1025,6 +1024,10 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     if(App_Common::inputsMap.value(OF_Const::ledR) >= 0 && App_Common::inputsMap.value(OF_Const::ledG) >= 0 && App_Common::inputsMap.value(OF_Const::ledB) >= 0)
          ui->commonAnodeToggle->setEnabled(true);
     else ui->commonAnodeToggle->setEnabled(false);
+
+    if(App_Common::inputsMap.value(OF_Const::periphSDA) >= 0 && App_Common::inputsMap.value(OF_Const::periphSCL))
+         ui->i2cGroup->setEnabled(true);
+    else ui->i2cGroup->setEnabled(false);
 
     DiffUpdate();
 }
@@ -1542,6 +1545,15 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
         DiffUpdate();
     }
 }
+
+
+void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
+{
+    App_Common::i2cPeriphs[OF_Const::i2cOLED] = arg1;
+
+    DiffUpdate();
+}
+
 
 void guiWindow::caliBtns_clicked()
 {

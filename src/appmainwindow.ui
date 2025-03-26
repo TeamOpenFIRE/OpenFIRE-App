@@ -10,11 +10,11 @@
     <x>0</x>
     <y>0</y>
     <width>980</width>
-    <height>720</height>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../img/vectors.qrc">
     <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -145,7 +145,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>458</height>
+             <height>558</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -281,12 +281,12 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-477</y>
              <width>924</width>
-             <height>1015</height>
+             <height>1084</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,1,0">
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,1,0">
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -1059,6 +1059,28 @@
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="i2cGroup">
+              <property name="title">
+               <string>I2C Peripherals</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_17">
+               <item alignment="Qt::AlignmentFlag::AlignHCenter">
+                <widget class="QCheckBox" name="i2cOLEDtoggle">
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If &lt;span style=&quot; font-style:italic;&quot;&gt;Peripheral I2C (SDA)&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Peripheral I2C (SCL)&lt;/span&gt; pins are set, enable use of an SSD1306 OLED display.&lt;/p&gt;&lt;p&gt;The OLED display can be used to navigate on-gun settings, visualize special modes, and display Ammo &amp;amp; Life counts in compatible software.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="accessibleName">
+                  <string>I2C OLED Display Toggle</string>
+                 </property>
+                 <property name="text">
+                  <string>Enable OLED Display (SSD1306 128x64)</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Orientation::Vertical</enum>
@@ -1427,7 +1449,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>351</height>
+             <height>423</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -2063,6 +2085,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../img/vectors.qrc"/>
+ </resources>
  <connections/>
 </ui>

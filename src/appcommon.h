@@ -115,6 +115,13 @@ public:
     /// @details    This is only updated on saving and loading settings successfully
     static inline uint32_t settingsTable_orig[OF_Const::settingsTypesCount] = { 0 };
 
+    /// @brief      Array of I2C peripheral devices that can be toggled
+    static inline bool i2cPeriphs[OF_Const::i2cDevicesCount] = { false };
+
+    /// @brief      Array of I2C peripheral devices last synced from the microcontroller
+    /// @details    This is only updated on saving and loading settings successfully
+    static inline bool i2cPeriphs_orig[OF_Const::i2cDevicesCount] = { false };
+
     // Currently loaded board's TinyUSB identifier info
     static inline tinyUSBtable_s tinyUSBtable;
     // TinyUSB ident, as loaded from the board
