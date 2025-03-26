@@ -21,9 +21,13 @@
 #define APPCOMMON_H
 
 #include "../boards/OpenFIREshared.h"
+
 #include <QString>
 #include <QVector>
 #include <QMap>
+
+// Maximum amount of GPIO that the RP2040 microcontroller has available
+#define PINS_COUNT 30
 
 class App_Common
 {
@@ -46,6 +50,9 @@ public:
         trackTestItem
     } uiTrackableObjects_e;
 
+    /// @brief      Names list for buttons
+    /// @details    Needs to match the same order as Firmware's
+    ///             `ButtonIndex_e`
     static inline const QStringList testLabelNames = {
         "Trigger",
         "Button A",

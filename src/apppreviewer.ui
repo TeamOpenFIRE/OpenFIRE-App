@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AppBoardsPreviewer</class>
+ <widget class="QDialog" name="AppBoardsPreviewer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Boards Previewer</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../img/vectors.qrc">
+    <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+   <item>
+    <layout class="QHBoxLayout" name="selectorLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QComboBox" name="boardSelector">
+       <property name="placeholderText">
+        <string>Click Here to Select a Board</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="PinsLayout">
+     <item>
+      <layout class="QGridLayout" name="PinsLeft"/>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="PinsCenter">
+       <item>
+        <layout class="QGridLayout" name="PinsCenterSub"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="PinsRight"/>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../img/vectors.qrc"/>
+ </resources>
+ <connections/>
+</ui>

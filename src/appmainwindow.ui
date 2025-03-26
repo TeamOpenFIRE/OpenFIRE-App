@@ -1980,10 +1980,13 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionCompatible_Boards"/>
     <addaction name="actionOpen_IR_Emitter_Alignment_Assistant"/>
     <addaction name="separator"/>
+    <addaction name="actionOpenFIRE_on_the_Web"/>
     <addaction name="actionOpenFIRE_Documentation"/>
     <addaction name="actionOpenFIRE_Serial_Usage"/>
+    <addaction name="separator"/>
     <addaction name="actionDebug_Window"/>
    </widget>
    <addaction name="menuHelp"/>
@@ -2001,7 +2004,7 @@
   </action>
   <action name="actionOpenFIRE_Documentation">
    <property name="text">
-    <string>&amp;OpenFIRE Documentation...</string>
+    <string>&amp;OpenFIRE Documentation on the Repo...</string>
    </property>
    <property name="shortcut">
     <string>Alt+D</string>
@@ -2009,7 +2012,7 @@
   </action>
   <action name="actionOpenFIRE_Serial_Usage">
    <property name="text">
-    <string>OpenFIRE &amp;Serial Usage Docs...</string>
+    <string>OpenFIRE &amp;Serial Usage Docs on the Wiki...</string>
    </property>
    <property name="shortcut">
     <string>Alt+S</string>
@@ -2039,6 +2042,24 @@
   <action name="actionDebug_Window">
    <property name="text">
     <string>Debug Window</string>
+   </property>
+  </action>
+  <action name="actionOpenFIRE_on_the_Web">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>OpenFIRE on the Web</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionCompatible_Boards">
+   <property name="text">
+    <string>View Compatible Boards</string>
    </property>
   </action>
  </widget>

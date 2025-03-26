@@ -21,6 +21,7 @@
 #include "appabout.h"
 #include "appcommon.h"
 #include "ui_appmainwindow.h"
+#include "../boards/OpenFIREshared.h"
 
 #include <QGraphicsScene>
 #include <QMessageBox>
@@ -1942,6 +1943,12 @@ void guiWindow::on_tabWidget_currentChanged(int index)
 }
 
 
+void guiWindow::on_actionCompatible_Boards_triggered()
+{
+    boardsWindow.show();
+}
+
+
 void guiWindow::on_actionAbout_UI_triggered()
 {
     AppAbout *about = new AppAbout();
@@ -2027,4 +2034,3 @@ void guiWindow::on_actionDebug_Window_triggered()
 {
     debugWindow.show();
 }
-

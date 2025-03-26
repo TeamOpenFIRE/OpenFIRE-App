@@ -41,6 +41,9 @@ set(PROJECT_SOURCES
         src/appcali.h
         src/appcali.cpp
         src/appcali.ui
+        src/apppreviewer.h
+        src/apppreviewer.cpp
+        src/apppreviewer.ui
         src/appdebug.h
         src/appdebug.cpp
         src/appdebug.ui

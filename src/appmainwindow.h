@@ -20,9 +20,6 @@
 #ifndef APPMAINWINDOW_H
 #define APPMAINWINDOW_H
 
-// Maximum amount of GPIO that the RP2040 microcontroller has available
-#define PINS_COUNT 30
-
 // Interval of the aliveTimer object that probes the board to ensure it's connected
 #define ALIVE_TIMER 5000
 
@@ -30,7 +27,8 @@
 #include "appcali.h"
 #include "appdebug.h"
 #include "appserial.h"
-#include "../boards/OpenFIREshared.h"
+#include "apppreviewer.h"
+
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QFuture>
@@ -167,6 +165,8 @@ private slots:
 
     void serialPort_progressUpdate(const int &, const char* = nullptr);
 
+    void on_actionCompatible_Boards_triggered();
+
     void on_actionOpenFIRE_Documentation_triggered();
 
     void on_actionOpenFIRE_Serial_Usage_triggered();
@@ -192,8 +192,10 @@ private:
     /// @details    Only one of these should be up at a time
     AppCaliWindow *caliWindow = nullptr;
 
-    /// @brief      Debug window pointer
-    /// @details    Only one of these should be up at a time
+    /// @brief      Boards previewer window
+    AppBoardsPreviewer boardsWindow;
+
+    /// @brief      Serial debug window
     AppDebugWindow debugWindow;
 
     /// @brief      Macro for making new CaliWindows
