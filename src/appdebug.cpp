@@ -35,4 +35,5 @@ AppDebugWindow::~AppDebugWindow()
 void AppDebugWindow::AppendText(const QByteArray &text)
 {
     ui->text->appendPlainText(text);
+    ui->hex->insertPlainText(' ' + text.toHex(' ').toUpper());
 }
