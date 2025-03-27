@@ -378,7 +378,7 @@ bool AppSerial::CommitSettings()
                 buf[2] = OF_Const::profName;
                 memset(&buf[3], '\0', 16);
                 memcpy(&buf[3], App_Common::profilesTable.at(i).profName.constData(), App_Common::profilesTable.at(i).profName.length());
-                if(OneShotSend(buf, 19, true)) if(port.read(16) != App_Common::profilesTable.at(i).profName)
+                if(OneShotSend(buf, 19, true)) if(strcmp(port.read(16).constData(), App_Common::profilesTable.at(i).profName.constData()))
                     { OneShotSend((char)OF_Const::serialTerminator); return false; }
             }
 
