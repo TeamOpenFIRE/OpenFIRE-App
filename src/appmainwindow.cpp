@@ -1628,22 +1628,36 @@ void guiWindow::serialPort_readyRead()
                 DiffUpdate();
                 break;
             }
-            // This should eventually have its own child branches for different error types,
-            // but for now it's just for missing IR camera errors only
             case (char)OF_Const::sError:
-                if(caliWindow != nullptr)
-                    caliWindow->Shutdown();
-                serial.ShowError("Device Error: Camera not available!",
-                                 "<p>Data received from the board indicates that the camera is in a bad state.<br>"
-                                 "This can happen if, for example, the camera wires are crossed<br>"
-                                 "(data wire to clock pin, clock wire to data pin),<br>"
-                                 "or the camera pins are wired to a different component,<br>"
-                                 "such as a button or Force Feedback output.</p>"
-                                 "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
-                                 "if they should be mapped different GPIO;<br>"
-                                 "Otherwise, the camera wires must be resoldered to resolve this error.</p>"
-                                 "<p>IR Testing and Calibration will not be available while in this state.</p>",
-                                 QMessageBox::Critical);
+                switch(serial.port.read(1).at(0)) {
+                case (char)OF_Const::sErrCam:
+                    if(caliWindow != nullptr)
+                        caliWindow->Shutdown();
+                    serial.ShowError("Device Error: Camera not available!",
+                                     "<p>Data received from the board indicates that the camera is in a bad state.<br>"
+                                     "This can happen if, for example, the camera wires are crossed<br>"
+                                     "(data wire to clock pin, clock wire to data pin),<br>"
+                                     "or the camera pins are wired to a different component,<br>"
+                                     "such as a button or Force Feedback output.</p>"
+                                     "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
+                                     "if they should be mapped different GPIO;<br>"
+                                     "Otherwise, the camera wires must be resoldered to resolve this error.</p>"
+                                     "<p>IR Testing and Calibration will not be available while in this state.</p>",
+                                     QMessageBox::Critical);
+                    break;
+                case (char)OF_Const::sErrPeriphGeneric:
+                    serial.ShowError("Peripheral Device Error!",
+                                     "<p>Data received from the board indicates that an I2C peripheral device failed to initialize.<br>"
+                                     "This can happen if, for example, the peripheral's wires are crossed<br>"
+                                     "(data wire to clock pin, clock wire to data pin),<br>"
+                                     "or the pins for the peripheral are set to a different component,<br>"
+                                     "such as a button or Force Feedback output.</p>"
+                                     "<p>Confirm that the wires for the peripheral are connected to the correct <i>Peripheral I2C</i> pins<br>"
+                                     "in the <i>Boards Layout</i> tab.</p>",
+                                     QMessageBox::Critical);
+                    break;
+                default: break;
+                }
                 break;
             case (char)OF_Const::sCaliStageUpd:
                 if(caliWindow != nullptr)
