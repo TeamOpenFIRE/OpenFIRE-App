@@ -310,9 +310,13 @@ bool AppSerial::CommitSettings()
         if(OneShotSend((char)OF_Const::sCommitStart)) {
             port.clear();
 
+            char buf[64];
+
             emit Serial_ProgressUpdate(1, "Sending Toggles...");
             for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
-                if(char buf[3] = {(char)OF_Const::sCommitToggles, (char)i, (char)App_Common::boolSettings[i]}; OneShotSend(buf, 3, true)) {
+                memset(buf, '\0', 3);
+                buf[0] = (char)OF_Const::sCommitToggles, buf[1] = (char)i, buf[2] = (char)App_Common::boolSettings[i];
+                if(OneShotSend(buf, 3, true)) {
                     if(port.read(1).at(0) != App_Common::boolSettings[i]) {
                         OneShotSend((char)OF_Const::serialTerminator);
                         return false;
@@ -323,7 +327,9 @@ bool AppSerial::CommitSettings()
             if(App_Common::boolSettings[OF_Const::customPins]) {
                 emit Serial_ProgressUpdate(2, "Sending Pins Map...");
                 for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
-                    if(char buf[3] = { (char)OF_Const::sCommitPins, (char)i, (char)App_Common::inputsMap.value(i) }; OneShotSend(buf, 3, true)) {
+                    memset(buf, '\0', 3);
+                    buf[0] = (char)OF_Const::sCommitPins, buf[1] = (char)i, buf[2] = (char)App_Common::inputsMap.value(i);
+                    if(OneShotSend(buf, 3, true)) {
                         if(port.read(1).at(0) != App_Common::inputsMap.value(i)) {
                             OneShotSend((char)OF_Const::serialTerminator);
                             return false;
@@ -334,9 +340,10 @@ bool AppSerial::CommitSettings()
 
             emit Serial_ProgressUpdate(3, "Sending Settings...");
             for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
-                char buf[6] = { (char)OF_Const::sCommitSettings, (char)i };
+                memset(buf, '\0', 6);
+                buf[0] = (char)OF_Const::sCommitSettings, buf[1] = (char)i;
                 memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[i], sizeof(uint32_t));
-                if(OneShotSend(buf, sizeof(buf), true)) {
+                if(OneShotSend(buf, 6, true)) {
                     if(memcmp(port.read(4).constData(), &App_Common::settingsTable[i], sizeof(uint32_t))) {
                         OneShotSend((char)OF_Const::serialTerminator);
                         return false;
@@ -346,11 +353,12 @@ bool AppSerial::CommitSettings()
 
             emit Serial_ProgressUpdate(4, "Sending Profile Data...");
             for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
-                char buf[19] = {(char)OF_Const::sCommitProfile,
-                                (char)i,
-                                (char)OF_Const::profIrSens,
-                                (char)App_Common::profilesTable.at(i).irSensitivity,
-                                0, 0, 0};
+                memset(buf, '\0', 19);
+                buf[0] = (char)OF_Const::sCommitProfile,
+                    buf[1] = (char)i,
+                    buf[2] = (char)OF_Const::profIrSens,
+                    buf[3] = (char)App_Common::profilesTable.at(i).irSensitivity;
+
                 if(OneShotSend(buf, 7, true)) if(port.read(4).at(0) != App_Common::profilesTable.at(i).irSensitivity)
                     { OneShotSend((char)OF_Const::serialTerminator); return false; }
 
@@ -370,13 +378,14 @@ bool AppSerial::CommitSettings()
                 buf[2] = OF_Const::profName;
                 memset(&buf[3], '\0', 16);
                 memcpy(&buf[3], App_Common::profilesTable.at(i).profName.constData(), App_Common::profilesTable.at(i).profName.length());
-                if(OneShotSend(buf, sizeof(buf), true)) if(port.read(16) != App_Common::profilesTable.at(i).profName)
+                if(OneShotSend(buf, 19, true)) if(port.read(16) != App_Common::profilesTable.at(i).profName)
                     { OneShotSend((char)OF_Const::serialTerminator); return false; }
             }
 
             if(App_Common::inputsMap.value(OF_Const::periphSDA) > -1 && App_Common::inputsMap.value(OF_Const::periphSCL) > -1) {
                 emit Serial_ProgressUpdate(5, "Sending I2C Peripherals Data...");
-                char buf[20] = { (char)OF_Const::sCommitPeriphs };
+                memset(buf, '\0', 20);
+                buf[0] = (char)OF_Const::sCommitPeriphs;
                 for(int i = 0; i < OF_Const::i2cDevicesCount; i++) {
                     buf[1] = (char)OF_Const::i2cDevicesEnabled;
                     buf[2] = (char)i;
@@ -392,17 +401,18 @@ bool AppSerial::CommitSettings()
             }
 
             emit Serial_ProgressUpdate(6, "Sending TinyUSB ID Data...");
-            char buf[18] = {(char)OF_Const::sCommitID, (char)OF_Const::usbPID};
+            memset(buf, '0', 18);
+            buf[0] = (char)OF_Const::sCommitID, buf[1] = (char)OF_Const::usbPID;
             memcpy(&buf[2], (uint8_t*)&App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t));
             if(OneShotSend(buf, 4, true)) {
                 if(memcmp(port.read(2).constData(), &App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t))) {
                     OneShotSend((char)OF_Const::serialTerminator);
                     return false;
                 }
-                memset(&buf[1], '\0', sizeof(buf)-1);
+                memset(&buf[1], '\0', 17);
                 buf[1] = (char)OF_Const::usbName;
                 memcpy(&buf[2], (uint8_t*)App_Common::tinyUSBtable.tinyUSBname.constData(), App_Common::tinyUSBtable.tinyUSBname.size());
-                if(OneShotSend(buf, sizeof(buf), true)) {
+                if(OneShotSend(buf, 18, true)) {
                     if(strcmp(port.read(16).constData(), App_Common::tinyUSBtable.tinyUSBname.constData())) {
                         OneShotSend((char)OF_Const::serialTerminator);
                         return false;
