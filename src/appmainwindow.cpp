@@ -260,14 +260,14 @@ void guiWindow::DiffUpdate()
 {
     int settingsDiff = 0;
 
-    if(memcmp(App_Common::boolSettings[App_Common::dataCurrent], App_Common::boolSettings[App_Common::dataOrig], sizeof(App_Common::boolSettings)))
+    if(memcmp(App_Common::boolSettings[App_Common::dataCurrent], App_Common::boolSettings[App_Common::dataOrig], sizeof(App_Common::boolSettings[App_Common::dataCurrent])))
         settingsDiff++;
 
     if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins])
         if(App_Common::inputsMap_orig != App_Common::inputsMap)
             settingsDiff++;
 
-    if(memcmp(App_Common::settingsTable[App_Common::dataCurrent], App_Common::settingsTable[App_Common::dataOrig], sizeof(App_Common::settingsTable)))
+    if(memcmp(App_Common::settingsTable[App_Common::dataCurrent], App_Common::settingsTable[App_Common::dataOrig], sizeof(App_Common::settingsTable[App_Common::dataCurrent])))
         settingsDiff++;
 
     if(App_Common::tinyUSBtable_orig.tinyUSBid != App_Common::tinyUSBtable.tinyUSBid)
@@ -279,10 +279,10 @@ void guiWindow::DiffUpdate()
     if(App_Common::board.selectedProfile != App_Common::board.previousProfile)
         settingsDiff++;
 
-    if(memcmp(App_Common::i2cPeriphs[App_Common::dataCurrent], App_Common::i2cPeriphs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs)))
+    if(memcmp(App_Common::i2cPeriphs[App_Common::dataCurrent], App_Common::i2cPeriphs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent])))
         settingsDiff++;
 
-    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cOledPrefs)))
+    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent])))
         settingsDiff++;
 
     for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
@@ -867,6 +867,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
         // reset temp label stylesheet to neutral
         ui->tmp36Label->setStyleSheet("");
+        ui->confirmButton->setEnabled(false);
+        ui->confirmButton->setText("[Currently Not Connected]");
     }
     serialActive = false;
 }
