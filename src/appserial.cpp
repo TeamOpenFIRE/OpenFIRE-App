@@ -140,7 +140,6 @@ bool AppSerial::GetSettings(const QString &portName)
                                 App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
                                 for(uint8_t i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; i++) {
-                                    qDebug() << port.peek(port.bytesAvailable());
                                     if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
                                         port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
                                     else if(port.bytesAvailable()) port.read(1);
