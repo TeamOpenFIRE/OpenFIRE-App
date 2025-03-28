@@ -802,7 +802,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
             ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs_orig[OF_Const::i2cOLED]);
-            // TODO: toggle for alt address here
+            ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[OF_Const::oledAltAddr]);
             ui->oledGroup->setEnabled(App_Common::inputsMap_orig.value(OF_Const::periphSCL) > -1 && App_Common::inputsMap_orig.value(OF_Const::periphSDA) > -1);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
@@ -1559,7 +1559,9 @@ void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 
 void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 {
-    // TODO: add stuff
+    App_Common::i2cOledPrefs[OF_Const::oledAltAddr] = arg1;
+
+    DiffUpdate();
 }
 
 

@@ -398,7 +398,15 @@ bool AppSerial::CommitSettings()
                         { OneShotSend((char)OF_Const::serialTerminator); return false; }
 
                     switch(i) {
-                    case OF_Const::i2cOLED: // OLED currently has no settings
+                    case OF_Const::i2cOLED:
+                        buf[1] = (char)OF_Const::i2cOLED;
+                        for(int type = 0; type < OF_Const::oledSettingsTypes; type++) {
+                            buf[2] = (char)type;
+                            memcpy(&buf[3], (uint8_t*)&App_Common::i2cOledPrefs[type], sizeof(uint32_t));
+                            if(OneShotSend(buf, 7, true)) if(memcmp(App_Common::i2cOledPrefs, port.read(4).constData(), sizeof(uint32_t)))
+                                { OneShotSend((char)OF_Const::serialTerminator); return false; }
+                        }
+                        break;
                     default: break;
                     }
                 }
