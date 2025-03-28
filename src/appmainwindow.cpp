@@ -416,6 +416,13 @@ void guiWindow::on_confirmButton_clicked()
                    App_Common::settingsTable[App_Common::dataCurrent],
                    sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
+            memcpy(App_Common::i2cPeriphs[App_Common::dataOrig],
+                   App_Common::i2cPeriphs[App_Common::dataCurrent],
+                   sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent]));
+            memcpy(App_Common::i2cOledPrefs[App_Common::dataOrig],
+                   App_Common::i2cOledPrefs[App_Common::dataCurrent],
+                   sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent]));
+
             App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
             App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
             App_Common::board.previousProfile = App_Common::board.selectedProfile;
