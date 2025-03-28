@@ -208,13 +208,13 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
 void guiWindow::BoxesUpdate()
 {
     // enabling custom pins
-    if(App_Common::boolSettings[OF_Const::customPins]) {
+    if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
         // enable pinboxes
         for(int i = 0; i < pinBoxes.count(); i++)
             pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
-        if(App_Common::boolSettings_orig[OF_Const::customPins]) {
+        if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]) {
             // reset pinboxes
             for(int i = 0; i < pinBoxes.count(); i++)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
@@ -260,14 +260,14 @@ void guiWindow::DiffUpdate()
 {
     int settingsDiff = 0;
 
-    if(memcmp(App_Common::boolSettings, App_Common::boolSettings_orig, sizeof(App_Common::boolSettings)))
+    if(memcmp(App_Common::boolSettings[App_Common::dataCurrent], App_Common::boolSettings[App_Common::dataOrig], sizeof(App_Common::boolSettings)))
         settingsDiff++;
 
-    if(App_Common::boolSettings[OF_Const::customPins])
+    if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins])
         if(App_Common::inputsMap_orig != App_Common::inputsMap)
             settingsDiff++;
 
-    if(memcmp(App_Common::settingsTable, App_Common::settingsTable_orig, sizeof(App_Common::settingsTable)))
+    if(memcmp(App_Common::settingsTable[App_Common::dataCurrent], App_Common::settingsTable[App_Common::dataOrig], sizeof(App_Common::settingsTable)))
         settingsDiff++;
 
     if(App_Common::tinyUSBtable_orig.tinyUSBid != App_Common::tinyUSBtable.tinyUSBid)
@@ -279,7 +279,10 @@ void guiWindow::DiffUpdate()
     if(App_Common::board.selectedProfile != App_Common::board.previousProfile)
         settingsDiff++;
 
-    if(memcmp(App_Common::i2cPeriphs, App_Common::i2cPeriphs_orig, sizeof(App_Common::i2cPeriphs)))
+    if(memcmp(App_Common::i2cPeriphs[App_Common::dataCurrent], App_Common::i2cPeriphs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs)))
+        settingsDiff++;
+
+    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs)))
         settingsDiff++;
 
     for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
@@ -341,11 +344,11 @@ QString guiWindow::PrettifyName(QString name)
 
 void guiWindow::PixelsDiff()
 {
-    if( App_Common::settingsTable[OF_Const::customLEDcount]  == App_Common::settingsTable_orig[OF_Const::customLEDcount]  &&
-        App_Common::settingsTable[OF_Const::customLEDstatic] == App_Common::settingsTable_orig[OF_Const::customLEDstatic] &&
-        App_Common::settingsTable[OF_Const::customLEDcolor1] == App_Common::settingsTable_orig[OF_Const::customLEDcolor1] &&
-        App_Common::settingsTable[OF_Const::customLEDcolor2] == App_Common::settingsTable_orig[OF_Const::customLEDcolor2] &&
-        App_Common::settingsTable[OF_Const::customLEDcolor3] == App_Common::settingsTable_orig[OF_Const::customLEDcolor3]) {
+    if( App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount]  == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcount]  &&
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDstatic] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDstatic] &&
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor1] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor1] &&
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor2] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2] &&
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor3] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor3]) {
         ui->pixelChangeNotice->setVisible(false);
     } else {
         ui->pixelChangeNotice->setVisible(true);
@@ -400,16 +403,18 @@ void guiWindow::on_confirmButton_clicked()
             statusBar()->showMessage("Sent settings successfully!", 5000);
 
             // sync settings
-            for(int i = 0; i < OF_Const::boolTypesCount; i++)
-                App_Common::boolSettings_orig[i] = App_Common::boolSettings[i];
+            memcpy(App_Common::boolSettings[App_Common::dataOrig],
+                   App_Common::boolSettings[App_Common::dataCurrent],
+                   sizeof(App_Common::boolSettings[App_Common::dataOrig]));
 
-            if(App_Common::boolSettings_orig[OF_Const::customPins])
+            if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins])
                 App_Common::inputsMap_orig = App_Common::inputsMap;
             else for(int i = 0; i < App_Common::inputsMap.size(); i++)
                     App_Common::inputsMap_orig[i] = -1;
 
-            for(int i = 0; i < OF_Const::settingsTypesCount; i++)
-                App_Common::settingsTable_orig[i] = App_Common::settingsTable[i];
+            memcpy(App_Common::settingsTable[App_Common::dataOrig],
+                   App_Common::settingsTable[App_Common::dataCurrent],
+                   sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
             App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
             App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
@@ -781,37 +786,37 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             }
 
             ui->tabWidget->setEnabled(true);
-            ui->customPinsEnabled->setChecked(App_Common::boolSettings[OF_Const::customPins]);
+            ui->customPinsEnabled->setChecked(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]);
 
-            ui->rumbleToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumble]);
-            ui->rumbleSettingsBox->setEnabled(App_Common::boolSettings_orig[OF_Const::rumble]);
-            ui->solenoidToggle->setChecked(App_Common::boolSettings_orig[OF_Const::solenoid]);
-            ui->solenoidSettingsBox->setEnabled(App_Common::boolSettings_orig[OF_Const::solenoid]);
-            ui->autofireToggle->setChecked(App_Common::boolSettings_orig[OF_Const::autofire]);
-            ui->autofireToggle->setEnabled((App_Common::boolSettings_orig[OF_Const::solenoid] || App_Common::boolSettings_orig[OF_Const::rumbleFF]));
-            ui->simplePauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::simplePause]);
-            ui->holdToPauseToggle->setChecked(App_Common::boolSettings_orig[OF_Const::holdToPause]);
-            ui->commonAnodeToggle->setChecked(App_Common::boolSettings_orig[OF_Const::commonAnode]);
-            ui->lowButtonsToggle->setChecked(App_Common::boolSettings_orig[OF_Const::lowButtonsMode]);
-            ui->rumbleFFToggle->setChecked(App_Common::boolSettings_orig[OF_Const::rumbleFF]);
-            ui->rumbleIntensityBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleStrength]);
-            ui->rumbleLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::rumbleInterval]);
-            ui->holdToPauseLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidFastInterval]);
-            ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings_orig[OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable_orig[OF_Const::autofireWaitFactor]);
-            ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs_orig[OF_Const::i2cOLED]);
-            ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[OF_Const::oledAltAddr]);
+            ui->rumbleToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
+            ui->rumbleSettingsBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
+            ui->solenoidToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::solenoid]);
+            ui->solenoidSettingsBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::solenoid]);
+            ui->autofireToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::autofire]);
+            ui->autofireToggle->setEnabled((App_Common::boolSettings[App_Common::dataOrig][OF_Const::solenoid] || App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumbleFF]));
+            ui->simplePauseToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::simplePause]);
+            ui->holdToPauseToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::holdToPause]);
+            ui->commonAnodeToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::commonAnode]);
+            ui->lowButtonsToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::lowButtonsMode]);
+            ui->rumbleFFToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumbleFF]);
+            ui->rumbleIntensityBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::rumbleStrength]);
+            ui->rumbleLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::rumbleInterval]);
+            ui->holdToPauseLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::holdToPauseLength]);
+            ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidNormalInterval]);
+            ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidFastInterval]);
+            ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidHoldLength]);
+            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::autofireWaitFactor]);
+            ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs[App_Common::dataOrig][OF_Const::i2cOLED]);
+            ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[App_Common::dataOrig][OF_Const::oledAltAddr]);
             ui->oledGroup->setEnabled(App_Common::inputsMap_orig.value(OF_Const::periphSCL) > -1 && App_Common::inputsMap_orig.value(OF_Const::periphSDA) > -1);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-            ui->neopixelStrandLengthBox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDcount]);
-            ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable_orig[OF_Const::customLEDstatic]);
-            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
-            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable_orig[OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
+            ui->neopixelStrandLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcount]);
+            ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDstatic]);
+            ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor1], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
+            ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
             switch(App_Common::tinyUSBtable.tinyUSBid) {
             case 1:
@@ -1091,7 +1096,7 @@ void guiWindow::colorBoxes_clicked()
 
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::customPins] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins] = arg1;
     BoxesUpdate();
 
     if(arg1)
@@ -1143,7 +1148,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
 
 void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::rumble] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumble] = arg1;
 
     if(arg1) {
         ui->rumbleSettingsBox->setEnabled(true);
@@ -1154,7 +1159,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
         ui->rumbleTestBtn->setEnabled(false);
     }
 
-    if(!(arg1 && App_Common::boolSettings[OF_Const::rumbleFF]) && !App_Common::boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumbleFF]) && !App_Common::boolSettings[App_Common::dataCurrent][OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1167,7 +1172,7 @@ void guiWindow::on_rumbleToggle_stateChanged(int arg1)
 
 void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::solenoid] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::solenoid] = arg1;
 
     if(arg1) {
         ui->rumbleFFToggle->setChecked(false);
@@ -1178,7 +1183,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
         ui->solenoidTestBtn->setEnabled(false);
     }
 
-    if(!arg1 && !(App_Common::boolSettings[OF_Const::rumble] && App_Common::boolSettings[OF_Const::rumbleFF])) {
+    if(!arg1 && !(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumble] && App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumbleFF])) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1191,7 +1196,7 @@ void guiWindow::on_solenoidToggle_stateChanged(int arg1)
 
 void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::autofire] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::autofire] = arg1;
 
     if(arg1) ui->autofireWaitFactorBox->setEnabled(true);
     else     ui->autofireWaitFactorBox->setEnabled(false);
@@ -1202,14 +1207,14 @@ void guiWindow::on_autofireToggle_stateChanged(int arg1)
 
 void guiWindow::on_simplePauseToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::simplePause] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::simplePause] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::holdToPause] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::holdToPause] = arg1;
 
     if(arg1) ui->holdToPauseLengthBox->setEnabled(true);
     else     ui->holdToPauseLengthBox->setEnabled(false);
@@ -1220,24 +1225,24 @@ void guiWindow::on_holdToPauseToggle_stateChanged(int arg1)
 
 void guiWindow::on_commonAnodeToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::commonAnode] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::commonAnode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_lowButtonsToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::lowButtonsMode] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::lowButtonsMode] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 {
-    App_Common::boolSettings[OF_Const::rumbleFF] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumbleFF] = arg1;
     if(arg1) ui->solenoidToggle->setChecked(false);
 
-    if(!(arg1 && App_Common::boolSettings[OF_Const::rumble]) && !App_Common::boolSettings[OF_Const::solenoid]) {
+    if(!(arg1 && App_Common::boolSettings[App_Common::dataCurrent][OF_Const::rumble]) && !App_Common::boolSettings[App_Common::dataCurrent][OF_Const::solenoid]) {
         ui->autofireToggle->setChecked(false);
         ui->autofireToggle->setEnabled(false);
     } else {
@@ -1250,49 +1255,49 @@ void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
 
 void guiWindow::on_rumbleIntensityBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::rumbleStrength] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::rumbleStrength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_rumbleLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::rumbleInterval] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::rumbleInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::holdToPauseLength] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::holdToPauseLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::solenoidNormalInterval] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidNormalInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::solenoidFastInterval] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidFastInterval] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::solenoidHoldLength] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidHoldLength] = arg1;
     DiffUpdate();
 }
 
 
 void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::autofireWaitFactor] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::autofireWaitFactor] = arg1;
     DiffUpdate();
 }
 
@@ -1432,8 +1437,8 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
 
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[OF_Const::customLEDcount] = arg1;
-    if(arg1 < App_Common::settingsTable[OF_Const::customLEDstatic]) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount] = arg1;
+    if(arg1 < App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDstatic]) {
         ui->customLEDstaticSpinbox->setValue(arg1);
     }
 
@@ -1446,10 +1451,10 @@ void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 {
-    if(arg1 > App_Common::settingsTable[OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable[OF_Const::customLEDcount]); }
-    else { App_Common::settingsTable[OF_Const::customLEDstatic] = arg1; }
+    if(arg1 > App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount]) { ui->customLEDstaticSpinbox->setValue(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount]); }
+    else { App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDstatic] = arg1; }
     if(OF_Const::customLEDstatic) {
-        switch(App_Common::settingsTable[OF_Const::customLEDstatic]) {
+        switch(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDstatic]) {
         case 1:
             ui->customLEDstaticBtn1->setEnabled(true);
             ui->customLEDstaticBtn2->setEnabled(false);
@@ -1482,7 +1487,7 @@ void guiWindow::on_customLEDstaticSpinbox_valueChanged(int arg1)
 
 void guiWindow::on_customLEDstaticBtn1_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor1]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor1]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1492,7 +1497,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Common::settingsTable[OF_Const::customLEDcolor1] = packedColor;
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor1] = packedColor;
         ui->customLEDstaticBtn1->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1505,7 +1510,7 @@ void guiWindow::on_customLEDstaticBtn1_clicked()
 
 void guiWindow::on_customLEDstaticBtn2_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor2]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor2]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1515,7 +1520,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Common::settingsTable[OF_Const::customLEDcolor2] = packedColor;
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor2] = packedColor;
         ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1528,7 +1533,7 @@ void guiWindow::on_customLEDstaticBtn2_clicked()
 
 void guiWindow::on_customLEDstaticBtn3_clicked()
 {
-    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[OF_Const::customLEDcolor3]);
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor3]);
     if(colorPick.isValid()) {
         int *red = new int;
         int *green = new int;
@@ -1538,7 +1543,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
         packedColor |= *red << 16;
         packedColor |= *green << 8;
         packedColor |= *blue;
-        App_Common::settingsTable[OF_Const::customLEDcolor3] = packedColor;
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor3] = packedColor;
         ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
 
         // show NeoPixel notice if values are updated
@@ -1551,7 +1556,7 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 
 void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 {
-    App_Common::i2cPeriphs[OF_Const::i2cOLED] = arg1;
+    App_Common::i2cPeriphs[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
 
     DiffUpdate();
 }
@@ -1559,7 +1564,7 @@ void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 
 void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 {
-    App_Common::i2cOledPrefs[OF_Const::oledAltAddr] = arg1;
+    App_Common::i2cOledPrefs[App_Common::dataCurrent][OF_Const::oledAltAddr] = arg1;
 
     DiffUpdate();
 }

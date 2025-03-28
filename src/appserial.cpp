@@ -122,19 +122,21 @@ bool AppSerial::GetSettings(const QString &portName)
                     // toggles
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {
                         // booleans
-                        memset(App_Common::boolSettings, false, OF_Const::boolTypesCount);
+                        memset(App_Common::boolSettings, false, sizeof(App_Common::boolSettings));
                         for(uint8_t i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; i++) {
                             if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
-                                port.read((char*)&App_Common::boolSettings[i], sizeof(bool));
+                                port.read((char*)&App_Common::boolSettings[App_Common::dataCurrent][i], sizeof(bool));
                             else if(port.bytesAvailable()) port.read(1);
                             else if(!port.waitForReadyRead(2000)) break;
                         }
-                        memcpy(App_Common::boolSettings_orig, App_Common::boolSettings, sizeof(App_Common::boolSettings));
+                        memcpy(App_Common::boolSettings[App_Common::dataOrig],
+                               App_Common::boolSettings[App_Common::dataCurrent],
+                               sizeof(App_Common::boolSettings[App_Common::dataCurrent]));
 
                         emit Serial_ProgressUpdate(2, "Getting Settings (1)");
 
                         // pins
-                        if(App_Common::boolSettings[OF_Const::customPins]) {
+                        if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetPins, true)) {
                                 App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
@@ -165,17 +167,19 @@ bool AppSerial::GetSettings(const QString &portName)
                                 else {
                                     uint8_t i = port.read(1).at(0);
                                     if(i < OF_Const::settingsTypesCount)
-                                        port.read((char*)&App_Common::settingsTable[i], sizeof(uint32_t));
+                                        port.read((char*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
                                 }
                             }
-                            memcpy(App_Common::settingsTable_orig, App_Common::settingsTable, sizeof(App_Common::settingsTable));
+                            memcpy(App_Common::settingsTable[App_Common::dataOrig],
+                                   App_Common::settingsTable[App_Common::dataCurrent],
+                                   sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
                             emit Serial_ProgressUpdate(5, "Getting Profiles Data");
 
                             // i2c peripherals
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetPeriphs, true)) {
-                                memset(App_Common::i2cPeriphs, 0, OF_Const::i2cDevicesCount);
+                                memset(App_Common::i2cPeriphs, 0, sizeof(App_Common::i2cPeriphs));
                                 while(port.peek(1).at(0) != (char)OF_Const::serialTerminator) {
                                     if(!port.bytesAvailable()) { if(!port.waitForReadyRead(2000)) break; }
                                     else {
@@ -184,7 +188,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                         {
                                             for(int i = 0;; i++) {
                                                 if(port.bytesAvailable() && i < OF_Const::i2cDevicesCount)
-                                                    port.read((char*)&App_Common::i2cPeriphs[i], sizeof(bool));
+                                                    port.read((char*)&App_Common::i2cPeriphs[App_Common::dataCurrent][i], sizeof(bool));
                                                 else if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator)
                                                     { port.read(1); break; }
                                                 else if(port.bytesAvailable()) port.read(1);
@@ -197,7 +201,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                                 if(port.bytesAvailable()) {
                                                     int type = port.read(1).at(0);
                                                     if(type < OF_Const::oledSettingsTypes)
-                                                        port.read((char*)&App_Common::i2cOledPrefs[type], sizeof(uint32_t));
+                                                        port.read((char*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
                                                     else port.read(sizeof(uint32_t));
                                                 } else if(!port.waitForReadyRead(2000)) break;
                                             }
@@ -206,8 +210,12 @@ bool AppSerial::GetSettings(const QString &portName)
                                         }
                                     }
                                 }
-                                memcpy(App_Common::i2cPeriphs_orig, App_Common::i2cPeriphs, sizeof(App_Common::i2cPeriphs));
-                                // when we have settings for periphs, copy those too
+                                memcpy(App_Common::i2cPeriphs[App_Common::dataOrig],
+                                       App_Common::i2cPeriphs[App_Common::dataCurrent],
+                                       sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent]));
+                                memcpy(App_Common::i2cOledPrefs[App_Common::dataOrig],
+                                       App_Common::i2cOledPrefs[App_Common::dataCurrent],
+                                       sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent]));
 
                                 emit Serial_ProgressUpdate(5, "Getting Profiles Data");
 
@@ -319,9 +327,9 @@ bool AppSerial::CommitSettings()
             emit Serial_ProgressUpdate(1, "Sending Toggles...");
             for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
                 memset(buf, '\0', 3);
-                buf[0] = (char)OF_Const::sCommitToggles, buf[1] = (char)i, buf[2] = (char)App_Common::boolSettings[i];
+                buf[0] = (char)OF_Const::sCommitToggles, buf[1] = (char)i, buf[2] = (char)App_Common::boolSettings[App_Common::dataCurrent][i];
                 if(OneShotSend(buf, 3, true)) {
-                    if(port.read(1).at(0) != App_Common::boolSettings[i]) {
+                    if(port.read(1).at(0) != App_Common::boolSettings[App_Common::dataCurrent][i]) {
                         OneShotSend((char)OF_Const::serialTerminator);
                         return false;
                     }
@@ -346,9 +354,9 @@ bool AppSerial::CommitSettings()
             for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
                 memset(buf, '\0', 6);
                 buf[0] = (char)OF_Const::sCommitSettings, buf[1] = (char)i;
-                memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[i], sizeof(uint32_t));
+                memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
                 if(OneShotSend(buf, 6, true)) {
-                    if(memcmp(port.read(4).constData(), &App_Common::settingsTable[i], sizeof(uint32_t))) {
+                    if(memcmp(port.read(4).constData(), &App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t))) {
                         OneShotSend((char)OF_Const::serialTerminator);
                         return false;
                     }
@@ -393,8 +401,8 @@ bool AppSerial::CommitSettings()
                 for(int i = 0; i < OF_Const::i2cDevicesCount; i++) {
                     buf[1] = (char)OF_Const::i2cDevicesEnabled;
                     buf[2] = (char)i;
-                    buf[3] = (char)App_Common::i2cPeriphs[i];
-                    if(OneShotSend(buf, 4, true)) if(port.read(1).at(0) != App_Common::i2cPeriphs[i])
+                    buf[3] = (char)App_Common::i2cPeriphs[App_Common::dataCurrent][i];
+                    if(OneShotSend(buf, 4, true)) if(port.read(1).at(0) != App_Common::i2cPeriphs[App_Common::dataCurrent][i])
                         { OneShotSend((char)OF_Const::serialTerminator); return false; }
 
                     switch(i) {
@@ -402,8 +410,8 @@ bool AppSerial::CommitSettings()
                         buf[1] = (char)OF_Const::i2cOLED;
                         for(int type = 0; type < OF_Const::oledSettingsTypes; type++) {
                             buf[2] = (char)type;
-                            memcpy(&buf[3], (uint8_t*)&App_Common::i2cOledPrefs[type], sizeof(uint32_t));
-                            if(OneShotSend(buf, 7, true)) if(memcmp(App_Common::i2cOledPrefs, port.read(4).constData(), sizeof(uint32_t)))
+                            memcpy(&buf[3], (uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
+                            if(OneShotSend(buf, 7, true)) if(memcmp((uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], port.read(4).constData(), sizeof(uint32_t)))
                                 { OneShotSend((char)OF_Const::serialTerminator); return false; }
                         }
                         break;
