@@ -100,6 +100,8 @@ public:
     // Currently loaded board object
     static inline boardInfo_s board;
 
+    //// TODO: merge orig into main arrays to make them 2D arrays (where second array = main or orig)
+
     /// @brief      Current array of booleans
     /// @details    Meant for toggle/on-off type settings specifically
     static inline bool boolSettings[OF_Const::boolTypesCount] = { false };
@@ -121,6 +123,8 @@ public:
     /// @brief      Array of I2C peripheral devices last synced from the microcontroller
     /// @details    This is only updated on saving and loading settings successfully
     static inline bool i2cPeriphs_orig[OF_Const::i2cDevicesCount] = { false };
+
+    static inline uint32_t i2cOledPrefs[OF_Const::oledSettingsTypes] = { false };
 
     // Currently loaded board's TinyUSB identifier info
     static inline tinyUSBtable_s tinyUSBtable;
