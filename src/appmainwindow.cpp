@@ -282,7 +282,7 @@ void guiWindow::DiffUpdate()
     if(memcmp(App_Common::i2cPeriphs[App_Common::dataCurrent], App_Common::i2cPeriphs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs)))
         settingsDiff++;
 
-    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs)))
+    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cOledPrefs)))
         settingsDiff++;
 
     for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
