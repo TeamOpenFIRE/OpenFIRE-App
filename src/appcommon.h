@@ -55,26 +55,6 @@ public:
         dataOrig
     } dataBlocks_e;
 
-    /// @brief      Names list for buttons
-    /// @details    Needs to match the same order as Firmware's
-    ///             `ButtonIndex_e`
-    static inline const QStringList testLabelNames = {
-        "Trigger",
-        "Button A",
-        "Button B",
-        "Start",
-        "Select",
-        "D-Pad Up",
-        "D-Pad Down",
-        "D-Pad Left",
-        "D-Pad Right",
-        "Button C",
-        "Pedal",
-        "Pedal 2",
-        "Pump Action",
-        "Home"
-    };
-
     typedef struct boardInfo_t {
         uint8_t    selectedProfile;
         uint8_t    previousProfile;

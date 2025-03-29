@@ -108,7 +108,7 @@ guiWindow::guiWindow(QWidget *parent)
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Setup test screen buttons
-    for(int i = 0; i < 13; i++) {
+    for(int i = 0; i < 14; i++) {
         testLabel << new QLabel(OF_Const::valuesNameList[i+1]);
 
         testLabel.at(i)->setEnabled(false);
@@ -888,10 +888,10 @@ void guiWindow::LabelsUpdate()
     for(uint8_t i = 0; i < testLabel.count(); i++) {
         testLabel.at(i)->setStyleSheet("");
         if(App_Common::inputsMap.value(i) >= 0) {
-            testLabel.at(i)->setText(App_Common::testLabelNames.at(i));
+            testLabel.at(i)->setText(OF_Const::valuesNameList[i+1]);
             testLabel.at(i)->setEnabled(true);
         } else {
-            testLabel.at(i)->setText(App_Common::testLabelNames.at(i) + " (N/C)");
+            testLabel.at(i)->setText(QByteArray(OF_Const::valuesNameList[i+1]) + " (N/C)");
             testLabel.at(i)->setEnabled(false);
         }
     }
