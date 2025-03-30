@@ -6,13 +6,16 @@
 
 ## Features:
  - **Cross-platform Qt application,** portable across Linux & Windows desktops & Raspberry Pi systems.
- - **Simple to use:** select the gun from the dropdown, and configure away!
- - See and manage current pins layout, toggle on and off custom mappings, set other tunables, and change the gun's USB identifier all on the fly.
- - Calibrate any of the loaded profiles using an intuitive fullscreen interface, making things 
- - Also serves as a testing utility for button input, solenoid/rumble force feedback, and camera.
+ - **Simple to use:** Plug in and select the gun from the dropdown, and configure away!
+ - See and manage current pins layout, toggle on and off custom mappings, manage other tunable settings such as FFB and I2C peripherals, and change the gun's USB identifier all on the fly.
+ - Calibrate any of the loaded profiles using an intuitive interactive fullscreen interface for easy and accurate calibrations.
+ - View ideal alignment of emitters using the IR Emitter Alignment Assistant.
+ - Also serves as a testing utility for digital and analog inputs, force feedback devices, camera, and more.
 
 ## Running:
-Boards flashed with OpenFIRE *must be plugged in **before** launching the application.* The app will notify if it can't find any compatible boards connected.
+Run `OpenFIREapp`. From the main window, available devices will be periodically refreshed and shown in the *COM Port* dropdown box. Even without any devices currently plugged in, you can still access the *IR Emitter Alignment Assistant* or preview supported boards and their default layouts by selecting *View Compatible Boards* from the *Help* app menu button.
+
+When a board(s) is connected, select the port corresponding to your microcontroller to dock it to the app (undocking any currently docked board, if any). Devices that fail to communicate correctly with the App can be rebooted to their bootloader so they can be updated to the latest available firmware version.
 
 ### For Linux:
 ##### Requirements: Anything that supports Qt 5.15.X at minimum.
@@ -54,7 +57,7 @@ Boards flashed with OpenFIRE *must be plugged in **before** launching the applic
 ### For Windows:
 #### Qt 5.15.2 needs to be installed from the Archive section of the Qt Installation Wizard/Maintenance Tool, which comes with all needed additional components
 #### Qt 6.x requires installing the respective SerialPort extension for the version
- - Should be buildable through CMake w/ msys2 (follow Arch Linux instructions) or the Qt Creator IDE.
+ - The project can be opened in the Qt Creator IDE, assuming the system has the appropriate Qt libraries for their desired version/environment installed. Alternatively, it should be buildable via CMake inside of an mingw-w64 environment, however this has yet to be tested adequately to be confirmed.
 
 ### TODO:
  - Implement version comparison to latest OpenFIRE GitHub release (or at least latest as of the GUI version).
