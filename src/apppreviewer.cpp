@@ -84,7 +84,7 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < PINS_COUNT; i++) {
+            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); i++) {
                 pinDefaultFunc << new QLabel();
                 pinDefaultFunc.at(i)->setFont(boldFont);
                 pinDefaultFunc.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -110,24 +110,24 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
             origBoardPicFile = resource.readAll();
 
             for(int i = 0; i < pinDefaultFunc.count(); i++) {
-                if(OF_Const::boardsBoxPositions.at(board.first).pin[i] & OF_Const::posLeft) {
+                if(OF_Const::boardsBoxPositions.at(board.first).at(i) & OF_Const::posLeft) {
                     ui->PinsLeft->addWidget(pinDefaultFunc.at(i),
-                                            OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posLeft, 0, Qt::AlignRight);
+                                            OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posLeft, 0, Qt::AlignRight);
                     ui->PinsLeft->addWidget(pinLabel.at(i),
-                                            OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posLeft, 1);
-                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).pin[i]+1]);
-                } else if(OF_Const::boardsBoxPositions.at(board.first).pin[i] & OF_Const::posRight) {
+                                            OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posLeft, 1);
+                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).at(i)+1]);
+                } else if(OF_Const::boardsBoxPositions.at(board.first).at(i) & OF_Const::posRight) {
                     ui->PinsRight->addWidget(pinDefaultFunc.at(i),
-                                             OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posRight, 1);
+                                             OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posRight, 1);
                     ui->PinsRight->addWidget(pinLabel.at(i),
-                                             OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posRight, 0);
-                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).pin[i]+1]);
-                } else if(OF_Const::boardsBoxPositions.at(board.first).pin[i] & OF_Const::posMiddle) {
+                                             OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posRight, 0);
+                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).at(i)+1]);
+                } else if(OF_Const::boardsBoxPositions.at(board.first).at(i) & OF_Const::posMiddle) {
                     ui->PinsCenterSub->addWidget(pinDefaultFunc.at(i), 1,
-                                                 OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posMiddle, Qt::AlignCenter);
+                                                 OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
                     ui->PinsCenterSub->addWidget(pinLabel.at(i), 0,
-                                                 OF_Const::boardsBoxPositions.at(board.first).pin[i] ^ OF_Const::posMiddle, Qt::AlignCenter);
-                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).pin[i]+1]);
+                                                 OF_Const::boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
+                    pinDefaultFunc.at(i)->setText(OF_Const::valuesNameList[OF_Const::boardsPresetsMap.at(board.first).at(i)+1]);
                 }
             }
 
@@ -135,7 +135,7 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
             boardPic.load(origBoardPicFile);
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
 
-            int prevPadCount;
+            int prevPadCount = 0;
             for(int i = 1, padCount = 0; i < ui->PinsLeft->rowCount(); i++) {
                 ui->PinsLeft->setRowMinimumHeight(i, 28);
                 if(ui->PinsLeft->itemAtPosition(i, 0) == nullptr) {
