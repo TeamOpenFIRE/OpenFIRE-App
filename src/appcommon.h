@@ -26,9 +26,6 @@
 #include <QVector>
 #include <QMap>
 
-// Maximum amount of GPIO that the RP2040 microcontroller has available
-#define PINS_COUNT 30
-
 class App_Common
 {
 public:
