@@ -14,6 +14,7 @@ if(NOT OFAPP_QT_VERSIONS)
     set(OFAPP_QT_VERSIONS Qt6)
 endif()
 
+# required to make use of definitions in `OpenFIREshared.h` for App usage
 add_compile_definitions(OF_APP)
 
 add_compile_definitions(OFAPP_VERSION="${PROJECT_VERSION}")
