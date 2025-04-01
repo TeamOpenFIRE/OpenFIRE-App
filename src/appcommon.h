@@ -1,5 +1,7 @@
 /*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
-    Copyright (C) 2024  Team OpenFIRE
+    Common shared assets & constants.
+
+    Copyright (C) 2025  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,15 +17,19 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef APPCOMMON_H
+#define APPCOMMON_H
 
 #include "../boards/OpenFIREshared.h"
+
 #include <QString>
 #include <QVector>
 #include <QMap>
 
-class App_Const
+// Maximum amount of GPIO that the RP2040 microcontroller has available
+#define PINS_COUNT 30
+
+class App_Common
 {
 public:
     enum {
@@ -44,67 +50,54 @@ public:
         trackTestItem
     } uiTrackableObjects_e;
 
-    static inline const QStringList testLabelNames = {
-        "Trigger",
-        "Button A",
-        "Button B",
-        "Start",
-        "Select",
-        "D-Pad Up",
-        "D-Pad Down",
-        "D-Pad Left",
-        "D-Pad Right",
-        "Button C",
-        "Pedal",
-        "Pedal 2",
-        "Pump Action",
-        "Home"
-    };
+    enum {
+        dataCurrent = 0,
+        dataOrig
+    } dataBlocks_e;
 
     typedef struct boardInfo_t {
-        uint8_t selectedProfile;
-        uint8_t previousProfile;
-        QString boardType;
-        QString versionNumber;
-        QString versionCodename;
+        uint8_t    selectedProfile;
+        uint8_t    previousProfile;
+        QByteArray boardType;
+        QByteArray versionNumber;
+        QByteArray versionCodename;
     } boardInfo_s;
 
     typedef struct tinyUSBtable_t {
-        QString tinyUSBid;
-        QString tinyUSBname;
+        uint16_t   tinyUSBid;
+        QByteArray tinyUSBname;
     } tinyUSBtable_s;
 
     typedef struct profilesTable_t {
-        uint16_t topOffset      = 0;
-        uint16_t bottomOffset   = 0;
-        uint16_t leftOffset     = 0;
-        uint16_t rightOffset    = 0;
-        uint16_t TLled          = 0;
-        uint16_t TRled          = 0;
-        uint8_t irSensitivity   = 0;
-        uint8_t runMode         = 0;
-        uint8_t layoutType      = false;
+        int32_t  topOffset      = 0;
+        int32_t  bottomOffset   = 0;
+        int32_t  leftOffset     = 0;
+        int32_t  rightOffset    = 0;
+        float    TLled          = 0;
+        float    TRled          = 0;
+        uint8_t  irSensitivity  = 0;
+        uint8_t  runMode        = 0;
+        uint8_t  layoutType     = false;
         uint32_t color          = 0;
-        QString profName        = "";
+        QByteArray profName     = "";
     } profilesTable_s;
 
     // Currently loaded board object
     static inline boardInfo_s board;
 
+    //// TODO: merge orig into main arrays to make them 2D arrays (where second array = main or orig)
+
     /// @brief      Current array of booleans
     /// @details    Meant for toggle/on-off type settings specifically
-    static inline bool boolSettings[OF_Const::boolTypesCount] = { false };
-
-    /// @brief      Array of booleans last synced from the microcontroller
-    /// @details    This is only updated on saving and loading settings successfully
-    static inline bool boolSettings_orig[OF_Const::boolTypesCount] = { false };
+    static inline bool boolSettings[2][OF_Const::boolTypesCount] = { false };
 
     /// @brief      Current array of tunable settings
-    static inline uint32_t settingsTable[OF_Const::settingsTypesCount] = { 0 };
+    static inline uint32_t settingsTable[2][OF_Const::settingsTypesCount] = { 0 };
 
-    /// @brief      Array of tunables last synced from the microcontroller
-    /// @details    This is only updated on saving and loading settings successfully
-    static inline uint32_t settingsTable_orig[OF_Const::settingsTypesCount] = { 0 };
+    /// @brief      Array of I2C peripheral devices that can be toggled
+    static inline bool i2cPeriphs[2][OF_Const::i2cDevicesCount] = { false };
+
+    static inline uint32_t i2cOledPrefs[2][OF_Const::oledSettingsTypes] = { false };
 
     // Currently loaded board's TinyUSB identifier info
     static inline tinyUSBtable_s tinyUSBtable;

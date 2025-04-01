@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(VERSION 3.5)
 
-project(OpenFIREapp VERSION 0.9 LANGUAGES CXX)
+project(OpenFIREapp VERSION 2.99.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -13,9 +14,15 @@ if(NOT OFAPP_QT_VERSIONS)
     set(OFAPP_QT_VERSIONS Qt6)
 endif()
 
-if(OFAPP_VERSION)
-    add_compile_definitions(OFAPP_VERSION="${OFAPP_VERSION}")
+# required to make use of definitions in `OpenFIREshared.h` for App usage
+add_compile_definitions(OF_APP)
+
+add_compile_definitions(OFAPP_VERSION="${PROJECT_VERSION}")
+
+if(NOT OFAPP_CODENAME)
+    set(OFAPP_CODENAME "Tokinomiya")
 endif()
+add_compile_definitions(OFAPP_CODENAME="${OFAPP_CODENAME}")
 
 if(OFAPP_GITHASH)
     add_compile_definitions(OFAPP_GITHASH="${OFAPP_GITHASH}")
@@ -30,7 +37,7 @@ set(TS_FILES
 
 set(PROJECT_SOURCES
         src/main.cpp
-        src/constants.h
+        src/appcommon.h
         src/appmainwindow.cpp
         src/appmainwindow.h
         src/appmainwindow.ui
@@ -39,6 +46,9 @@ set(PROJECT_SOURCES
         src/appcali.h
         src/appcali.cpp
         src/appcali.ui
+        src/apppreviewer.h
+        src/apppreviewer.cpp
+        src/apppreviewer.ui
         src/appdebug.h
         src/appdebug.cpp
         src/appdebug.ui

@@ -1,5 +1,7 @@
 /*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
-    Copyright (C) 2024  Team OpenFIRE
+    Main interface.
+
+    Copyright (C) 2025  Team OpenFIRE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,17 +20,15 @@
 #ifndef APPMAINWINDOW_H
 #define APPMAINWINDOW_H
 
-// Maximum amount of GPIO that the RP2040 microcontroller has available
-#define PINS_COUNT 30
-
 // Interval of the aliveTimer object that probes the board to ensure it's connected
 #define ALIVE_TIMER 5000
 
-#include "constants.h"
+#include "appcommon.h"
 #include "appcali.h"
 #include "appdebug.h"
 #include "appserial.h"
-#include "../boards/OpenFIREshared.h"
+#include "apppreviewer.h"
+
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QFuture>
@@ -139,6 +139,10 @@ private slots:
 
     void on_customLEDstaticBtn3_clicked();
 
+    void on_i2cOLEDtoggle_stateChanged(int arg1);
+
+    void on_oledAltAddrsToggle_stateChanged(int arg1);
+
     void on_tinyUSBLayoutToggle_stateChanged(int arg1);
 
     void on_tUSB_p1_toggled(bool checked);
@@ -165,6 +169,8 @@ private slots:
 
     void serialPort_progressUpdate(const int &, const char* = nullptr);
 
+    void on_actionCompatible_Boards_triggered();
+
     void on_actionOpenFIRE_Documentation_triggered();
 
     void on_actionOpenFIRE_Serial_Usage_triggered();
@@ -190,9 +196,16 @@ private:
     /// @details    Only one of these should be up at a time
     AppCaliWindow *caliWindow = nullptr;
 
-    /// @brief      Debug window pointer
-    /// @details    Only one of these should be up at a time
+    /// @brief      Boards previewer window
+    AppBoardsPreviewer boardsWindow;
+
+    /// @brief      Serial debug window
     AppDebugWindow debugWindow;
+
+    /// @brief      Macro for making new CaliWindows
+    /// @param      int
+    ///             CaliWindow type (should be one of AppCaliWindow::AppCaliStates_e
+    void NewCaliWindow(const int &);
 
     /// @brief      Mass update all pinboxes with certain sets of values
     /// @details    Used when toggling custom pins, initial load, and setting presets
@@ -231,14 +244,12 @@ private:
     QFuture<bool> serialSearchFuture;
     QFutureWatcher<bool> serialSearchWatcher;
 
+    // Flag that's set during I/O operations so that the readyRead signal doesn't interfere and absorb RX buffer mid-method.
     bool serialActive = false;
 
     /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
     uint8_t tempWarning = 35;
     uint8_t tempShutoff = 42;
-
-    /// @brief      Indicator if the test window is activated (to block potentially sending noise)
-    bool testMode = false;
 
     /// @brief      Timer that probes the board if it's still plugged in
     /// @details    Timer interval is provided in ms by ALIVE_TIMER
@@ -266,7 +277,11 @@ private:
     QVector<QWidget*> padding;
 
     /// @brief      Test "Buttons" in the test screen representing each button
-    QLabel *testLabel[16];
+    QVector<QLabel*> testLabel;
+
+    /// @brief      Analog stick graphic view
+    QGraphicsScene analogGfxScene;
+    QGraphicsEllipseItem* analogPos;
 
     /// @brief      Objects that makes up the elements of the profiles tab
     QVector<QRadioButton*> selectedProfile;

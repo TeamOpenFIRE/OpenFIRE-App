@@ -17,7 +17,7 @@
    <iconset resource="../img/vectors.qrc">
     <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -44,9 +44,6 @@
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
      </property>
-     <property name="documentTitle">
-      <string notr="true"/>
-     </property>
      <property name="undoRedoEnabled">
       <bool>false</bool>
      </property>
@@ -57,7 +54,32 @@
       <string notr="true"/>
      </property>
      <property name="textInteractionFlags">
-      <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+      <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+     </property>
+     <property name="placeholderText">
+      <string notr="true"/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="hex">
+     <property name="font">
+      <font>
+       <family>Monospace</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="undoRedoEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="plainText">
+      <string notr="true"/>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextInteractionFlag::NoTextInteraction</set>
      </property>
      <property name="placeholderText">
       <string notr="true"/>

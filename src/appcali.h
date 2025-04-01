@@ -1,3 +1,22 @@
+/*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
+    Fullscreen Windows interface for Calibration et al.
+
+    Copyright (C) 2025  Team OpenFIRE
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifndef APPCALI_H
 #define APPCALI_H
 
@@ -69,14 +88,21 @@ public:
     ~AppCaliWindow();
 
     /// @brief      Update calibration window with new status
-    /// @details    Stuff
+    /// @param      int
+    ///             One of CaliSteps_e
     void CaliModeSet(const int &);
 
     /// @brief      Update calibration window's profile text with new data
-    void CaliModeTextUpdate(const QString &);
+    /// @param      uint8_t
+    ///             Type of text to update
+    /// @param      Char string
+    ///             Buffer data
+    void CaliModeTextUpdate(const uint8_t &, const char*);
 
     /// @brief      Update test mode window with list of new coords
-    void TestModeDraw(const QStringList &);
+    /// @param      Array of ints
+    ///             Coordinates of the twelve test points used to draw
+    void TestModeDraw(const int[12]);
 
     int GetWindowMode() { return mode; }
 

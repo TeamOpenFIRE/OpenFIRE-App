@@ -1,7 +1,27 @@
+/*  OpenFIRE App: a configuration utility for the OpenFIRE light gun system.
+    Serial input/output routines.
+
+    Copyright (C) 2025  Team OpenFIRE
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifndef APPSERIAL_H
 #define APPSERIAL_H
 
 #include <QObject>
+#include <QMessageBox>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
@@ -46,7 +66,8 @@ public:
     /// @returns    Success (true) or failure (false)
     /// @param      QString
     ///             String to send to device
-    bool OneShotSend(const QByteArray &);
+    bool OneShotSend(const char*, const unsigned int & = 0, const bool & = false);
+    bool OneShotSend(const char &, const bool & = false);
 
     /// @brief      Commits settings (App_Const) to currently connected Serial device
     /// @returns    Success (true) or failure (false)
@@ -54,6 +75,25 @@ public:
 
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();
+
+    /// @brief      Prompts user to reboot to bootloader
+    void RequestToReboot();
+
+    /// @brief      Sends magic baud 1200 signal to reset connected board to bootloader
+    void RebootToBootldr();
+
+    /// @brief      Show error message popup regarding serial
+    void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
+        if(!syncError.isVisible()) {
+            syncError.setWindowTitle(titleText);
+            syncError.setText(text);
+            syncError.setIcon(icon);
+            syncError.show();
+        }
+    }
+
+private:
+    QMessageBox syncError;
 
 signals:
     /// @brief
