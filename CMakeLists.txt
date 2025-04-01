@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(VERSION 3.5)
 
-project(OpenFIREapp VERSION 0.9 LANGUAGES CXX)
+project(OpenFIREapp VERSION 2.99.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -15,9 +16,12 @@ endif()
 
 add_compile_definitions(OF_APP)
 
-if(OFAPP_VERSION)
-    add_compile_definitions(OFAPP_VERSION="${OFAPP_VERSION}")
+add_compile_definitions(OFAPP_VERSION="${PROJECT_VERSION}")
+
+if(NOT OFAPP_CODENAME)
+    set(OFAPP_CODENAME "Tokinomiya")
 endif()
+add_compile_definitions(OFAPP_CODENAME="${OFAPP_CODENAME}")
 
 if(OFAPP_GITHASH)
     add_compile_definitions(OFAPP_GITHASH="${OFAPP_GITHASH}")

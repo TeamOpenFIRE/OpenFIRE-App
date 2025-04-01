@@ -75,10 +75,10 @@ guiWindow::guiWindow(QWidget *parent)
     aliveTimer.start(ALIVE_TIMER);
     aliveTimer_timeout();
 
-#if defined(OFAPP_VERSION) & defined(OFAPP_CODENAME)
-    this->setWindowTitle("OpenFIRE App - " + OFAPP_CODENAME + " [v" + OFAPP_VERSION + ']');
+#if defined(OFAPP_GITHASH)
+    this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + '-' + QString(OFAPP_GITHASH) + ']');
 #else
-    this->setWindowTitle("OpenFIRE App - Tokinomiya [v3.0-dev]");
+    this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + ']');
 #endif // OFAPP_VERSION
 
     // get all fixed interactable elements marked to use event filter for hover stuff:
