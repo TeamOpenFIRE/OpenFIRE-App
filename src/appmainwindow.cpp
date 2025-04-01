@@ -79,7 +79,7 @@ guiWindow::guiWindow(QWidget *parent)
     this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + '-' + QString(OFAPP_GITHASH) + ']');
 #else
     this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + ']');
-#endif // OFAPP_VERSION
+#endif // OFAPP_GITHASH
 
     // get all fixed interactable elements marked to use event filter for hover stuff:
     for(const auto child : this->findChildren<QPushButton*>())
