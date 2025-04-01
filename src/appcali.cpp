@@ -60,6 +60,16 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         //crosshairItem->setTransformOriginPoint(crosshairItem->boundingRect().center());
 
         // add items to scene
+        // alignment lines, used during all but the initial Cali stage.
+        alignmentLines[0] = new QGraphicsPolygonItem(QPolygonF() << QPointF(scene.sceneRect().center().x(), scene.sceneRect().top()-10)
+                                                                 << QPointF(scene.sceneRect().center().x(), scene.sceneRect().bottom()+10)
+                                                                 << QPointF(scene.sceneRect().left()-10,    scene.sceneRect().bottom()+10)
+                                                                 << QPointF(scene.sceneRect().left()-10,    scene.sceneRect().center().y())
+                                                                 << QPointF(scene.sceneRect().right()+10,   scene.sceneRect().center().y())
+                                                                 << QPointF(scene.sceneRect().right()+10,  scene.sceneRect().top()-10));
+        alignmentLines[0]->setPen(QPen(QColor("white"), 2));
+        scene.addItem(alignmentLines[0]);
+
         if(bitmapText) {
             caliStageBitmap = new QGraphicsPixmapItem();
             caliStageBitmap->setScale(GetTextScale(TextHeading));
@@ -421,6 +431,8 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         ui->graphicsView->setMouseTracking(false);
         mouseCanBeTracked = false;
 
+        alignmentLines[0]->setVisible(false);
+
         crosshairItem->setVisible(true);
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().center().y() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
@@ -463,6 +475,8 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
 
         break;
     case Cali_Top:
+        alignmentLines[0]->setVisible(true);
+
         crosshairItem->setPos(scene.sceneRect().center().x() - (crosshairItem->boundingRect().center().x()*crosshairItem->scale()),
                               scene.sceneRect().top() - (crosshairItem->boundingRect().center().y()*crosshairItem->scale()));
 
