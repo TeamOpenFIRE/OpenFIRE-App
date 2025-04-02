@@ -84,7 +84,7 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); i++) {
+            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(board.first).size(); i++) {
                 pinDefaultFunc << new QLabel();
                 pinDefaultFunc.at(i)->setFont(boldFont);
                 pinDefaultFunc.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
