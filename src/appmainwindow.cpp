@@ -813,6 +813,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidFastInterval]);
             ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::autofireWaitFactor]);
+            ui->invertStaticPixelsBox->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::invertStaticPixels]);
+
             ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs[App_Common::dataOrig][OF_Const::i2cOLED]);
             ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[App_Common::dataOrig][OF_Const::oledAltAddr]);
             ui->oledGroup->setEnabled(App_Common::inputsMap_orig.value(OF_Const::periphSCL) > -1 && App_Common::inputsMap_orig.value(OF_Const::periphSDA) > -1);
@@ -1560,6 +1562,17 @@ void guiWindow::on_customLEDstaticBtn3_clicked()
 
         DiffUpdate();
     }
+}
+
+
+void guiWindow::on_invertStaticPixelsBox_stateChanged(int arg1)
+{
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::invertStaticPixels] = arg1;
+
+    if(arg1) ui->customLEDstaticSpinbox->setPrefix("Last ");
+    else     ui->customLEDstaticSpinbox->setPrefix("First ");
+
+    DiffUpdate();
 }
 
 
