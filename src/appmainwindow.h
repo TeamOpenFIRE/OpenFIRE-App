@@ -139,6 +139,8 @@ private slots:
 
     void on_customLEDstaticBtn3_clicked();
 
+    void on_invertStaticPixelsBox_stateChanged(int arg1);
+
     void on_i2cOLEDtoggle_stateChanged(int arg1);
 
     void on_oledAltAddrsToggle_stateChanged(int arg1);

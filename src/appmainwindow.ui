@@ -281,7 +281,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-305</y>
              <width>924</width>
              <height>1153</height>
             </rect>
@@ -715,6 +715,16 @@
                   <string>NeoPixels</string>
                  </property>
                  <layout class="QGridLayout" name="gridLayout_9">
+                  <item row="0" column="1" colspan="2">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>NeoPixel Strand Length: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="1" column="3">
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
@@ -784,67 +794,6 @@
                     </item>
                    </layout>
                   </item>
-                  <item row="1" column="2">
-                   <widget class="QSpinBox" name="customLEDstaticSpinbox">
-                    <property name="toolTip">
-                     <string/>
-                    </property>
-                    <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs in the NeoPixel chain are statically colored. &lt;/p&gt;&lt;p&gt;These first (x) Pixels &lt;span style=&quot; font-weight:700;&quot;&gt;won't be affected&lt;/span&gt; by menu elements or Serial LED events. Which colors for which Pixels can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Static Color&lt;/span&gt; boxes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="accessibleName">
-                     <string>Amount of NeoPixels using Static Colors</string>
-                    </property>
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string>First </string>
-                    </property>
-                    <property name="maximum">
-                     <number>3</number>
-                    </property>
-                    <property name="trackable" stdset="0">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="1">
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Static NeoPixels: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0" rowspan="2">
-                   <spacer name="horizontalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="0" column="4" rowspan="2">
-                   <spacer name="horizontalSpacer_4">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
                   <item row="0" column="3">
                    <widget class="QSpinBox" name="neopixelStrandLengthBox">
                     <property name="toolTip">
@@ -879,17 +828,32 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="1" colspan="2">
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>NeoPixel Strand Length: </string>
+                  <item row="1" column="2">
+                   <widget class="QSpinBox" name="customLEDstaticSpinbox">
+                    <property name="toolTip">
+                     <string/>
                     </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs in the NeoPixel chain are statically colored. &lt;/p&gt;&lt;p&gt;These first (x) Pixels &lt;span style=&quot; font-weight:700;&quot;&gt;won't be affected&lt;/span&gt; by menu elements or Serial LED events. Which colors for which Pixels can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Static Color&lt;/span&gt; boxes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>Amount of NeoPixels using Static Colors</string>
+                    </property>
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>First </string>
+                    </property>
+                    <property name="maximum">
+                     <number>3</number>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
                     </property>
                    </widget>
                   </item>
-                  <item row="2" column="0" colspan="5">
+                  <item row="2" column="0" colspan="6">
                    <widget class="QLabel" name="pixelChangeNotice">
                     <property name="enabled">
                      <bool>false</bool>
@@ -904,6 +868,58 @@
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0" rowspan="2">
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Static NeoPixels: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="5" rowspan="2">
+                   <spacer name="horizontalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="1" column="4">
+                   <widget class="QCheckBox" name="invertStaticPixelsBox">
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabling this setting will have statically illuminated pixels set to the &lt;span style=&quot; font-style:italic;&quot;&gt;last&lt;/span&gt; X Pixel(s), rather than the default &lt;span style=&quot; font-style:italic;&quot;&gt;first&lt;/span&gt; X Pixel(s).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>Set Static Pixels to First/Last Pixels Toggle</string>
+                    </property>
+                    <property name="text">
+                     <string>Invert Static Colors</string>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
                     </property>
                    </widget>
                   </item>
