@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(VERSION 3.5)
 
-project(OpenFIREapp VERSION 2.99.0 LANGUAGES CXX)
+project(OpenFIREapp VERSION 3.0.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -22,7 +22,20 @@ add_compile_definitions(OFAPP_VERSION="${PROJECT_VERSION}")
 if(NOT OFAPP_CODENAME)
     set(OFAPP_CODENAME "Tokinomiya")
 endif()
-add_compile_definitions(OFAPP_CODENAME="${OFAPP_CODENAME}")
+set(MINORVER_TIERLIST_NAMES
+  "" ": Alpha" ": Beta" ": Gamma" ": Omega" ": Sigma"
+)
+math(EXPR MINORVER_TIERLIST_INDEX ${PROJECT_VERSION_MINOR})
+list(GET MINORVER_TIERLIST_NAMES ${MINORVER_TIERLIST_INDEX} PROJECT_MINORVER_WORD)
+
+set(PATCHVER_TIERLIST_NAMES
+  "" " Full!" "': Special Champion Edition" " Turbo: Hyper Fighting" " EX Plus Alpha"
+  " LOVE MAX!!!!!" " LOVEMAX SIXSTARS!!!!!!" " LOVEMAX SIXSTARS !!!!!! XTEND"
+)
+math(EXPR PATCHVER_TIERLIST_INDEX ${PROJECT_VERSION_PATCH})
+list(GET PATCHVER_TIERLIST_NAMES ${PATCHVER_TIERLIST_INDEX} PROJECT_PATCH_NAME)
+
+add_compile_definitions(OFAPP_CODENAME="${OFAPP_CODENAME}${PROJECT_MINORVER_WORD}${PROJECT_PATCH_NAME}")
 
 if(OFAPP_GITHASH)
     add_compile_definitions(OFAPP_GITHASH="${OFAPP_GITHASH}")
