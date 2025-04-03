@@ -100,7 +100,7 @@ bool AppSerial::GetSettings(const QString &portName)
                     App_Common::board.boardType = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.boardType.constData());
 
-                    App_Common::board.selectedProfile = buffer.takeFirst().toInt();
+                    App_Common::board.selectedProfile = (uint8_t)buffer.takeFirst().at(0);
                     App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
                     memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(0).constData(), 2);
