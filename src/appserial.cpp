@@ -123,11 +123,13 @@ bool AppSerial::GetSettings(const QString &portName)
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {
                         // booleans
                         memset(App_Common::boolSettings, false, sizeof(App_Common::boolSettings));
-                        for(uint8_t i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; i++) {
+                        for(int i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; ++i) {
                             if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
                                 port.read((char*)&App_Common::boolSettings[App_Common::dataCurrent][i], sizeof(bool));
-                            else if(port.bytesAvailable()) port.read(1);
-                            else if(!port.waitForReadyRead(2000)) break;
+                            else if(port.bytesAvailable()) {
+                                if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+                                else port.read(1);
+                            } else if(!port.waitForReadyRead(500)) break;
                         }
                         memcpy(App_Common::boolSettings[App_Common::dataOrig],
                                App_Common::boolSettings[App_Common::dataCurrent],
@@ -141,11 +143,13 @@ bool AppSerial::GetSettings(const QString &portName)
                             if(OneShotSend((char)OF_Const::sGetPins, true)) {
                                 App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
-                                for(uint8_t i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; i++) {
+                                for(int i = 0;; ++i) {
                                     if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
                                         port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
-                                    else if(port.bytesAvailable()) port.read(1);
-                                    else if(!port.waitForReadyRead(2000)) break;
+                                    else if(port.bytesAvailable()) {
+                                        if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+                                        else port.read(1);
+                                    } else if(!port.waitForReadyRead(500)) break;
                                 }
                             } else {
                                 printf("Didn't receive any data in time!\n");
@@ -162,10 +166,11 @@ bool AppSerial::GetSettings(const QString &portName)
                         port.clear();
                         if(OneShotSend((char)OF_Const::sGetSettings, true)) {
                             memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
-                            while(port.peek(1).at(0) != (char)OF_Const::serialTerminator) {
-                                if(!port.bytesAvailable()) { if(!port.waitForReadyRead(2000)) break; }
+                            while(true) {
+                                if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+                                else if(port.bytesAvailable() < 5) { if(!port.waitForReadyRead(500)) break; }
                                 else {
-                                    uint8_t i = port.read(1).at(0);
+                                    int i = port.read(1).at(0);
                                     if(i < OF_Const::settingsTypesCount)
                                         port.read((char*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
                                 }
@@ -180,8 +185,9 @@ bool AppSerial::GetSettings(const QString &portName)
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetPeriphs, true)) {
                                 memset(App_Common::i2cPeriphs, 0, sizeof(App_Common::i2cPeriphs));
-                                while(port.peek(1).at(0) != (char)OF_Const::serialTerminator) {
-                                    if(!port.bytesAvailable()) { if(!port.waitForReadyRead(2000)) break; }
+                                while(true) {
+                                    if(!port.bytesAvailable()) { if(!port.waitForReadyRead(500)) break; }
+                                    else if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
                                     else {
                                         switch(port.read(1).at(0)) {
                                         case (char)OF_Const::i2cDevicesEnabled:
@@ -197,13 +203,15 @@ bool AppSerial::GetSettings(const QString &portName)
                                             break;
                                         }
                                         case (char)OF_Const::i2cOLED:
-                                            while(port.peek(1).at(0) != (char)OF_Const::serialTerminator) {
-                                                if(port.bytesAvailable()) {
+                                            while(true) {
+                                                if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+                                                else if(port.bytesAvailable() < 5) { if(!port.waitForReadyRead(500)) break; }
+                                                else {
                                                     int type = port.read(1).at(0);
                                                     if(type < OF_Const::oledSettingsTypes)
                                                         port.read((char*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
                                                     else port.read(sizeof(uint32_t));
-                                                } else if(!port.waitForReadyRead(2000)) break;
+                                                }
                                             }
                                             break;
                                         default: break;
@@ -222,7 +230,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                 // profiles
                                 App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
 
-                                for(uint8_t i = 0;; i++) {
+                                for(int i = 0;; ++i) {
                                     port.clear();
                                     if(char buf[] = {(char)OF_Const::sGetProfile, (char)i}; OneShotSend(buf, 2, true)) {
                                         if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
