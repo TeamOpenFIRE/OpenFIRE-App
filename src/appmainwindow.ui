@@ -283,7 +283,7 @@
              <x>0</x>
              <y>0</y>
              <width>924</width>
-             <height>1245</height>
+             <height>1210</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,1,0">
@@ -680,7 +680,22 @@
                        <property name="title">
                         <string/>
                        </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
                        <layout class="QGridLayout" name="gridLayout_12">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item row="0" column="0">
                          <widget class="QLabel" name="label_14">
                           <property name="text">
