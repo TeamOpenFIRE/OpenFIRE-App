@@ -281,9 +281,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-305</y>
+             <y>0</y>
              <width>924</width>
-             <height>1153</height>
+             <height>1210</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,1,0">
@@ -527,10 +527,10 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="2">
-                      <widget class="QLabel" name="label_9">
+                     <item row="1" column="2">
+                      <widget class="QLabel" name="label_10">
                        <property name="text">
-                        <string>Solenoid Hold-to-Autofire Length:</string>
+                        <string>Autofire Wait Factor:</string>
                        </property>
                        <property name="textFormat">
                         <enum>Qt::TextFormat::PlainText</enum>
@@ -556,31 +556,6 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
-                      <widget class="QSpinBox" name="solenoidNormalIntervalBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time the solenoid is engaged when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Normal Solenoid Engagement Length</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="suffix">
-                        <string> ms</string>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_8">
                        <property name="text">
@@ -597,38 +572,10 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="3">
-                      <widget class="QSpinBox" name="solenoidHoldLengthBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled and &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is disabled, this setting determines the time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Solenoid Trigger Hold to Autofire Length</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="suffix">
-                        <string> ms</string>
-                       </property>
-                       <property name="maximum">
-                        <number>9999</number>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QLabel" name="label_10">
+                     <item row="0" column="2">
+                      <widget class="QLabel" name="label_9">
                        <property name="text">
-                        <string>Autofire Wait Factor:</string>
+                        <string>Solenoid Hold-to-Autofire Length:</string>
                        </property>
                        <property name="textFormat">
                         <enum>Qt::TextFormat::PlainText</enum>
@@ -673,6 +620,144 @@
                        <property name="trackable" stdset="0">
                         <number>1</number>
                        </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="3">
+                      <widget class="QSpinBox" name="solenoidHoldLengthBox">
+                       <property name="toolTip">
+                        <string/>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled and &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is disabled, this setting determines the time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="accessibleName">
+                        <string>Solenoid Trigger Hold to Autofire Length</string>
+                       </property>
+                       <property name="buttonSymbols">
+                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                       </property>
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                       </property>
+                       <property name="suffix">
+                        <string> ms</string>
+                       </property>
+                       <property name="maximum">
+                        <number>9999</number>
+                       </property>
+                       <property name="trackable" stdset="0">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QSpinBox" name="solenoidNormalIntervalBox">
+                       <property name="toolTip">
+                        <string/>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time the solenoid is engaged when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="accessibleName">
+                        <string>Normal Solenoid Engagement Length</string>
+                       </property>
+                       <property name="buttonSymbols">
+                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                       </property>
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                       </property>
+                       <property name="suffix">
+                        <string> ms</string>
+                       </property>
+                       <property name="trackable" stdset="0">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0" colspan="4">
+                      <widget class="QGroupBox" name="solenoidTempBox">
+                       <property name="title">
+                        <string/>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                       <layout class="QGridLayout" name="gridLayout_12">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item row="0" column="0">
+                         <widget class="QLabel" name="label_14">
+                          <property name="text">
+                           <string>Temperature Warning Threshold:</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="2">
+                         <widget class="QLabel" name="label_16">
+                          <property name="text">
+                           <string>Temperature Shutoff Threshold:</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="1">
+                         <widget class="QSpinBox" name="tempWarningBox">
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This determines the point at which solenoid activations will force longer OFF periods between sustained fire/autofire shots, in &lt;span style=&quot; font-style:italic;&quot;&gt;degrees Celsius.&lt;/span&gt; Generally speaking, the higher this is set, the longer the solenoid will maintain full sustained fire speeds.&lt;/p&gt;&lt;p&gt;Once this point is hit, the solenoid firing rate is reduced until the temperature monitor reads at least five (5)°C &lt;span style=&quot; font-weight:700;&quot;&gt;below&lt;/span&gt; this threshold. The &amp;quot;reduced&amp;quot; firing rate is automatically calculated as &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Solenoid ON Fast Length * 4&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Warning: Setting this value too high may reduce the lifespan of the connected solenoid!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="accessibleName">
+                           <string>Temperature Warning Threshold</string>
+                          </property>
+                          <property name="suffix">
+                           <string>°C</string>
+                          </property>
+                          <property name="minimum">
+                           <number>20</number>
+                          </property>
+                          <property name="trackable" stdset="0">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="3">
+                         <widget class="QSpinBox" name="tempShutoffBox">
+                          <property name="whatsThis">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines the point at which the solenoid will stop activating, in &lt;span style=&quot; font-style:italic;&quot;&gt;degrees Celsius.&lt;/span&gt; Generally speaking, the higher the temperature threshold, the longer the solenoid will activate at reduced sustained fire speeds.&lt;/p&gt;&lt;p&gt;Once this point is triggered, solenoid activations will not be allowed for either single or sustained shots until the temperature monitor reads at least five (5)°C &lt;span style=&quot; font-weight:700;&quot;&gt;below&lt;/span&gt; this threshold.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Warning: Setting this value too high WILL reduce the lifespan of the connected solenoid!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="accessibleName">
+                           <string>Temperature Shutoff Threshold</string>
+                          </property>
+                          <property name="suffix">
+                           <string>°C</string>
+                          </property>
+                          <property name="minimum">
+                           <number>25</number>
+                          </property>
+                          <property name="maximum">
+                           <number>60</number>
+                          </property>
+                          <property name="trackable" stdset="0">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
                       </widget>
                      </item>
                     </layout>
@@ -2055,6 +2140,13 @@
     <addaction name="separator"/>
     <addaction name="actionDebug_Window"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionShow_Unsafe_Settings"/>
+   </widget>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
    <addaction name="menuAbout"/>
   </widget>
@@ -2126,6 +2218,14 @@
   <action name="actionCompatible_Boards">
    <property name="text">
     <string>View Compatible Boards</string>
+   </property>
+  </action>
+  <action name="actionShow_Unsafe_Settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Unsafe Settings</string>
    </property>
   </action>
  </widget>

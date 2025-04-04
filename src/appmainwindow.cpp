@@ -134,7 +134,8 @@ guiWindow::guiWindow(QWidget *parent)
     ui->tUSBLayoutAdvanced->setVisible(false);
 
     // set hidden by default until a board with presets is loaded
-    ui->presetsBox->setHidden(true);
+    ui->presetsBox->setVisible(true);
+    ui->solenoidTempBox->setVisible(false);
 
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
 
@@ -777,7 +778,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             boardPic.load(origBoardPicFile);
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
 
-            int prevPadCount;
+            int prevPadCount = 0;
             for(int i = 1, padCount = 0; i < ui->PinsLeft->rowCount(); i++) {
                 if(ui->PinsLeft->itemAtPosition(i, 0) == nullptr) {
                     ui->PinsLeft->addWidget(padding.at(padCount), i, 0);
@@ -814,6 +815,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidHoldLength]);
             ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::autofireWaitFactor]);
             ui->invertStaticPixelsBox->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::invertStaticPixels]);
+            ui->tempWarningBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempWarning]);
+            ui->tempShutoffBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown]);
 
             ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs[App_Common::dataOrig][OF_Const::i2cOLED]);
             ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[App_Common::dataOrig][OF_Const::oledAltAddr]);
@@ -1026,6 +1029,8 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
         ui->rumbleFFToggle->setChecked(false);
         ui->rumbleFFBox->setEnabled(false);
     }
+
+    ui->solenoidTempBox->setEnabled(App_Common::inputsMap.value(OF_Const::tempPin) > -1 ? true : false);
 
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
          ui->solenoidFFBox->setEnabled(true);
@@ -1260,6 +1265,20 @@ void guiWindow::on_rumbleFFToggle_stateChanged(int arg1)
         ui->autofireToggle->setEnabled(true);
     }
 
+    DiffUpdate();
+}
+
+
+void guiWindow::on_tempWarningBox_valueChanged(int arg1)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::tempWarning] = arg1;
+    DiffUpdate();
+}
+
+
+void guiWindow::on_tempShutoffBox_valueChanged(int arg1)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::tempShutdown] = arg1;
     DiffUpdate();
 }
 
@@ -1632,9 +1651,12 @@ void guiWindow::serialPort_readyRead()
 
                 ui->tmp36Label->setText(QString("Temperature: %1°C").arg(temp));
 
-                if(temp > tempShutoff) {        ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
-                else if(temp > tempWarning) {   ui->tmp36Label->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
-                else {                          ui->tmp36Label->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
+                if(     temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown])
+                    ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold");
+                else if(temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempWarning])
+                    ui->tmp36Label->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold");
+                else
+                    ui->tmp36Label->setStyleSheet("color: black;      background-color: #11D00A; font: bold");
 
                 break;
             }
@@ -2004,6 +2026,13 @@ void guiWindow::on_tabWidget_currentChanged(int index)
 }
 
 
+void guiWindow::on_actionShow_Unsafe_Settings_toggled(bool arg1)
+{
+    if(arg1) ui->solenoidTempBox->setVisible(true);
+    else     ui->solenoidTempBox->setVisible(false);
+}
+
+
 void guiWindow::on_actionCompatible_Boards_triggered()
 {
     boardsWindow.show();
@@ -2015,6 +2044,7 @@ void guiWindow::on_actionAbout_UI_triggered()
     AppAbout *about = new AppAbout();
     about->show();
 }
+
 
 void guiWindow::on_actionOpenFIRE_Documentation_triggered()
 {

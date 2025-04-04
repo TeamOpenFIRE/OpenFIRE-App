@@ -101,6 +101,10 @@ private slots:
 
     void on_rumbleFFToggle_stateChanged(int arg1);
 
+    void on_tempWarningBox_valueChanged(int arg1);
+
+    void on_tempShutoffBox_valueChanged(int arg1);
+
     void on_rumbleIntensityBox_valueChanged(int arg1);
 
     void on_rumbleLengthBox_valueChanged(int arg1);
@@ -170,6 +174,8 @@ private slots:
     void serialPort_progressSet(const int &);
 
     void serialPort_progressUpdate(const int &, const char* = nullptr);
+
+    void on_actionShow_Unsafe_Settings_toggled(bool arg1);
 
     void on_actionCompatible_Boards_triggered();
 
@@ -248,10 +254,6 @@ private:
 
     // Flag that's set during I/O operations so that the readyRead signal doesn't interfere and absorb RX buffer mid-method.
     bool serialActive = false;
-
-    /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
-    uint8_t tempWarning = 35;
-    uint8_t tempShutoff = 42;
 
     /// @brief      Timer that probes the board if it's still plugged in
     /// @details    Timer interval is provided in ms by ALIVE_TIMER
