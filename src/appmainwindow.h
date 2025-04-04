@@ -249,10 +249,6 @@ private:
     // Flag that's set during I/O operations so that the readyRead signal doesn't interfere and absorb RX buffer mid-method.
     bool serialActive = false;
 
-    /// @brief      Temperature thresholds (which should be a customizable setting in the settingsTable)
-    uint8_t tempWarning = 35;
-    uint8_t tempShutoff = 42;
-
     /// @brief      Timer that probes the board if it's still plugged in
     /// @details    Timer interval is provided in ms by ALIVE_TIMER
     QTimer aliveTimer;

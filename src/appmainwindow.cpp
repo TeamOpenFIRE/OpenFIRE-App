@@ -1632,9 +1632,12 @@ void guiWindow::serialPort_readyRead()
 
                 ui->tmp36Label->setText(QString("Temperature: %1°C").arg(temp));
 
-                if(temp > tempShutoff) {        ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold"); }
-                else if(temp > tempWarning) {   ui->tmp36Label->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold"); }
-                else {                          ui->tmp36Label->setStyleSheet("color: black;      background-color: #11D00A; font: bold"); }
+                if(     temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown])
+                    ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold");
+                else if(temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempWarning])
+                    ui->tmp36Label->setStyleSheet("color: light-gray; background-color: #EABD2B; font: bold");
+                else
+                    ui->tmp36Label->setStyleSheet("color: black;      background-color: #11D00A; font: bold");
 
                 break;
             }
