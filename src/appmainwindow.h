@@ -101,6 +101,10 @@ private slots:
 
     void on_rumbleFFToggle_stateChanged(int arg1);
 
+    void on_tempWarningBox_valueChanged(int arg1);
+
+    void on_tempShutoffBox_valueChanged(int arg1);
+
     void on_rumbleIntensityBox_valueChanged(int arg1);
 
     void on_rumbleLengthBox_valueChanged(int arg1);
@@ -170,6 +174,8 @@ private slots:
     void serialPort_progressSet(const int &);
 
     void serialPort_progressUpdate(const int &, const char* = nullptr);
+
+    void on_actionShow_Unsafe_Settings_toggled(bool arg1);
 
     void on_actionCompatible_Boards_triggered();
 
