@@ -450,7 +450,7 @@ bool AppSerial::CommitSettings()
 
             emit Serial_ProgressUpdate(7, "Saving...");
             if(OneShotSend((char)OF_Const::sSave, true)) {
-                if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf))) {
+                if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
                     emit Serial_ProgressUpdate(8);
                     return true;
                 } else return false;

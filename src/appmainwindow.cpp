@@ -872,6 +872,15 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
     } else {
         ui->boardLabel->clear();
         ui->versionLabel->clear();
+
+        // just in case
+        ui->buttonsTestArea->setEnabled(true);
+        ui->pinsTab->setEnabled(true);
+        ui->settingsTab->setEnabled(true);
+        ui->profilesTab->setEnabled(true);
+        ui->feedbackTestsBox->setEnabled(true);
+        ui->dangerZoneBox->setEnabled(true);
+
         ui->tabWidget->setEnabled(false);
 
         if(serial.port.isOpen())
@@ -1679,7 +1688,7 @@ void guiWindow::serialPort_readyRead()
             {
                 uint8_t selection = serial.port.read(1).at(0);
 
-                if(selection != App_Common::board.selectedProfile) {
+                if(selection != App_Common::board.selectedProfile && selection < App_Common::profilesTable.size()) {
                     App_Common::board.selectedProfile = selection;
                     selectedProfile[selection]->setChecked(true);
                 }
