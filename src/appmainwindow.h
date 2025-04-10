@@ -111,13 +111,11 @@ private slots:
 
     void on_holdToPauseLengthBox_valueChanged(int arg1);
 
-    void on_solenoidNormalIntervalBox_valueChanged(int arg1);
+    void on_solenoidOnLengthBox_valueChanged(int arg1);
 
-    void on_solenoidFastIntervalBox_valueChanged(int arg1);
+    void on_solenoidOffLengthBox_valueChanged(int arg1);
 
     void on_solenoidHoldLengthBox_valueChanged(int arg1);
-
-    void on_autofireWaitFactorBox_valueChanged(int arg1);
 
     void on_productIdInput_valueChanged(int arg1);
 
