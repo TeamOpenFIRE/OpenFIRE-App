@@ -398,10 +398,10 @@ void guiWindow::on_confirmButton_clicked()
 
         ui->tabWidget->setEnabled(false);
         ui->comPortSelector->setEnabled(false);
-        ui->confirmButton->setEnabled(false);
 
         if(serial.CommitSettings()) {
             statusBar()->showMessage("Sent settings successfully!", 5000);
+            ui->confirmButton->setEnabled(false);
 
             // sync settings
             memcpy(App_Common::boolSettings[App_Common::dataOrig],
@@ -1976,11 +1976,13 @@ void guiWindow::on_clearEepromBtn_clicked()
     messageBox.setWindowTitle("Delete Confirmation");
     messageBox.setIcon(QMessageBox::Warning);
     messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    messageBox.setDefaultButton(QMessageBox::Yes);
+    messageBox.setDefaultButton(QMessageBox::No);
 
-    if(messageBox.exec() == QMessageBox::Yes)
+    if(messageBox.exec() == QMessageBox::Yes) {
+        ui->statusBar->showMessage("Board reset to initial settings.");
         serial.OneShotSend((char)OF_Const::sClearFlash);
-    else ui->statusBar->showMessage("Clear operation canceled.", 3000);
+        ui->comPortSelector->setCurrentIndex(0);
+    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
 
 
