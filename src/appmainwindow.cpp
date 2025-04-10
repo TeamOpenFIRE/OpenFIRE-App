@@ -810,10 +810,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->rumbleIntensityBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::rumbleStrength]);
             ui->rumbleLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::rumbleInterval]);
             ui->holdToPauseLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::holdToPauseLength]);
-            ui->solenoidNormalIntervalBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidNormalInterval]);
-            ui->solenoidFastIntervalBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidFastInterval]);
+            ui->solenoidOnLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidOnLength]);
+            ui->solenoidOffLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidOffLength]);
             ui->solenoidHoldLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::solenoidHoldLength]);
-            ui->autofireWaitFactorBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::autofire]), ui->autofireWaitFactorBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::autofireWaitFactor]);
             ui->invertStaticPixelsBox->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::invertStaticPixels]);
             ui->tempWarningBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempWarning]);
             ui->tempShutoffBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown]);
@@ -1223,9 +1222,6 @@ void guiWindow::on_autofireToggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::autofire] = arg1;
 
-    if(arg1) ui->autofireWaitFactorBox->setEnabled(true);
-    else     ui->autofireWaitFactorBox->setEnabled(false);
-
     DiffUpdate();
 }
 
@@ -1313,16 +1309,16 @@ void guiWindow::on_holdToPauseLengthBox_valueChanged(int arg1)
 }
 
 
-void guiWindow::on_solenoidNormalIntervalBox_valueChanged(int arg1)
+void guiWindow::on_solenoidOnLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidNormalInterval] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidOnLength] = arg1;
     DiffUpdate();
 }
 
 
-void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
+void guiWindow::on_solenoidOffLengthBox_valueChanged(int arg1)
 {
-    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidFastInterval] = arg1;
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidOffLength] = arg1;
     DiffUpdate();
 }
 
@@ -1330,13 +1326,6 @@ void guiWindow::on_solenoidFastIntervalBox_valueChanged(int arg1)
 void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 {
     App_Common::settingsTable[App_Common::dataCurrent][OF_Const::solenoidHoldLength] = arg1;
-    DiffUpdate();
-}
-
-
-void guiWindow::on_autofireWaitFactorBox_valueChanged(int arg1)
-{
-    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::autofireWaitFactor] = arg1;
     DiffUpdate();
 }
 

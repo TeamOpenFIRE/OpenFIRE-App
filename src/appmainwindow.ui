@@ -283,7 +283,7 @@
              <x>0</x>
              <y>0</y>
              <width>924</width>
-             <height>1210</height>
+             <height>1192</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,1,0">
@@ -502,179 +502,6 @@
                      <bool>true</bool>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_8">
-                     <item row="1" column="1">
-                      <widget class="QSpinBox" name="solenoidFastIntervalBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode (or after holding the trigger for &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid Hold Length),&lt;/span&gt; in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 30 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Autofire Solenoid Engagement Length</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="suffix">
-                        <string> ms</string>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QLabel" name="label_10">
-                       <property name="text">
-                        <string>Autofire Wait Factor:</string>
-                       </property>
-                       <property name="textFormat">
-                        <enum>Qt::TextFormat::PlainText</enum>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="label_7">
-                       <property name="text">
-                        <string>Solenoid ON Normal Length:</string>
-                       </property>
-                       <property name="textFormat">
-                        <enum>Qt::TextFormat::PlainText</enum>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QLabel" name="label_8">
-                       <property name="text">
-                        <string>Solenoid ON Fast Length:</string>
-                       </property>
-                       <property name="textFormat">
-                        <enum>Qt::TextFormat::PlainText</enum>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="2">
-                      <widget class="QLabel" name="label_9">
-                       <property name="text">
-                        <string>Solenoid Hold-to-Autofire Length:</string>
-                       </property>
-                       <property name="textFormat">
-                        <enum>Qt::TextFormat::PlainText</enum>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="3">
-                      <widget class="QSpinBox" name="autofireWaitFactorBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines the multiplier that's applied to the interval between solenoid activations when &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is enabled.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 3(x)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Autofire Wait Factor</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="showGroupSeparator" stdset="0">
-                        <bool>false</bool>
-                       </property>
-                       <property name="suffix">
-                        <string>x</string>
-                       </property>
-                       <property name="minimum">
-                        <number>2</number>
-                       </property>
-                       <property name="maximum">
-                        <number>4</number>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="3">
-                      <widget class="QSpinBox" name="solenoidHoldLengthBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled and &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is disabled, this setting determines the time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Solenoid Trigger Hold to Autofire Length</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="suffix">
-                        <string> ms</string>
-                       </property>
-                       <property name="maximum">
-                        <number>9999</number>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QSpinBox" name="solenoidNormalIntervalBox">
-                       <property name="toolTip">
-                        <string/>
-                       </property>
-                       <property name="whatsThis">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time the solenoid is engaged when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="accessibleName">
-                        <string>Normal Solenoid Engagement Length</string>
-                       </property>
-                       <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                       </property>
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                       </property>
-                       <property name="suffix">
-                        <string> ms</string>
-                       </property>
-                       <property name="trackable" stdset="0">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
                      <item row="2" column="0" colspan="4">
                       <widget class="QGroupBox" name="solenoidTempBox">
                        <property name="title">
@@ -760,6 +587,129 @@
                        </layout>
                       </widget>
                      </item>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_7">
+                       <property name="text">
+                        <string>Solenoid ON Length:</string>
+                       </property>
+                       <property name="textFormat">
+                        <enum>Qt::TextFormat::PlainText</enum>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QSpinBox" name="solenoidOnLengthBox">
+                       <property name="toolTip">
+                        <string/>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time the solenoid is engaged when the trigger is held, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 45 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="accessibleName">
+                        <string>Solenoid Engagement Length</string>
+                       </property>
+                       <property name="buttonSymbols">
+                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                       </property>
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                       </property>
+                       <property name="suffix">
+                        <string> ms</string>
+                       </property>
+                       <property name="trackable" stdset="0">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="3">
+                      <widget class="QSpinBox" name="solenoidOffLengthBox">
+                       <property name="toolTip">
+                        <string/>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled, this setting determines the amount of time between solenoid activations when the trigger is held in &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; mode (or after holding the trigger for &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid Hold Length),&lt;/span&gt; in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 30 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="accessibleName">
+                        <string>Solenoid Autofire Wait Length</string>
+                       </property>
+                       <property name="buttonSymbols">
+                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                       </property>
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                       </property>
+                       <property name="suffix">
+                        <string> ms</string>
+                       </property>
+                       <property name="trackable" stdset="0">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <widget class="QLabel" name="label_8">
+                       <property name="text">
+                        <string>Solenoid Autofire Wait Time:</string>
+                       </property>
+                       <property name="textFormat">
+                        <enum>Qt::TextFormat::PlainText</enum>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                       </property>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string>Solenoid Hold-to-Autofire Length:</string>
+                       </property>
+                       <property name="textFormat">
+                        <enum>Qt::TextFormat::PlainText</enum>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                       </property>
+                       <property name="wordWrap">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QSpinBox" name="solenoidHoldLengthBox">
+                       <property name="toolTip">
+                        <string/>
+                       </property>
+                       <property name="whatsThis">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &lt;span style=&quot; font-style:italic;&quot;&gt;Solenoid&lt;/span&gt; is enabled and &lt;span style=&quot; font-style:italic;&quot;&gt;Autofire&lt;/span&gt; is disabled, this setting determines the time it takes to hold the trigger after a &lt;span style=&quot; font-style:italic;&quot;&gt;single shot&lt;/span&gt; solenoid activation before transitioning to a sustained fire feedback, in milliseconds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 500 (ms)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                       <property name="accessibleName">
+                        <string>Solenoid Trigger Hold to Autofire Length</string>
+                       </property>
+                       <property name="buttonSymbols">
+                        <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                       </property>
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                       </property>
+                       <property name="suffix">
+                        <string> ms</string>
+                       </property>
+                       <property name="maximum">
+                        <number>9999</number>
+                       </property>
+                       <property name="trackable" stdset="0">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -822,7 +772,7 @@
                        </font>
                       </property>
                       <property name="whatsThis">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs in the NeoPixel chain are statically colored. &lt;/p&gt;&lt;p&gt;These first (x) Pixels &lt;span style=&quot; font-weight:700;&quot;&gt;won't be affected&lt;/span&gt; by menu elements or Serial LED events. Which colors for which Pixels can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Static Color&lt;/span&gt; boxes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to set the color for this Pixel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="accessibleName">
                        <string>First NeoPixel Static Color</string>
@@ -843,7 +793,7 @@
                        </font>
                       </property>
                       <property name="whatsThis">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs in the NeoPixel chain are statically colored. &lt;/p&gt;&lt;p&gt;These first (x) Pixels &lt;span style=&quot; font-weight:700;&quot;&gt;won't be affected&lt;/span&gt; by menu elements or Serial LED events. Which colors for which Pixels can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Static Color&lt;/span&gt; boxes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to set the color for this Pixel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="accessibleName">
                        <string>Second NeoPixel Static Color</string>
@@ -864,7 +814,7 @@
                        </font>
                       </property>
                       <property name="whatsThis">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs in the NeoPixel chain are statically colored. &lt;/p&gt;&lt;p&gt;These first (x) Pixels &lt;span style=&quot; font-weight:700;&quot;&gt;won't be affected&lt;/span&gt; by menu elements or Serial LED events. Which colors for which Pixels can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Static Color&lt;/span&gt; boxes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to set the color for this Pixel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="accessibleName">
                        <string>Third NeoPixel Static Color</string>
@@ -1111,7 +1061,7 @@
                   <string/>
                  </property>
                  <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how to trigger Pause Mode.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode can be activated by holding &lt;span style=&quot; font-style:italic;&quot;&gt;Trigger&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Button A&lt;/span&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;while no IR points are visible.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Mode can be activated by pressing the Pause Mode hotkey (Button C + Select).&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons.&lt;/span&gt; Note that regardless of setting, Pause Mode can always be accessed by pressing the Home Button (if set).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how to trigger Pause Mode.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode can be activated by holding &lt;span style=&quot; font-style:italic;&quot;&gt;Trigger&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Button A &lt;/span&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;while no IR points are visible.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Mode can be activated by pressing the Pause Mode hotkey (Button C + Select).&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons.&lt;/span&gt; Note that regardless of setting, Pause Mode can always be accessed by pressing the Home Button (if set).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="accessibleName">
                   <string>Pause Mode Hold-to-Activate Toggle</string>
@@ -1143,7 +1093,7 @@
                   <string/>
                  </property>
                  <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns with less than two sub buttons, but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="accessibleName">
                   <string>Simple Pause Menu Toggle</string>
