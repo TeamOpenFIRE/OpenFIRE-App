@@ -174,11 +174,15 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
         {
             // Copy and modify board pic array to change opacity of selected pin element, if existing.
             highlightBoardPic = origBoardPicFile;
-            highlightBoardPic.replace(QString("id=\"OF_pin%1\"\nstyle=\"opacity:0").arg(object->property("slot").toInt()),
-                                      QString("id=\"OF_pin%1\"\nstyle=\"opacity:1").arg(object->property("slot").toInt()));
-
-            boardPic.load(highlightBoardPic.toLocal8Bit());
-            boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
+            int i = highlightBoardPic.indexOf(QString("id=\"OF_pin%1\"").arg(object->property("slot").toInt()));
+            if(i > -1) {
+                i = highlightBoardPic.indexOf("opacity:0", i);
+                if(i > -1) {
+                    highlightBoardPic.replace(i+8, 1, '1');
+                    boardPic.load(highlightBoardPic.toLocal8Bit());
+                    boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
+                }
+            }
             break;
         }
         case App_Common::trackSettingsItem:
