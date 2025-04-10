@@ -173,6 +173,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     int i = port.read(1).at(0);
                                     if(i < OF_Const::settingsTypesCount)
                                         port.read((char*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
+                                    else port.read(sizeof(uint32_t));
                                 }
                             }
                             memcpy(App_Common::settingsTable[App_Common::dataOrig],
