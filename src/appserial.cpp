@@ -327,13 +327,13 @@ bool AppSerial::CommitSettings()
     if(port.isOpen()) {
         emit Serial_SetProgressRange(8);
 
-        if(OneShotSend((char)OF_Const::sCommitStart)) {
+        if(OneShotSend((char)OF_Const::sCommitStart, true)) {
             port.clear();
 
             char buf[64];
 
             emit Serial_ProgressUpdate(1, "Sending Toggles...");
-            for(uint8_t i = 0; i < OF_Const::boolTypesCount; i++) {
+            for(int i = 0; i < OF_Const::boolTypesCount; ++i) {
                 memset(buf, '\0', 3);
                 buf[0] = (char)OF_Const::sCommitToggles, buf[1] = (char)i, buf[2] = (char)App_Common::boolSettings[App_Common::dataCurrent][i];
                 if(OneShotSend(buf, 3, true)) {
@@ -346,7 +346,7 @@ bool AppSerial::CommitSettings()
 
             if(App_Common::boolSettings[OF_Const::customPins]) {
                 emit Serial_ProgressUpdate(2, "Sending Pins Map...");
-                for(uint8_t i = 0; i < OF_Const::boardInputsCount; i++) {
+                for(int i = 0; i < OF_Const::boardInputsCount; ++i) {
                     memset(buf, '\0', 3);
                     buf[0] = (char)OF_Const::sCommitPins, buf[1] = (char)i, buf[2] = (char)App_Common::inputsMap.value(i);
                     if(OneShotSend(buf, 3, true)) {
@@ -359,7 +359,7 @@ bool AppSerial::CommitSettings()
             }
 
             emit Serial_ProgressUpdate(3, "Sending Settings...");
-            for(uint8_t i = 0; i < OF_Const::settingsTypesCount; i++) {
+            for(int i = 0; i < OF_Const::settingsTypesCount; ++i) {
                 memset(buf, '\0', 6);
                 buf[0] = (char)OF_Const::sCommitSettings, buf[1] = (char)i;
                 memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
@@ -372,7 +372,7 @@ bool AppSerial::CommitSettings()
             }
 
             emit Serial_ProgressUpdate(4, "Sending Profile Data...");
-            for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
+            for(int i = 0; i < App_Common::profilesTable.count(); ++i) {
                 memset(buf, '\0', 19);
                 buf[0] = (char)OF_Const::sCommitProfile,
                     buf[1] = (char)i,
@@ -406,7 +406,7 @@ bool AppSerial::CommitSettings()
                 emit Serial_ProgressUpdate(5, "Sending I2C Peripherals Data...");
                 memset(buf, '\0', 20);
                 buf[0] = (char)OF_Const::sCommitPeriphs;
-                for(int i = 0; i < OF_Const::i2cDevicesCount; i++) {
+                for(int i = 0; i < OF_Const::i2cDevicesCount; ++i) {
                     buf[1] = (char)OF_Const::i2cDevicesEnabled;
                     buf[2] = (char)i;
                     buf[3] = (char)App_Common::i2cPeriphs[App_Common::dataCurrent][i];
@@ -416,7 +416,7 @@ bool AppSerial::CommitSettings()
                     switch(i) {
                     case OF_Const::i2cOLED:
                         buf[1] = (char)OF_Const::i2cOLED;
-                        for(int type = 0; type < OF_Const::oledSettingsTypes; type++) {
+                        for(int type = 0; type < OF_Const::oledSettingsTypes; ++type) {
                             buf[2] = (char)type;
                             memcpy(&buf[3], (uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
                             if(OneShotSend(buf, 7, true)) if(memcmp((uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], port.read(4).constData(), sizeof(uint32_t)))
