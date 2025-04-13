@@ -1973,7 +1973,8 @@ void guiWindow::on_clearEepromBtn_clicked()
 
     if(messageBox.exec() == QMessageBox::Yes) {
         ui->statusBar->showMessage("Board reset to initial settings.");
-        serial.OneShotSend((char)OF_Const::sClearFlash);
+        char buf[2] = { (char)OF_Const::sClearFlash, (char)OF_Const::sClearFlash };
+        serial.OneShotSend(buf, 2);
         ui->comPortSelector->setCurrentIndex(0);
     } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
