@@ -329,6 +329,13 @@ bool AppSerial::CommitSettings()
         emit Serial_SetProgressRange(8);
 
         if(OneShotSend((char)OF_Const::sCommitStart, true)) {
+            // in case board sends a stale temp/analog state response.
+            emit Serial_ProgressUpdate(0, "Waiting for board...");
+            do {
+                if(port.read(1).at(0) == (char)OF_Const::sCommitStart) break;
+                if(!port.bytesAvailable()) if(!port.waitForReadyRead(1000)) break;
+            } while (port.bytesAvailable());
+
             port.clear();
 
             char buf[64];
