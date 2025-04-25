@@ -1046,7 +1046,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     else ui->solenoidToggle->setChecked(false), ui->solenoidFFBox->setEnabled(false);
 
     ui->solenoidTempBox->setEnabled(App_Common::inputsMap.value(OF_Const::tempPin) > -1);
-    ui->forceFeedbackBox->setEnabled(App_Common::inputsMap.value(OF_Const::rumblePin) > -1 && App_Common::inputsMap.value(OF_Const::solenoidPin) > -1);
+    ui->forceFeedbackBox->setEnabled(App_Common::inputsMap.value(OF_Const::rumblePin) > -1 || App_Common::inputsMap.value(OF_Const::solenoidPin) > -1);
     ui->neopixelGroupBox->setEnabled(App_Common::inputsMap.value(OF_Const::neoPixel) > -1);
     ui->commonAnodeToggle->setEnabled(App_Common::inputsMap.value(OF_Const::ledR) > -1 && App_Common::inputsMap.value(OF_Const::ledG) > -1 && App_Common::inputsMap.value(OF_Const::ledB) > -1);
     ui->i2cGroup->setEnabled(App_Common::inputsMap.value(OF_Const::periphSDA) > -1 && App_Common::inputsMap.value(OF_Const::periphSCL) > -1);
