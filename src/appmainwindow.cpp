@@ -108,7 +108,7 @@ guiWindow::guiWindow(QWidget *parent)
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     // Setup test screen buttons
-    for(int i = 0; i < 14; i++) {
+    for(int i = 0; i < 14; ++i) {
         testLabel << new QLabel(OF_Const::valuesNameList[i+1]);
 
         testLabel.at(i)->setEnabled(false);
@@ -215,17 +215,17 @@ void guiWindow::BoxesUpdate()
     // enabling custom pins
     if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
         // enable pinboxes
-        for(int i = 0; i < pinBoxes.count(); i++)
+        for(int i = 0; i < pinBoxes.count(); ++i)
             pinBoxes.at(i)->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
         if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]) {
             // reset pinboxes
-            for(int i = 0; i < pinBoxes.count(); i++)
+            for(int i = 0; i < pinBoxes.count(); ++i)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
-            for(int i = 0; i < App_Common::inputsMap_orig.count(); i++)
+            for(int i = 0; i < App_Common::inputsMap_orig.count(); ++i)
                 if(App_Common::inputsMap_orig.value(i) > OF_Const::btnUnmapped &&
                    App_Common::inputsMap_orig.value(i) < pinBoxes.count() &&
                    i < OF_Const::boardInputsCount)
@@ -238,7 +238,7 @@ void guiWindow::BoxesUpdate()
 
             // copy presets to inputs map
             if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
-                for(int i = 0; i < pinBoxes.count(); i++)
+                for(int i = 0; i < pinBoxes.count(); ++i)
                     if(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i) > OF_Const::btnUnmapped)
                         App_Common::inputsMap[OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)] = i;
         }
@@ -248,12 +248,12 @@ void guiWindow::BoxesUpdate()
     // disabling custom pins, reset to presets
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
-        for(int i = 0; i < pinBoxes.count(); i++)
+        for(int i = 0; i < pinBoxes.count(); ++i)
             pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
         if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
-            for(int i = 0; i < pinBoxes.count(); i++)
+            for(int i = 0; i < pinBoxes.count(); ++i)
                 pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)+1);
 
         return;
@@ -290,7 +290,7 @@ void guiWindow::DiffUpdate()
     if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent])))
         settingsDiff++;
 
-    for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
+    for(uint8_t i = 0; i < App_Common::profilesTable.count(); ++i) {
         if(App_Common::profilesTable_orig[i].profName != App_Common::profilesTable[i].profName)
             settingsDiff++;
 
@@ -414,7 +414,7 @@ void guiWindow::on_confirmButton_clicked()
 
             if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins])
                 App_Common::inputsMap_orig = App_Common::inputsMap;
-            else for(int i = 0; i < App_Common::inputsMap.size(); i++)
+            else for(int i = 0; i < App_Common::inputsMap.size(); ++i)
                     App_Common::inputsMap_orig[i] = -1;
 
             memcpy(App_Common::settingsTable[App_Common::dataOrig],
@@ -432,7 +432,7 @@ void guiWindow::on_confirmButton_clicked()
             App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
             App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
-            for(uint8_t i = 0; i < App_Common::profilesTable.count(); i++) {
+            for(uint8_t i = 0; i < App_Common::profilesTable.count(); ++i) {
                 App_Common::profilesTable_orig[i].irSensitivity = App_Common::profilesTable[i].irSensitivity;
                 App_Common::profilesTable_orig[i].runMode = App_Common::profilesTable[i].runMode;
                 App_Common::profilesTable_orig[i].layoutType = App_Common::profilesTable[i].layoutType;
@@ -482,7 +482,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         // if returns false, it failed, so just turn the index back to initial.
         serialActive = true;
         if(serial.GetSettings(text)) {
-            for(int i = 0; i < topOffset.count(); i++) {
+            for(int i = 0; i < topOffset.count(); ++i) {
                 delete topOffset.at(i);
                 delete bottomOffset.at(i);
                 delete leftOffset.at(i);
@@ -513,7 +513,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             caliBtn.clear();
 
             int caliBtnRow;
-            for(uint8_t i = 0; i < App_Common::profilesTable.size(); i++) {
+            for(uint8_t i = 0; i < App_Common::profilesTable.size(); ++i) {
                 caliBtnRow = i/4;
 
                 // create new assets for this profile
@@ -640,11 +640,11 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
             // Clears old board layout items
             if(pinBoxes.count()) {
-                for(uint8_t i = 0; i < pinBoxes.count(); i++)
+                for(uint8_t i = 0; i < pinBoxes.count(); ++i)
                     delete pinBoxes.at(i);
-                for(uint8_t i = 0; i < padding.count(); i++)
+                for(uint8_t i = 0; i < padding.count(); ++i)
                     delete padding.at(i);
-                for(uint8_t i = 0; i < pinLabel.count(); i++)
+                for(uint8_t i = 0; i < pinLabel.count(); ++i)
                     delete pinLabel.at(i);
 
                 pinBoxes.clear();
@@ -652,7 +652,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); i++) {
+            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
@@ -705,7 +705,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 ui->presetsBox->setEnabled(true);
 
                 auto iter = OF_Const::boardsAltPresets.equal_range(App_Common::board.boardType.toStdString());
-                for(auto i = iter.first; i != iter.second; i++)
+                for(auto i = iter.first; i != iter.second; ++i)
                     ui->presetsBox->addItem(i->second.name);
             } else {
                 ui->presetsBox->setEnabled(false);
@@ -723,7 +723,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
-                for(int i = 0; i < pinBoxes.count(); i++) {
+                for(int i = 0; i < pinBoxes.count(); ++i) {
                     if(OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
@@ -752,7 +752,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
-                for(int i = 0; i < pinBoxes.count(); i++) {
+                for(int i = 0; i < pinBoxes.count(); ++i) {
                     if(OF_Const::boardsBoxPositions.at("generic").at(i) & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
@@ -783,14 +783,14 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             boardPic.renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
 
             int prevPadCount = 0;
-            for(int i = 1, padCount = 0; i < ui->PinsLeft->rowCount(); i++) {
+            for(int i = 1, padCount = 0; i < ui->PinsLeft->rowCount(); ++i) {
                 if(ui->PinsLeft->itemAtPosition(i, 0) == nullptr) {
                     ui->PinsLeft->addWidget(padding.at(padCount), i, 0);
                     padCount++;
                     prevPadCount = padCount;
                 }
             }
-            for(int i = 1, padCount = prevPadCount; i < ui->PinsRight->rowCount(); i++) {
+            for(int i = 1, padCount = prevPadCount; i < ui->PinsRight->rowCount(); ++i) {
                 if(ui->PinsRight->itemAtPosition(i, 0) == nullptr) {
                     ui->PinsRight->addWidget(padding.at(padCount), i, 0);
                     padCount++;
@@ -823,7 +823,6 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
             ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs[App_Common::dataOrig][OF_Const::i2cOLED]);
             ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[App_Common::dataOrig][OF_Const::oledAltAddr]);
-            ui->oledGroup->setEnabled(App_Common::inputsMap_orig.value(OF_Const::periphSCL) > -1 && App_Common::inputsMap_orig.value(OF_Const::periphSDA) > -1);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
@@ -902,7 +901,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 void guiWindow::LabelsUpdate()
 {
     // because App_Common::inputsMap uses pin no. starting from 0
-    for(uint8_t i = 0; i < testLabel.count(); i++) {
+    for(uint8_t i = 0; i < testLabel.count(); ++i) {
         testLabel.at(i)->setStyleSheet("");
         if(App_Common::inputsMap.value(i) >= 0) {
             testLabel.at(i)->setText(OF_Const::valuesNameList[i+1]);
@@ -1042,27 +1041,15 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
         ui->rumbleFFBox->setEnabled(false);
     }
 
-    ui->solenoidTempBox->setEnabled(App_Common::inputsMap.value(OF_Const::tempPin) > -1 ? true : false);
-
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
          ui->solenoidFFBox->setEnabled(true);
     else ui->solenoidToggle->setChecked(false), ui->solenoidFFBox->setEnabled(false);
 
-    if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0 && App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
-         ui->forceFeedbackBox->setEnabled(true);
-    else ui->forceFeedbackBox->setEnabled(false);
-
-    if(App_Common::inputsMap.value(OF_Const::neoPixel) >= 0)
-         ui->neopixelGroupBox->setEnabled(true);
-    else ui->neopixelGroupBox->setEnabled(false);
-
-    if(App_Common::inputsMap.value(OF_Const::ledR) >= 0 && App_Common::inputsMap.value(OF_Const::ledG) >= 0 && App_Common::inputsMap.value(OF_Const::ledB) >= 0)
-         ui->commonAnodeToggle->setEnabled(true);
-    else ui->commonAnodeToggle->setEnabled(false);
-
-    if(App_Common::inputsMap.value(OF_Const::periphSDA) >= 0 && App_Common::inputsMap.value(OF_Const::periphSCL))
-         ui->i2cGroup->setEnabled(true);
-    else ui->i2cGroup->setEnabled(false);
+    ui->solenoidTempBox->setEnabled(App_Common::inputsMap.value(OF_Const::tempPin) > -1);
+    ui->forceFeedbackBox->setEnabled(App_Common::inputsMap.value(OF_Const::rumblePin) > -1 && App_Common::inputsMap.value(OF_Const::solenoidPin) > -1);
+    ui->neopixelGroupBox->setEnabled(App_Common::inputsMap.value(OF_Const::neoPixel) > -1);
+    ui->commonAnodeToggle->setEnabled(App_Common::inputsMap.value(OF_Const::ledR) > -1 && App_Common::inputsMap.value(OF_Const::ledG) > -1 && App_Common::inputsMap.value(OF_Const::ledB) > -1);
+    ui->i2cGroup->setEnabled(App_Common::inputsMap.value(OF_Const::periphSDA) > -1 && App_Common::inputsMap.value(OF_Const::periphSCL) > -1);
 
     DiffUpdate();
 }
@@ -1158,15 +1145,15 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
             ui->customPinsEnabled->setChecked(true);
 
         // clear pinBoxes to be safe
-        for(uint8_t i = 0; i < pinBoxes.count(); i++)
+        for(uint8_t i = 0; i < pinBoxes.count(); ++i)
             pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
         auto preset = OF_Const::boardsAltPresets.equal_range(App_Common::board.boardType.toStdString()).first;
-        for(int i = 0; i < index; i++)
+        for(int i = 0; i < index; ++i)
             preset++;
 
-        for(int i = 0; i < pinBoxes.count(); i++)
+        for(int i = 0; i < pinBoxes.count(); ++i)
             pinBoxes.at(i)->setCurrentIndex(preset->second.pin[i]+1);
 
         DiffUpdate();
@@ -1421,7 +1408,7 @@ void guiWindow::on_productNameInput_textEdited(const QString &arg1)
     bool badInput = false;
     // Very unga-bunga way of doing this.
     // if someone is aware of a validator for this, feel free to replace this.
-    for(int i = 0; i < arg1.length(); i++) {
+    for(int i = 0; i < arg1.length(); ++i) {
         if(arg1.at(i).unicode() > 255) {
             badInput = true;
             break;
@@ -1600,6 +1587,7 @@ void guiWindow::on_invertStaticPixelsBox_stateChanged(int arg1)
 void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 {
     App_Common::i2cPeriphs[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
+    ui->oledGroup->setEnabled(arg1);
 
     DiffUpdate();
 }
@@ -1741,7 +1729,7 @@ void guiWindow::serialPort_readyRead()
                 } else NewCaliWindow(AppCaliWindow::modeIRTest);
 
                 int coordsList[12];
-                for(int i = 0; i < sizeof(coordsList) / sizeof(int); i++)
+                for(int i = 0; i < sizeof(coordsList) / sizeof(int); ++i)
                     serial.port.read((char*)&coordsList[i], 4);
 
                 caliWindow->TestModeDraw(coordsList);
@@ -2082,11 +2070,11 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
             if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
                 ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
-                for(int i = 0; i < pinBoxes.count(); i++)
+                for(int i = 0; i < pinBoxes.count(); ++i)
                     pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
                 // import new maps
-                for(int i = 0; i < pinBoxes.count(); i++) {
+                for(int i = 0; i < pinBoxes.count(); ++i) {
                     if(!fileIn.atEnd()) {
                         const int newIdx = fileIn.read(1).toHex().toInt(nullptr, 16);
                         if(newIdx <= OF_Const::boardInputsCount)
@@ -2116,7 +2104,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
         if(fileOut.open(QFile::WriteOnly)) {
             fileOut.write(App_Common::board.boardType + '\n');
 
-            for(int i = 0; i < pinBoxes.count(); i++)
+            for(int i = 0; i < pinBoxes.count(); ++i)
                 fileOut.putChar(pinBoxes.at(i)->currentIndex());
 
             fileOut.close();
