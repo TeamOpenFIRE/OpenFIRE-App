@@ -109,7 +109,7 @@ guiWindow::guiWindow(QWidget *parent)
 
     // Setup test screen buttons
     for(int i = 0; i < 14; ++i) {
-        testLabel << new QLabel(OF_Const::valuesNameList[i+1]);
+        testLabel << new QLabel(App_Common::OFPresets.boardInputs_sortedStr[i+1]);
 
         testLabel.at(i)->setEnabled(false);
         testLabel.at(i)->setAlignment(Qt::AlignCenter);
@@ -136,6 +136,8 @@ guiWindow::guiWindow(QWidget *parent)
     // set hidden by default until a board with presets is loaded
     ui->presetsBox->setVisible(true);
     ui->solenoidTempBox->setVisible(false);
+
+    ui->versionLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
 
@@ -237,10 +239,10 @@ void guiWindow::BoxesUpdate()
             App_Common::inputsMap = App_Common::inputsMap_orig;
 
             // copy presets to inputs map
-            if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
+            if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
                 for(int i = 0; i < pinBoxes.count(); ++i)
-                    if(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i) > OF_Const::btnUnmapped)
-                        App_Common::inputsMap[OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)] = i;
+                    if(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i) > OF_Const::btnUnmapped)
+                        App_Common::inputsMap[App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)] = i;
         }
 
         return;
@@ -252,9 +254,9 @@ void guiWindow::BoxesUpdate()
             pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
-        if(OF_Const::boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
+        if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
             for(int i = 0; i < pinBoxes.count(); ++i)
-                pinBoxes.at(i)->setCurrentIndex(OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)+1);
+                pinBoxes.at(i)->setCurrentIndex(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)+1);
 
         return;
     }
@@ -263,67 +265,27 @@ void guiWindow::BoxesUpdate()
 
 void guiWindow::DiffUpdate()
 {
-    int settingsDiff = 0;
+    size_t settingsDiff = 0;
 
     if(memcmp(App_Common::boolSettings[App_Common::dataCurrent], App_Common::boolSettings[App_Common::dataOrig], sizeof(App_Common::boolSettings[App_Common::dataCurrent])))
-        settingsDiff++;
+        ++settingsDiff;
 
     if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins])
         if(App_Common::inputsMap_orig != App_Common::inputsMap)
-            settingsDiff++;
+            ++settingsDiff;
 
     if(memcmp(App_Common::settingsTable[App_Common::dataCurrent], App_Common::settingsTable[App_Common::dataOrig], sizeof(App_Common::settingsTable[App_Common::dataCurrent])))
-        settingsDiff++;
+        ++settingsDiff;
 
-    if(App_Common::tinyUSBtable_orig.tinyUSBid != App_Common::tinyUSBtable.tinyUSBid)
-        settingsDiff++;
-
-    if(App_Common::tinyUSBtable_orig.tinyUSBname != App_Common::tinyUSBtable.tinyUSBname)
-        settingsDiff++;
+    if(memcmp(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s)))
+        ++settingsDiff;
 
     if(App_Common::board.selectedProfile != App_Common::board.previousProfile)
-        settingsDiff++;
+        ++settingsDiff;
 
-    if(memcmp(App_Common::i2cPeriphs[App_Common::dataCurrent], App_Common::i2cPeriphs[App_Common::dataOrig], sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent])))
-        settingsDiff++;
-
-    if(memcmp(App_Common::i2cOledPrefs[App_Common::dataCurrent], App_Common::i2cOledPrefs[App_Common::dataOrig], sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent])))
-        settingsDiff++;
-
-    for(uint8_t i = 0; i < App_Common::profilesTable.count(); ++i) {
-        if(App_Common::profilesTable_orig[i].profName != App_Common::profilesTable[i].profName)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].topOffset != App_Common::profilesTable[i].topOffset)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].bottomOffset != App_Common::profilesTable[i].bottomOffset)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].leftOffset != App_Common::profilesTable[i].leftOffset)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].rightOffset != App_Common::profilesTable[i].rightOffset)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].TLled != App_Common::profilesTable[i].TLled)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].TRled != App_Common::profilesTable[i].TRled)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].irSensitivity != App_Common::profilesTable[i].irSensitivity)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].runMode != App_Common::profilesTable[i].runMode)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].layoutType != App_Common::profilesTable[i].layoutType)
-            settingsDiff++;
-
-        if(App_Common::profilesTable_orig[i].color != App_Common::profilesTable[i].color)
-            settingsDiff++;
-    }
+    for(size_t i = 0; i < App_Common::profilesTable.count(); ++i)
+        if(memcmp(&App_Common::profilesTable_orig.at(i), &App_Common::profilesTable.at(i), sizeof(App_Common::profilesTable_s)))
+            ++settingsDiff;
 
     if(settingsDiff) {
         ui->confirmButton->setText("Save and Send Settings");
@@ -341,9 +303,9 @@ QString guiWindow::PrettifyName(QString name)
         name = "Unnamed Device";
 
     // append name of board to gun name string.
-    if(OF_Const::boardNames.count(App_Common::board.boardType.toStdString()))
-         return name + " | " + OF_Const::boardNames.at(App_Common::board.boardType.toStdString());
-    else return name + " | " + OF_Const::boardNames.at("generic");
+    if(App_Common::OFPresets.boardNames.count(App_Common::board.boardType.toStdString()))
+         return name + " | " + App_Common::OFPresets.boardNames.at(App_Common::board.boardType.toStdString());
+    else return name + " | " + App_Common::OFPresets.boardNames.at("generic");
 }
 
 
@@ -415,30 +377,22 @@ void guiWindow::on_confirmButton_clicked()
             if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins])
                 App_Common::inputsMap_orig = App_Common::inputsMap;
             else for(int i = 0; i < App_Common::inputsMap.size(); ++i)
-                    App_Common::inputsMap_orig[i] = -1;
+                App_Common::inputsMap_orig[i] = -1;
 
             memcpy(App_Common::settingsTable[App_Common::dataOrig],
                    App_Common::settingsTable[App_Common::dataCurrent],
                    sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
-            memcpy(App_Common::i2cPeriphs[App_Common::dataOrig],
-                   App_Common::i2cPeriphs[App_Common::dataCurrent],
-                   sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent]));
-            memcpy(App_Common::i2cOledPrefs[App_Common::dataOrig],
-                   App_Common::i2cOledPrefs[App_Common::dataCurrent],
-                   sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent]));
+            memcpy(&App_Common::tinyUSBtable_orig,
+                   &App_Common::tinyUSBtable,
+                   sizeof(App_Common::tinyUSBtable_s));
 
-            App_Common::tinyUSBtable_orig.tinyUSBid = App_Common::tinyUSBtable.tinyUSBid;
-            App_Common::tinyUSBtable_orig.tinyUSBname = App_Common::tinyUSBtable.tinyUSBname;
             App_Common::board.previousProfile = App_Common::board.selectedProfile;
 
-            for(uint8_t i = 0; i < App_Common::profilesTable.count(); ++i) {
-                App_Common::profilesTable_orig[i].irSensitivity = App_Common::profilesTable[i].irSensitivity;
-                App_Common::profilesTable_orig[i].runMode = App_Common::profilesTable[i].runMode;
-                App_Common::profilesTable_orig[i].layoutType = App_Common::profilesTable[i].layoutType;
-                App_Common::profilesTable_orig[i].color = App_Common::profilesTable[i].color;
-                App_Common::profilesTable_orig[i].profName = App_Common::profilesTable[i].profName;
-            }
+            for(size_t i = 0; i < App_Common::profilesTable.count(); ++i)
+                memcpy(&App_Common::profilesTable_orig[i],
+                       &App_Common::profilesTable[i],
+                       sizeof(App_Common::profilesTable_s));
 
             // Reflect new names in UI
             LabelsUpdate();
@@ -530,7 +484,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                               "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
-                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(QString(App_Common::profilesTable.at(i).profName.constData())));
+                selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Common::profilesTable.at(i).profName));
                 if(i == App_Common::board.selectedProfile)
                     selectedProfile.at(i)->setChecked(true);
                 selectedProfile.at(i)->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
@@ -652,7 +606,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < OF_Const::boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); ++i) {
+            for(uint8_t i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
@@ -660,7 +614,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinBoxes.at(i)->setProperty("trackable", App_Common::trackPinbox);
                 pinBoxes.at(i)->installEventFilter(this);
                 // install items
-                for(auto item : OF_Const::valuesNameList)
+                for(auto item : App_Common::OFPresets.boardInputs_sortedStr)
                     pinBoxes.at(i)->addItem(item);
                 // clear out analog options for digital pins (< GPIO26)
                 // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
@@ -677,8 +631,6 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
                 }
-                // for now, disable unused "battery sensor" option.
-                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::battery+1, false);
                 // connect up combobox signal
                 connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
@@ -695,16 +647,16 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
-            ui->versionLabel->setText(QString("v%1 - \"%2\"").arg(App_Common::board.versionNumber, App_Common::board.versionCodename));
+            ui->versionLabel->setText("FW v" + App_Common::board.versionNumber);
 
             // update presets box if this board has any
             ui->presetsBox->clear();
 
-            if(OF_Const::boardsAltPresets.count(App_Common::board.boardType.toStdString())) {
+            if(App_Common::OFPresets.boardsAltPresets.count(App_Common::board.boardType.toStdString())) {
                 ui->presetsBox->setHidden(false);
                 ui->presetsBox->setEnabled(true);
 
-                auto iter = OF_Const::boardsAltPresets.equal_range(App_Common::board.boardType.toStdString());
+                auto iter = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.boardType.toStdString());
                 for(auto i = iter.first; i != iter.second; ++i)
                     ui->presetsBox->addItem(i->second.name);
             } else {
@@ -718,33 +670,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             LabelsUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            if(OF_Const::boardsBoxPositions.count(App_Common::board.boardType.toStdString())) {
+            if(App_Common::OFPresets.boardsBoxPositions.count(App_Common::board.boardType.toStdString())) {
                 QFile resource(":/boardPics/" + App_Common::board.boardType);
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posLeft) {
+                    if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 1);
-                    } else if(OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posRight) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
                                                  0);
-                    } else if(OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posMiddle) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
-                                                     OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
-                                                     OF_Const::boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
                     }
                 }
             } else {
@@ -753,27 +705,27 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(OF_Const::boardsBoxPositions.at("generic").at(i) & OF_Const::posLeft) {
+                    if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
                                                 1);
-                    } else if(OF_Const::boardsBoxPositions.at("generic").at(i) & OF_Const::posRight) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
                                                  0);
-                    } else if(OF_Const::boardsBoxPositions.at("generic").at(i) & OF_Const::posMiddle) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
-                                                     OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
-                                                     OF_Const::boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
                     }
                 }
             }
@@ -821,8 +773,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->tempWarningBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempWarning]);
             ui->tempShutoffBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown]);
 
-            ui->i2cOLEDtoggle->setChecked(App_Common::i2cPeriphs[App_Common::dataOrig][OF_Const::i2cOLED]);
-            ui->oledAltAddrsToggle->setChecked(App_Common::i2cOledPrefs[App_Common::dataOrig][OF_Const::oledAltAddr]);
+            ui->i2cOLEDtoggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::i2cOLED]);
+            ui->oledAltAddrsToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::i2cOLEDaltAddr]);
 
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
@@ -904,10 +856,10 @@ void guiWindow::LabelsUpdate()
     for(uint8_t i = 0; i < testLabel.count(); ++i) {
         testLabel.at(i)->setStyleSheet("");
         if(App_Common::inputsMap.value(i) >= 0) {
-            testLabel.at(i)->setText(OF_Const::valuesNameList[i+1]);
+            testLabel.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[i+1]);
             testLabel.at(i)->setEnabled(true);
         } else {
-            testLabel.at(i)->setText(QByteArray(OF_Const::valuesNameList[i+1]) + " (N/C)");
+            testLabel.at(i)->setText(QByteArray(App_Common::OFPresets.boardInputs_sortedStr[i+1]) + " (N/C)");
             testLabel.at(i)->setEnabled(false);
         }
     }
@@ -939,7 +891,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 
     /* For debugging pinBoxes (too lazy to ifdef guard)
     if(index >= 0 && index <= App_Common::inputsMap.size()) {
-        //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), OF_Const::valuesNameList.at(index).toLocal8Bit().constData());
+        //printf("Requesting pinbox %d to set to %s\n", sender()->property("slot").toInt(), App_Common::OFPresets.boardInputs_sortedStr.at(index).toLocal8Bit().constData());
     } else printf("Oops! Seems like pinbox %d is trying to set itself to index %d, which is out of range!\n", sender()->property("slot").toInt(), index);
     //*/
 
@@ -1083,7 +1035,8 @@ void guiWindow::renameBoxes_clicked()
 
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
-        App_Common::profilesTable[sender()->property("slot").toInt()].profName = newLabel.left(15).toLocal8Bit();
+        memset(App_Common::profilesTable[sender()->property("slot").toInt()].profName, 0, sizeof(App_Common::profilesTable_s::profName));
+        strcpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.left(15).toLocal8Bit().constData());
     }
 
     DiffUpdate();
@@ -1149,7 +1102,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
             pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
-        auto preset = OF_Const::boardsAltPresets.equal_range(App_Common::board.boardType.toStdString()).first;
+        auto preset = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.boardType.toStdString()).first;
         for(int i = 0; i < index; ++i)
             preset++;
 
@@ -1325,7 +1278,8 @@ void guiWindow::on_tUSB_p1_toggled(bool checked)
 {
     if(checked) {
         App_Common::tinyUSBtable.tinyUSBid = 1;
-        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P1";
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P1");
         ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
@@ -1338,7 +1292,8 @@ void guiWindow::on_tUSB_p2_toggled(bool checked)
 {
     if(checked) {
         App_Common::tinyUSBtable.tinyUSBid = 2;
-        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P2";
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P2");
         ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
@@ -1351,7 +1306,8 @@ void guiWindow::on_tUSB_p3_toggled(bool checked)
 {
     if(checked) {
         App_Common::tinyUSBtable.tinyUSBid = 3;
-        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P3";
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P3");
         ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
@@ -1364,7 +1320,8 @@ void guiWindow::on_tUSB_p4_toggled(bool checked)
 {
     if(checked) {
         App_Common::tinyUSBtable.tinyUSBid = 4;
-        App_Common::tinyUSBtable.tinyUSBname = "FIRECon P4";
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P4");
         ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
         ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
@@ -1421,7 +1378,8 @@ void guiWindow::on_productNameInput_textEdited(const QString &arg1)
     } else {
         if(!ui->productNameInput->styleSheet().isEmpty())
             ui->productNameInput->setStyleSheet("");
-        App_Common::tinyUSBtable.tinyUSBname = arg1.toLocal8Bit();
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, arg1.toLocal8Bit().constData());
         DiffUpdate();
     }
 }
@@ -1586,7 +1544,7 @@ void guiWindow::on_invertStaticPixelsBox_stateChanged(int arg1)
 
 void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 {
-    App_Common::i2cPeriphs[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
     ui->oledGroup->setEnabled(arg1);
 
     DiffUpdate();
@@ -1595,7 +1553,7 @@ void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 
 void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 {
-    App_Common::i2cOledPrefs[App_Common::dataCurrent][OF_Const::oledAltAddr] = arg1;
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::i2cOLEDaltAddr] = arg1;
 
     DiffUpdate();
 }

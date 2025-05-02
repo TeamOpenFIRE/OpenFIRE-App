@@ -87,27 +87,21 @@ bool AppSerial::GetSettings(const QString &portName)
             if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
-                if(buffer.size() >= 5) {
-                    emit Serial_SetProgressRange(6);
+                if(buffer.size() >= 3) {
+                    emit Serial_SetProgressRange(5);
                     emit Serial_ProgressUpdate(1, "Getting Board Info");
 
+                    ////* Opening board message bits *////
                     App_Common::board.versionNumber = buffer.takeFirst().constData();
                     printf("Version number: %s\n", App_Common::board.versionNumber.constData());
-
-                    App_Common::board.versionCodename = buffer.takeFirst().constData();
-                    printf("Version codename: %s\n", App_Common::board.versionCodename.constData());
 
                     App_Common::board.boardType = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.boardType.constData());
 
-                    App_Common::board.selectedProfile = (uint8_t)buffer.takeFirst().at(0);
-                    App_Common::board.previousProfile = App_Common::board.selectedProfile;
-
-                    memcpy(&App_Common::tinyUSBtable.tinyUSBid, buffer.at(0).constData(), 2);
-                    App_Common::tinyUSBtable.tinyUSBname = &buffer.takeFirst().constData()[2];
-                    App_Common::tinyUSBtable_orig = App_Common::tinyUSBtable;
-
-                    if(buffer.size()) if(buffer.takeFirst().at(0) == OF_Const::sError)
+                    memcpy(&App_Common::tinyUSBtable, buffer.at(0).constData(), buffer.at(0).length());
+                    memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, buffer.takeFirst().length());
+                    
+                    if(buffer.size()) if(buffer.takeFirst().at(0) == (char)OF_Const::sError)
                         ShowError("Device Error: Camera not available!",
                                   "<p>Data received from the board indicates that the camera is in a bad state.<br>"
                                   "This can happen if, for example, the camera wires are crossed<br>"
@@ -119,150 +113,69 @@ bool AppSerial::GetSettings(const QString &portName)
                                   "Otherwise, the camera wires must be resoldered to resolve this error.</p>",
                                   QMessageBox::Warning);
 
-                    // toggles
+                    ////* toggles *////
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {
-                        // booleans
                         memset(App_Common::boolSettings, false, sizeof(App_Common::boolSettings));
-                        for(int i = 0; port.peek(1).at(0) != (char)OF_Const::serialTerminator; ++i) {
-                            if(port.bytesAvailable() && i < OF_Const::boolTypesCount)
-                                port.read((char*)&App_Common::boolSettings[App_Common::dataCurrent][i], sizeof(bool));
-                            else if(port.bytesAvailable()) {
-                                if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                else port.read(1);
-                            } else if(!port.waitForReadyRead(500)) break;
-                        }
+                        if(!BatchStoreSettings( App_Common::boolSettings[App_Common::dataCurrent],
+                                                App_Common::OFPresets.boolTypes_Strings,
+                                                sizeof(App_Common::boolSettings[App_Common::dataCurrent]) / OF_Const::boolTypesCount))
+                            return false;
+
                         memcpy(App_Common::boolSettings[App_Common::dataOrig],
                                App_Common::boolSettings[App_Common::dataCurrent],
                                sizeof(App_Common::boolSettings[App_Common::dataCurrent]));
 
                         emit Serial_ProgressUpdate(2, "Getting Settings (1)");
 
-                        // pins
+                        ////* pins *////
                         if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetPins, true)) {
                                 App_Common::inputsMap_orig.clear(), App_Common::inputsMap.clear();
 
-                                for(int i = 0;; ++i) {
-                                    if(port.bytesAvailable() && i < OF_Const::boardInputsCount)
-                                        port.read((char*)&App_Common::inputsMap_orig[i], sizeof(int8_t));
-                                    else if(port.bytesAvailable()) {
-                                        if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                        else port.read(1);
-                                    } else if(!port.waitForReadyRead(500)) break;
-                                }
+                                if(!BatchStoreSettings(&App_Common::inputsMap_orig,
+                                                       App_Common::OFPresets.boardInputs_Strings,
+                                                       0))
+                                    return false;
                             } else {
                                 printf("Didn't receive any data in time!\n");
                                 return false;
                             }
-                        } else for(int i = 0; i < OF_Const::boardInputsCount; i++)
+                        } else for(int i = 0; i < OF_Const::boardInputsCount; ++i)
                             App_Common::inputsMap_orig[i] = OF_Const::btnUnmapped;
 
                         App_Common::inputsMap = App_Common::inputsMap_orig;
 
                         emit Serial_ProgressUpdate(3, "Getting Settings (2)");
 
-                        // settings
+                        ////* settings *////
                         port.clear();
                         if(OneShotSend((char)OF_Const::sGetSettings, true)) {
                             memset(App_Common::settingsTable, 0, sizeof(App_Common::settingsTable));
-                            while(true) {
-                                if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                else if(port.bytesAvailable() < 5) { if(!port.waitForReadyRead(500)) break; }
-                                else {
-                                    int i = port.read(1).at(0);
-                                    if(i < OF_Const::settingsTypesCount)
-                                        port.read((char*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
-                                    else port.read(sizeof(uint32_t));
-                                }
-                            }
+
+                            if(!BatchStoreSettings(App_Common::settingsTable[App_Common::dataCurrent],
+                                                   App_Common::OFPresets.settingsTypes_Strings,
+                                                   sizeof(App_Common::settingsTable[App_Common::dataCurrent]) / OF_Const::settingsTypesCount))
+                                return false;
+
                             memcpy(App_Common::settingsTable[App_Common::dataOrig],
                                    App_Common::settingsTable[App_Common::dataCurrent],
                                    sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
-                            emit Serial_ProgressUpdate(5, "Getting Profiles Data");
+                            emit Serial_ProgressUpdate(4, "Getting Profiles Data");
 
-                            // i2c peripherals
+                            // profiles
+                            App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
+
                             port.clear();
-                            if(OneShotSend((char)OF_Const::sGetPeriphs, true)) {
-                                memset(App_Common::i2cPeriphs, 0, sizeof(App_Common::i2cPeriphs));
-                                while(true) {
-                                    if(!port.bytesAvailable()) { if(!port.waitForReadyRead(500)) break; }
-                                    else if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                    else {
-                                        switch(port.read(1).at(0)) {
-                                        case (char)OF_Const::i2cDevicesEnabled:
-                                        {
-                                            for(int i = 0;; i++) {
-                                                if(port.bytesAvailable() && i < OF_Const::i2cDevicesCount)
-                                                    port.read((char*)&App_Common::i2cPeriphs[App_Common::dataCurrent][i], sizeof(bool));
-                                                else if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator)
-                                                    { port.read(1); break; }
-                                                else if(port.bytesAvailable()) port.read(1);
-                                                else break; // if there's no more bytes, probably no leftover settings to sync anyways
-                                            }
-                                            break;
-                                        }
-                                        case (char)OF_Const::i2cOLED:
-                                            while(true) {
-                                                if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
-                                                else if(port.bytesAvailable() < 5) { if(!port.waitForReadyRead(500)) break; }
-                                                else {
-                                                    int type = port.read(1).at(0);
-                                                    if(type < OF_Const::oledSettingsTypes)
-                                                        port.read((char*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
-                                                    else port.read(sizeof(uint32_t));
-                                                }
-                                            }
-                                            break;
-                                        default: break;
-                                        }
-                                    }
-                                }
-                                memcpy(App_Common::i2cPeriphs[App_Common::dataOrig],
-                                       App_Common::i2cPeriphs[App_Common::dataCurrent],
-                                       sizeof(App_Common::i2cPeriphs[App_Common::dataCurrent]));
-                                memcpy(App_Common::i2cOledPrefs[App_Common::dataOrig],
-                                       App_Common::i2cOledPrefs[App_Common::dataCurrent],
-                                       sizeof(App_Common::i2cOledPrefs[App_Common::dataCurrent]));
+                            if(OneShotSend((char)OF_Const::sGetProfile, true)) {
 
-                                emit Serial_ProgressUpdate(5, "Getting Profiles Data");
-
-                                // profiles
-                                App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
-
-                                for(int i = 0;; ++i) {
-                                    port.clear();
-                                    if(char buf[] = {(char)OF_Const::sGetProfile, (char)i}; OneShotSend(buf, 2, true)) {
-                                        if(port.peek(1).at(0) == (char)OF_Const::serialTerminator) {
-                                            break;
-                                        } else {
-                                            App_Common::profilesTable << App_Common::profilesTable_s(), App_Common::profilesTable_orig << App_Common::profilesTable_s();
-
-                                            while(port.bytesAvailable()) {
-                                                switch(port.read(1).at(0)) {
-                                                case (char)OF_Const::profTopOffset:    port.read((char*)&App_Common::profilesTable[i].topOffset,     sizeof(uint32_t)); break;
-                                                case (char)OF_Const::profBottomOffset: port.read((char*)&App_Common::profilesTable[i].bottomOffset,  sizeof(uint32_t)); break;
-                                                case (char)OF_Const::profLeftOffset:   port.read((char*)&App_Common::profilesTable[i].leftOffset,    sizeof(uint32_t)); break;
-                                                case (char)OF_Const::profRightOffset:  port.read((char*)&App_Common::profilesTable[i].rightOffset,   sizeof(uint32_t)); break;
-                                                case (char)OF_Const::profTLled:        port.read((char*)&App_Common::profilesTable[i].TLled,         sizeof(float));    break;
-                                                case (char)OF_Const::profTRled:        port.read((char*)&App_Common::profilesTable[i].TRled,         sizeof(float));    break;
-                                                case (char)OF_Const::profIrSens:       port.read((char*)&App_Common::profilesTable[i].irSensitivity, sizeof(uint8_t));  break;
-                                                case (char)OF_Const::profRunMode:      port.read((char*)&App_Common::profilesTable[i].runMode,       sizeof(uint8_t));  break;
-                                                case (char)OF_Const::profIrLayout:     port.read((char*)&App_Common::profilesTable[i].layoutType,    sizeof(uint8_t));  break;
-                                                case (char)OF_Const::profColor:        port.read((char*)&App_Common::profilesTable[i].color,         sizeof(uint32_t)); break;
-                                                case (char)OF_Const::profName:                           App_Common::profilesTable[i].profName = port.read(16);         break;
-                                                default: break;
-                                                }
-                                            }
-
-                                            App_Common::profilesTable_orig[i] = App_Common::profilesTable.at(i);
-                                        }
-                                    } else break;
-                                }
-
-                                emit Serial_ProgressUpdate(6, "Successfully synced data!");
-                                return true;
+                                if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
+                                    App_Common::profilesTable_orig = App_Common::profilesTable;
+                                    App_Common::board.previousProfile = App_Common::board.selectedProfile;
+                                    emit Serial_ProgressUpdate(5, "Successfully synced data!");
+                                    return true;
+                                } else return false;
                             } else {
                                 printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
                                 return false;
@@ -297,6 +210,68 @@ bool AppSerial::GetSettings(const QString &portName)
     } else return false;
 }
 
+bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::string, int> &dataMap, const size_t &dataSize)
+{
+    QByteArray buf;
+    uint8_t sizeRead = 0;
+    while(true) {
+        if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+        else if(!port.bytesAvailable()) { if(!port.waitForReadyRead(500)) break; }
+        else {
+            buf = RecvDataName();
+
+            port.read((char*)&sizeRead, 1);
+
+            // is this string detected in strings map?
+            if(dataMap.count(buf.constData())) {
+                // For Pins/Inputs Map data (write to InputsMap rather than pointer)
+                if(dataPtr == &App_Common::inputsMap_orig)
+                    port.read((char*)&App_Common::inputsMap_orig[dataMap.at(buf.constData())], sizeRead);
+                // For Profile Data (has extra bits)
+                else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
+                    // Current Profile bit has no extra profile bit like the rest of the data
+                    if(dataMap.at(buf.constData()) == OF_Const::profCurrent) {
+                        port.read((char*)&App_Common::board.selectedProfile, sizeRead);
+                    } else {
+                        size_t profNum = 0;
+                        port.read((char*)&profNum, 1);
+
+                        if(profNum == App_Common::profilesTable.size())
+                            App_Common::profilesTable << App_Common::profilesTable_s();
+
+                        port.read((char*)&App_Common::profilesTable[profNum] + (dataSize * dataMap.at(buf.constData())), sizeRead);
+                    }
+                // All other (Generic) data
+                } else port.read((char*)dataPtr + (dataSize * dataMap.at(buf.constData())),  sizeRead);
+            // String not detected, skip over
+            } else {
+                printf("No data found for %s\n", buf.constData());
+                // skip the profile num byte if reading profile type data
+                if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) port.read(1);
+                port.read(sizeRead);
+            }
+        }
+    }
+    // if exited from serialTerminator at start of RX buffer, prune that out before exiting
+    port.read(1);
+    return true;
+}
+
+QByteArray AppSerial::RecvDataName()
+{
+    QByteArray data;
+    size_t pos = 0;
+    while(true) {
+        pos += port.read(&RXbuf[pos], port.peek(port.bytesAvailable()).indexOf('\0') < 0 ? port.bytesAvailable() : port.peek(port.bytesAvailable()).indexOf('\0')+1);
+        if(RXbuf[pos-1] != '\0') {
+            if(!port.waitForReadyRead(500)) return "";
+        } else {
+            data.append(RXbuf, pos);
+            return data;
+        }
+    }
+}
+
 bool AppSerial::OneShotSend(const char* string, const unsigned int &len, const bool &waitForResponse)
 {
     if(port.isOpen()) {
@@ -326,7 +301,7 @@ bool AppSerial::OneShotSend(const char &chara, const bool &waitForResponse)
 bool AppSerial::CommitSettings()
 {
     if(port.isOpen()) {
-        emit Serial_SetProgressRange(8);
+        emit Serial_SetProgressRange(7);
 
         if(OneShotSend((char)OF_Const::sCommitStart, true)) {
             // in case board sends a stale temp/analog state response.
@@ -338,133 +313,115 @@ bool AppSerial::CommitSettings()
 
             port.clear();
 
-            char buf[64];
-
             emit Serial_ProgressUpdate(1, "Sending Toggles...");
-            for(int i = 0; i < OF_Const::boolTypesCount; ++i) {
-                memset(buf, '\0', 3);
-                buf[0] = (char)OF_Const::sCommitToggles, buf[1] = (char)i, buf[2] = (char)App_Common::boolSettings[App_Common::dataCurrent][i];
-                if(OneShotSend(buf, 3, true)) {
-                    if(port.read(1).at(0) != App_Common::boolSettings[App_Common::dataCurrent][i]) {
-                        OneShotSend((char)OF_Const::serialTerminator);
-                        return false;
-                    }
-                } else return false;
-            }
+            if(!BatchSendSettings(App_Common::boolSettings[App_Common::dataCurrent],
+                                  App_Common::OFPresets.boolTypes_Strings,
+                                  sizeof(App_Common::boolSettings[App_Common::dataCurrent]) / OF_Const::boolTypesCount))
+                return false;
 
             if(App_Common::boolSettings[OF_Const::customPins]) {
                 emit Serial_ProgressUpdate(2, "Sending Pins Map...");
-                for(int i = 0; i < OF_Const::boardInputsCount; ++i) {
-                    memset(buf, '\0', 3);
-                    buf[0] = (char)OF_Const::sCommitPins, buf[1] = (char)i, buf[2] = (char)App_Common::inputsMap.value(i);
-                    if(OneShotSend(buf, 3, true)) {
-                        if(port.read(1).at(0) != App_Common::inputsMap.value(i)) {
-                            OneShotSend((char)OF_Const::serialTerminator);
-                            return false;
-                        }
-                    } else return false;
-                }
+                // convert pins map to temp buffer
+                int8_t inputMapFW[OF_Const::boardInputsCount];
+                for(size_t i = 0; i < OF_Const::boardInputsCount; ++i)
+                    inputMapFW[i] = App_Common::inputsMap.value(i);
+
+                if(!BatchSendSettings(inputMapFW,
+                                      App_Common::OFPresets.boardInputs_Strings,
+                                      sizeof(inputMapFW) / OF_Const::boardInputsCount))
+                    return false;
             }
 
             emit Serial_ProgressUpdate(3, "Sending Settings...");
-            for(int i = 0; i < OF_Const::settingsTypesCount; ++i) {
-                memset(buf, '\0', 6);
-                buf[0] = (char)OF_Const::sCommitSettings, buf[1] = (char)i;
-                memcpy(&buf[2], (uint8_t*)&App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t));
-                if(OneShotSend(buf, 6, true)) {
-                    if(memcmp(port.read(4).constData(), &App_Common::settingsTable[App_Common::dataCurrent][i], sizeof(uint32_t))) {
-                        OneShotSend((char)OF_Const::serialTerminator);
-                        return false;
-                    }
-                } else return false;
-            }
+            if(!BatchSendSettings(App_Common::settingsTable[App_Common::dataCurrent],
+                                  App_Common::OFPresets.settingsTypes_Strings,
+                                  sizeof(App_Common::settingsTable[App_Common::dataCurrent]) / OF_Const::settingsTypesCount))
+                return false;
 
             emit Serial_ProgressUpdate(4, "Sending Profile Data...");
-            for(int i = 0; i < App_Common::profilesTable.count(); ++i) {
-                memset(buf, '\0', 19);
-                buf[0] = (char)OF_Const::sCommitProfile,
-                    buf[1] = (char)i,
-                    buf[2] = (char)OF_Const::profIrSens,
-                    buf[3] = (char)App_Common::profilesTable.at(i).irSensitivity;
-
-                if(OneShotSend(buf, 7, true)) if(port.read(4).at(0) != App_Common::profilesTable.at(i).irSensitivity)
-                    { OneShotSend((char)OF_Const::serialTerminator); return false; }
-
-                buf[2] = OF_Const::profRunMode, buf[3] = App_Common::profilesTable.at(i).runMode;
-                if(OneShotSend(buf, 7, true)) if(port.read(4).at(0) != App_Common::profilesTable.at(i).runMode)
-                    { OneShotSend((char)OF_Const::serialTerminator); return false; }
-
-                buf[2] = OF_Const::profIrLayout, buf[3] = App_Common::profilesTable.at(i).layoutType;
-                if(OneShotSend(buf, 7, true)) if(port.read(4).at(0) != App_Common::profilesTable.at(i).layoutType)
-                    { OneShotSend((char)OF_Const::serialTerminator); return false; }
-
-                buf[2] = OF_Const::profColor;
-                memcpy(&buf[3], (uint8_t*)&App_Common::profilesTable.at(i).color, sizeof(uint32_t));
-                if(OneShotSend(buf, 7, true)) if(memcmp(port.read(4).constData(), (uint8_t*)&App_Common::profilesTable.at(i).color, sizeof(uint32_t)))
-                    { OneShotSend((char)OF_Const::serialTerminator); return false; }
-
-                buf[2] = OF_Const::profName;
-                memset(&buf[3], '\0', 16);
-                memcpy(&buf[3], App_Common::profilesTable.at(i).profName.constData(), App_Common::profilesTable.at(i).profName.length());
-                if(OneShotSend(buf, 19, true)) if(strcmp(port.read(16).constData(), App_Common::profilesTable.at(i).profName.constData()))
-                    { OneShotSend((char)OF_Const::serialTerminator); return false; }
-            }
-
-            if(App_Common::inputsMap.value(OF_Const::periphSDA) > -1 && App_Common::inputsMap.value(OF_Const::periphSCL) > -1) {
-                emit Serial_ProgressUpdate(5, "Sending I2C Peripherals Data...");
-                memset(buf, '\0', 20);
-                buf[0] = (char)OF_Const::sCommitPeriphs;
-                for(int i = 0; i < OF_Const::i2cDevicesCount; ++i) {
-                    buf[1] = (char)OF_Const::i2cDevicesEnabled;
-                    buf[2] = (char)i;
-                    buf[3] = (char)App_Common::i2cPeriphs[App_Common::dataCurrent][i];
-                    if(OneShotSend(buf, 4, true)) if(port.read(1).at(0) != App_Common::i2cPeriphs[App_Common::dataCurrent][i])
-                        { OneShotSend((char)OF_Const::serialTerminator); return false; }
-
-                    switch(i) {
-                    case OF_Const::i2cOLED:
-                        buf[1] = (char)OF_Const::i2cOLED;
-                        for(int type = 0; type < OF_Const::oledSettingsTypes; ++type) {
-                            buf[2] = (char)type;
-                            memcpy(&buf[3], (uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], sizeof(uint32_t));
-                            if(OneShotSend(buf, 7, true)) if(memcmp((uint8_t*)&App_Common::i2cOledPrefs[App_Common::dataCurrent][type], port.read(4).constData(), sizeof(uint32_t)))
-                                { OneShotSend((char)OF_Const::serialTerminator); return false; }
-                        }
-                        break;
-                    default: break;
-                    }
-                }
-            }
-
-            emit Serial_ProgressUpdate(6, "Sending TinyUSB ID Data...");
-            memset(buf, '0', 18);
-            buf[0] = (char)OF_Const::sCommitID, buf[1] = (char)OF_Const::usbPID;
-            memcpy(&buf[2], (uint8_t*)&App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t));
-            if(OneShotSend(buf, 4, true)) {
-                if(memcmp(port.read(2).constData(), &App_Common::tinyUSBtable.tinyUSBid, sizeof(uint16_t))) {
-                    OneShotSend((char)OF_Const::serialTerminator);
+            for(size_t i = 0; i < App_Common::profilesTable.count(); ++i) {
+                if(!BatchSendSettings(&App_Common::profilesTable[i],
+                                      App_Common::OFPresets.profSettingTypes_Strings,
+                                      sizeof(float),
+                                      i))
                     return false;
-                }
-                memset(&buf[1], '\0', 17);
-                buf[1] = (char)OF_Const::usbName;
-                memcpy(&buf[2], (uint8_t*)App_Common::tinyUSBtable.tinyUSBname.constData(), App_Common::tinyUSBtable.tinyUSBname.size());
-                if(OneShotSend(buf, 18, true)) {
-                    if(strcmp(port.read(16).constData(), App_Common::tinyUSBtable.tinyUSBname.constData())) {
-                        OneShotSend((char)OF_Const::serialTerminator);
-                        return false;
-                    }
-                } else return false;
-            } else return false;
+            }
 
-            emit Serial_ProgressUpdate(7, "Saving...");
+            emit Serial_ProgressUpdate(5, "Sending TinyUSB ID Data...");
+            TXbuf[0] = (char)OF_Const::sCommitID;
+            memcpy(&TXbuf[1], (uint8_t*)&App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
+            for(size_t sendAttempt = 1;; ++sendAttempt) {
+                if(OneShotSend(TXbuf, sizeof(uint8_t)+sizeof(App_Common::tinyUSBtable_s), true)) {
+                    port.read(RXbuf, sizeof(App_Common::tinyUSBtable_s));
+                    if(memcmp(&App_Common::tinyUSBtable, RXbuf, sizeof(App_Common::tinyUSBtable_s))) {
+                        if(sendAttempt >= 3) return false;
+                    } else break;
+                } else return false;
+            }
+
+            emit Serial_ProgressUpdate(6, "Saving...");
             if(OneShotSend((char)OF_Const::sSave, true)) {
                 if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
-                    emit Serial_ProgressUpdate(8);
+                    emit Serial_ProgressUpdate(7);
                     return true;
                 } else return false;
             } else return false;
         } else return false;
     } else return false;
+}
+
+bool AppSerial::BatchSendSettings(void *dataPtr, const std::unordered_map<std::string, int> &dataMap, const size_t &dataSize, const size_t &profNum)
+{
+    size_t txLen = 0;
+    bool profCurrentMarked = false;
+    if(&dataMap == &App_Common::OFPresets.boolTypes_Strings)
+        TXbuf[txLen++] = OF_Const::sCommitToggles;
+    else if(&dataMap == &App_Common::OFPresets.boardInputs_Strings)
+        TXbuf[txLen++] = OF_Const::sCommitPins;
+    else if(&dataMap == &App_Common::OFPresets.settingsTypes_Strings)
+        TXbuf[txLen++] = OF_Const::sCommitSettings;
+    else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings)
+        TXbuf[txLen++] = OF_Const::sCommitProfile;
+    for(auto &pair : dataMap) {
+        txLen = 1;
+        strcpy(&TXbuf[txLen], pair.first.c_str());
+        // std::string length doesn't account for terminator
+        txLen += pair.first.length()+1;
+
+        if(dataMap == App_Common::OFPresets.profSettingTypes_Strings) {
+            if(pair.second < OF_Const::profIrSens) continue;
+            else if(pair.second == OF_Const::profCurrent) {
+                if(profCurrentMarked) continue;
+                TXbuf[txLen++] = sizeof(uint8_t);
+                TXbuf[txLen++] = App_Common::board.selectedProfile;
+                profCurrentMarked = true;
+            } else {
+                if(pair.second == OF_Const::profName)
+                     TXbuf[txLen++] = sizeof(App_Common::profilesTable_s::profName);
+                else TXbuf[txLen++] = dataSize;
+
+                TXbuf[txLen++] = profNum;
+
+                memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), TXbuf[txLen-2]);
+                txLen += TXbuf[txLen-2];
+            }
+        } else {
+            TXbuf[txLen++] = dataSize;
+            memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), dataSize);
+            txLen += dataSize;
+        }
+
+        // try to resend data if not matching, fail after three tries
+        for(size_t sendAttempt = 1;; ++sendAttempt) {
+            if(OneShotSend(TXbuf, txLen, true)) {
+                port.read(RXbuf, port.bytesAvailable());
+                if(memcmp(&TXbuf[1], RXbuf, txLen-1)) {
+                    if(sendAttempt >= 3) return false;
+                } else break;
+            } else return false;
+        }
+    }
+    return true;
 }
 
 void AppSerial::Disconnect()

@@ -62,6 +62,20 @@ public:
     /// @param      Index of currentPorts list to pull from
     bool GetSettings(const QString &);
 
+    /// @brief      Macro for saving batches of settings being received over serial
+    /// @returns    Success (true) or failure (false)
+    /// @param      void*
+    ///             Pointer to data array
+    /// @param      unordered_map
+    ///             Map from OF_Const::OFPresets to reference for string names and respective indices
+    /// @param      size_t
+    ///             Size of data blocks that void* points to, for correct seeks through array elements by address
+    bool BatchStoreSettings(void*, const std::unordered_map<std::string, int>&, const size_t&);
+
+    /// @brief      Macro for processing name of data type
+    /// @returns    Name received from serial
+    QByteArray RecvDataName();
+
     /// @brief      Sends serial message to currently connected Serial device
     /// @returns    Success (true) or failure (false)
     /// @param      QString
@@ -72,6 +86,16 @@ public:
     /// @brief      Commits settings (App_Const) to currently connected Serial device
     /// @returns    Success (true) or failure (false)
     bool CommitSettings();
+
+    /// @brief      Macro for committing batches of data to board
+    /// @returns    Success (true) or failure (false)
+    /// @param      void*
+    ///             Pointer to data array
+    /// @param      unordered_map
+    ///             Map from OF_Const::OFPresets to reference for string names and respective indices
+    /// @param      size_t
+    ///             Size of data blocks that void* points to, for correct seeks through array elements by address
+    bool BatchSendSettings(void*, const std::unordered_map<std::string, int>&, const size_t&, const size_t& = 0);
 
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();
@@ -94,6 +118,9 @@ public:
 
 private:
     QMessageBox syncError;
+
+    char RXbuf[64];
+    char TXbuf[64];
 
 signals:
     /// @brief
