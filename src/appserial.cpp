@@ -274,13 +274,11 @@ QByteArray AppSerial::RecvDataName()
     QByteArray data;
     size_t pos = 0;
     while(true) {
-        qDebug() << port.peek(port.bytesAvailable());
         pos += port.read(&RXbuf[pos], port.peek(port.bytesAvailable()).indexOf('\0') < 0 ? port.bytesAvailable() : port.peek(port.bytesAvailable()).indexOf('\0')+1);
         if(RXbuf[pos-1] != '\0') {
             if(!port.waitForReadyRead(500)) return "";
         } else {
             data.append(RXbuf, pos);
-            qDebug() << data;
             return data;
         }
     }
