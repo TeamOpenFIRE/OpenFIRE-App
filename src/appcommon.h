@@ -52,31 +52,35 @@ public:
         dataOrig
     } dataBlocks_e;
 
+    // Single instance of presets and board info
+    static inline OF_Const OFPresets;
+
     typedef struct boardInfo_t {
-        uint8_t    selectedProfile;
-        uint8_t    previousProfile;
+        int        selectedProfile;
+        int        previousProfile;
         QByteArray boardType;
         QByteArray versionNumber;
-        QByteArray versionCodename;
     } boardInfo_s;
 
     typedef struct tinyUSBtable_t {
         uint16_t   tinyUSBid;
-        QByteArray tinyUSBname;
+        char       tinyUSBname[16];
     } tinyUSBtable_s;
 
     typedef struct profilesTable_t {
-        int32_t  topOffset      = 0;
-        int32_t  bottomOffset   = 0;
-        int32_t  leftOffset     = 0;
-        int32_t  rightOffset    = 0;
-        float    TLled          = 0;
-        float    TRled          = 0;
-        uint8_t  irSensitivity  = 0;
-        uint8_t  runMode        = 0;
-        uint8_t  layoutType     = false;
-        uint32_t color          = 0;
-        QByteArray profName     = "";
+        int32_t    topOffset     = 0;
+        int32_t    bottomOffset  = 0;
+        int32_t    leftOffset    = 0;
+        int32_t    rightOffset   = 0;
+        float      TLled         = 0;
+        float      TRled         = 0;
+        float      AdjX          = 0;
+        float      AdjY          = 0;
+        uint32_t   irSensitivity = 0;
+        uint32_t   runMode       = 0;
+        uint32_t   layoutType    = false;
+        uint32_t   color         = 0;
+        char       profName[16]  = "";
     } profilesTable_s;
 
     // Currently loaded board object
@@ -90,11 +94,6 @@ public:
 
     /// @brief      Current array of tunable settings
     static inline uint32_t settingsTable[2][OF_Const::settingsTypesCount] = { 0 };
-
-    /// @brief      Array of I2C peripheral devices that can be toggled
-    static inline bool i2cPeriphs[2][OF_Const::i2cDevicesCount] = { false };
-
-    static inline uint32_t i2cOledPrefs[2][OF_Const::oledSettingsTypes] = { false };
 
     // Currently loaded board's TinyUSB identifier info
     static inline tinyUSBtable_s tinyUSBtable;
