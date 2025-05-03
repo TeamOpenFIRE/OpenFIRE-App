@@ -1790,42 +1790,48 @@ void guiWindow::serialPort_progressUpdate(const int &pos, const char *statusText
 
 void guiWindow::on_rumbleTestBtn_clicked()
 {
-    if(serial.OneShotSend((char)OF_Const::sTestRumble))
+    char buf[2] = { (char)OF_Const::sTestRumble, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
         ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
 }
 
 
 void guiWindow::on_solenoidTestBtn_clicked()
 {
-    if(serial.OneShotSend((char)OF_Const::sTestSolenoid))
+    char buf[2] = { (char)OF_Const::sTestSolenoid, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
         ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
 }
 
 
 void guiWindow::on_redLedTestBtn_clicked()
 {
-    if(serial.OneShotSend((char)OF_Const::sTestLEDR))
+    char buf[2] = { (char)OF_Const::sTestLEDR, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
         ui->statusBar->showMessage("Set LED to Red.", 2500);
 }
 
 
 void guiWindow::on_greenLedTestBtn_clicked()
 {
-    if(serial.OneShotSend((char)OF_Const::sTestLEDG))
+    char buf[2] = { (char)OF_Const::sTestLEDG, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
         ui->statusBar->showMessage("Set LED to Green.", 2500);
 }
 
 
 void guiWindow::on_blueLedTestBtn_clicked()
 {
-    if(serial.OneShotSend((char)OF_Const::sTestLEDB))
+    char buf[2] = { (char)OF_Const::sTestLEDB, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
         ui->statusBar->showMessage("Set LED to Blue.", 2500);
 }
 
 
 void guiWindow::on_testBtn_clicked()
 {
-    serial.OneShotSend((char)OF_Const::sIRTest);
+    char buf[2] = { (char)OF_Const::sIRTest, true };
+    serial.OneShotSend(buf, sizeof(buf));
 }
 
 
@@ -1874,7 +1880,9 @@ void guiWindow::CaliWindowExiting(const int &mode,
         break;
     }
     case AppCaliWindow::modeIRTest:
-        if(serial.OneShotSend((char)OF_Const::sIRTest)) {
+    {
+        char buf[2] = { (char)OF_Const::sIRTest, false };
+        if(serial.OneShotSend(buf, sizeof(buf))) {
             ui->buttonsTestArea->setEnabled(true);
             ui->pinsTab->setEnabled(true);
             ui->settingsTab->setEnabled(true);
@@ -1883,6 +1891,7 @@ void guiWindow::CaliWindowExiting(const int &mode,
             ui->dangerZoneBox->setEnabled(true);
         }
         break;
+    }
     case AppCaliWindow::modeAlignment:
     default:
         break;
@@ -1920,7 +1929,7 @@ void guiWindow::on_clearEepromBtn_clicked()
     if(messageBox.exec() == QMessageBox::Yes) {
         ui->statusBar->showMessage("Board reset to initial settings.");
         char buf[2] = { (char)OF_Const::sClearFlash, (char)OF_Const::sClearFlash };
-        serial.OneShotSend(buf, 2);
+        serial.OneShotSend(buf, sizeof(buf));
         ui->comPortSelector->setCurrentIndex(0);
     } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
 }
