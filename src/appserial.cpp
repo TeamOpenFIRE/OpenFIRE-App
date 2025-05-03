@@ -98,8 +98,8 @@ bool AppSerial::GetSettings(const QString &portName)
                     App_Common::board.boardType = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.boardType.constData());
 
-                    memcpy(&App_Common::tinyUSBtable, buffer.at(0).constData(), buffer.at(0).length());
-                    memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, buffer.takeFirst().length());
+                    memcpy(&App_Common::tinyUSBtable, buffer.takeFirst().constData(), sizeof(App_Common::tinyUSBtable_s));
+                    memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
                     
                     if(buffer.size()) if(buffer.takeFirst().at(0) == (char)OF_Const::sError)
                         ShowError("Device Error: Camera not available!",
