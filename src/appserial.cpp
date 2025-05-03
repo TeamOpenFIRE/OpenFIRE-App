@@ -169,11 +169,11 @@ bool AppSerial::GetSettings(const QString &portName)
 
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetProfile, true)) {
-
                                 if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
                                     App_Common::profilesTable_orig = App_Common::profilesTable;
                                     App_Common::board.previousProfile = App_Common::board.selectedProfile;
                                     emit Serial_ProgressUpdate(5, "Successfully synced data!");
+                                    port.clear();
                                     return true;
                                 } else return false;
                             } else {
@@ -220,34 +220,46 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
         else {
             buf = RecvDataName();
 
+            if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
             port.read((char*)&sizeRead, 1);
 
             // is this string detected in strings map?
             if(dataMap.count(buf.constData())) {
                 // For Pins/Inputs Map data (write to InputsMap rather than pointer)
-                if(dataPtr == &App_Common::inputsMap_orig)
+                if(dataPtr == &App_Common::inputsMap_orig) {
+                    if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                     port.read((char*)&App_Common::inputsMap_orig[dataMap.at(buf.constData())], sizeRead);
                 // For Profile Data (has extra bits)
-                else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
+                } else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
                     // Current Profile bit has no extra profile bit like the rest of the data
                     if(dataMap.at(buf.constData()) == OF_Const::profCurrent) {
+                        if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&App_Common::board.selectedProfile, sizeRead);
                     } else {
                         size_t profNum = 0;
+                        if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&profNum, 1);
 
                         if(profNum == App_Common::profilesTable.size())
                             App_Common::profilesTable << App_Common::profilesTable_s();
 
+                        if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&App_Common::profilesTable[profNum] + (dataSize * dataMap.at(buf.constData())), sizeRead);
                     }
                 // All other (Generic) data
-                } else port.read((char*)dataPtr + (dataSize * dataMap.at(buf.constData())),  sizeRead);
+                } else {
+                    if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
+                    port.read((char*)dataPtr + (dataSize * dataMap.at(buf.constData())),  sizeRead);
+                }
             // String not detected, skip over
             } else {
                 printf("No data found for %s\n", buf.constData());
                 // skip the profile num byte if reading profile type data
-                if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) port.read(1);
+                if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
+                    if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
+                    port.read(1);
+                }
+                if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                 port.read(sizeRead);
             }
         }
@@ -363,6 +375,7 @@ bool AppSerial::CommitSettings()
             if(OneShotSend((char)OF_Const::sSave, true)) {
                 if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
                     emit Serial_ProgressUpdate(7);
+                    port.clear();
                     return true;
                 } else return false;
             } else return false;
