@@ -169,11 +169,11 @@ bool AppSerial::GetSettings(const QString &portName)
 
                             port.clear();
                             if(OneShotSend((char)OF_Const::sGetProfile, true)) {
-
                                 if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
                                     App_Common::profilesTable_orig = App_Common::profilesTable;
                                     App_Common::board.previousProfile = App_Common::board.selectedProfile;
                                     emit Serial_ProgressUpdate(5, "Successfully synced data!");
+                                    port.clear();
                                     return true;
                                 } else return false;
                             } else {
@@ -375,6 +375,7 @@ bool AppSerial::CommitSettings()
             if(OneShotSend((char)OF_Const::sSave, true)) {
                 if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
                     emit Serial_ProgressUpdate(7);
+                    port.clear();
                     return true;
                 } else return false;
             } else return false;
