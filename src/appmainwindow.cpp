@@ -134,7 +134,7 @@ guiWindow::guiWindow(QWidget *parent)
     ui->tUSBLayoutAdvanced->setVisible(false);
 
     // set hidden by default until a board with presets is loaded
-    ui->presetsBox->setVisible(true);
+    ui->presetsBox->setVisible(false);
     ui->solenoidTempBox->setVisible(false);
 
     ui->versionLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
@@ -1067,7 +1067,7 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins] = arg1;
     BoxesUpdate();
 
-    ui->customLayoutToolBtn->setEnabled(arg1);
+    ui->actionExport_Custom_Layout->setEnabled(arg1);
 
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
         ui->solenoidFFBox->setEnabled(true);
@@ -2028,7 +2028,7 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
         QFile fileIn(path);
         if(fileIn.open(QFile::ReadOnly)) {
             if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
-                ui->customPinsEnabled->setChecked(true);
+                if(!ui->customPinsEnabled->isChecked()) ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
                 for(const auto &box : qAsConst(pinBoxes))
                     box->setCurrentIndex(OF_Const::btnUnmapped+1);
