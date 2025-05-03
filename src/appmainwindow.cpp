@@ -1681,16 +1681,11 @@ void guiWindow::serialPort_readyRead()
                 break;
             case (char)OF_Const::sTestCoords:
                 if(caliWindow != nullptr) {
-                    if(caliWindow->GetWindowMode() != AppCaliWindow::modeIRTest) {
-                        NewCaliWindow(AppCaliWindow::modeIRTest);
-                    }
-                } else NewCaliWindow(AppCaliWindow::modeIRTest);
+                    int coordsList[12];
+                    serial.port.read((char*)coordsList, sizeof(coordsList));
 
-                int coordsList[12];
-                for(int i = 0; i < sizeof(coordsList) / sizeof(int); ++i)
-                    serial.port.read((char*)&coordsList[i], 4);
-
-                caliWindow->TestModeDraw(coordsList);
+                    caliWindow->TestModeDraw(coordsList);
+                } else serial.port.read(48);
                 break;
             case (char)OF_Const::sClearFlash:
                 ui->comPortSelector->setCurrentIndex(0);
@@ -1831,7 +1826,8 @@ void guiWindow::on_blueLedTestBtn_clicked()
 void guiWindow::on_testBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sIRTest, true };
-    serial.OneShotSend(buf, sizeof(buf));
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        NewCaliWindow(AppCaliWindow::modeIRTest);
 }
 
 
