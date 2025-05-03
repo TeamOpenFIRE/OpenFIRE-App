@@ -1869,7 +1869,7 @@ void guiWindow::CaliWindowExiting(const int &mode,
             TRled[selection]->setText(QString::number(topRightLedNew));
 
             DiffUpdate();
-            ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection) + " successful", 5000);
+            ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " successful", 5000);
         } else {
             ui->statusBar->showMessage("Calibration failed: invalid results, reverting to original values.", 10000);
         }
