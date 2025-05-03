@@ -82,22 +82,22 @@ guiWindow::guiWindow(QWidget *parent)
 #endif // OFAPP_GITHASH
 
     // get all fixed interactable elements marked to use event filter for hover stuff:
-    for(const auto child : this->findChildren<QPushButton*>())
+    for(const auto &child : this->findChildren<QPushButton*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
-    for(const auto child : this->findChildren<QCheckBox*>())
+    for(const auto &child : this->findChildren<QCheckBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
-    for(const auto child : this->findChildren<QLineEdit*>())
+    for(const auto &child : this->findChildren<QLineEdit*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
-    for(const auto child : this->findChildren<QSpinBox*>())
+    for(const auto &child : this->findChildren<QSpinBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
-    for(const auto child : this->findChildren<QComboBox*>())
+    for(const auto &child : this->findChildren<QComboBox*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
-    for(const auto child : this->findChildren<QRadioButton*>())
+    for(const auto &child : this->findChildren<QRadioButton*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
 
     // Connect boards view "custom layouts" actions to the button
@@ -217,14 +217,14 @@ void guiWindow::BoxesUpdate()
     // enabling custom pins
     if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
         // enable pinboxes
-        for(int i = 0; i < pinBoxes.count(); ++i)
-            pinBoxes.at(i)->setEnabled(true);
+        for(const auto &box : qAsConst(pinBoxes))
+            box->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
         if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]) {
             // reset pinboxes
-            for(int i = 0; i < pinBoxes.count(); ++i)
-                pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
+            for(const auto &box : qAsConst(pinBoxes))
+                box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
             for(int i = 0; i < App_Common::inputsMap_orig.count(); ++i)
@@ -240,7 +240,7 @@ void guiWindow::BoxesUpdate()
 
             // copy presets to inputs map
             if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
-                for(int i = 0; i < pinBoxes.count(); ++i)
+                for(size_t i = 0; i < pinBoxes.count(); ++i)
                     if(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i) > OF_Const::btnUnmapped)
                         App_Common::inputsMap[App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)] = i;
         }
@@ -250,12 +250,12 @@ void guiWindow::BoxesUpdate()
     // disabling custom pins, reset to presets
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
-        for(int i = 0; i < pinBoxes.count(); ++i)
-            pinBoxes.at(i)->setEnabled(false), pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
+        for(const auto &box : qAsConst(pinBoxes))
+            box->setEnabled(false), box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
         if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
-            for(int i = 0; i < pinBoxes.count(); ++i)
+            for(size_t i = 0; i < pinBoxes.count(); ++i)
                 pinBoxes.at(i)->setCurrentIndex(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)+1);
 
         return;
@@ -311,7 +311,7 @@ QString guiWindow::PrettifyName(QString name)
 
 void guiWindow::PixelsDiff()
 {
-    if( App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount]  == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcount]  &&
+    if( App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount ] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcount ] &&
         App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDstatic] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDstatic] &&
         App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor1] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor1] &&
         App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcolor2] == App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2] &&
@@ -436,7 +436,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         // if returns false, it failed, so just turn the index back to initial.
         serialActive = true;
         if(serial.GetSettings(text)) {
-            for(int i = 0; i < topOffset.count(); ++i) {
+            for(size_t i = 0; i < topOffset.count(); ++i) {
                 delete topOffset.at(i);
                 delete bottomOffset.at(i);
                 delete leftOffset.at(i);
@@ -467,7 +467,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             caliBtn.clear();
 
             int caliBtnRow;
-            for(uint8_t i = 0; i < App_Common::profilesTable.size(); ++i) {
+            for(int i = 0; i < App_Common::profilesTable.size(); ++i) {
                 caliBtnRow = i/4;
 
                 // create new assets for this profile
@@ -1036,7 +1036,7 @@ void guiWindow::renameBoxes_clicked()
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
         memset(App_Common::profilesTable[sender()->property("slot").toInt()].profName, 0, sizeof(App_Common::profilesTable_s::profName));
-        strcpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.left(15).toLocal8Bit().constData());
+        strncpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.toLocal8Bit().constData(), sizeof(App_Common::profilesTable_s::profName)-1);
     }
 
     DiffUpdate();
@@ -1067,9 +1067,7 @@ void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins] = arg1;
     BoxesUpdate();
 
-    if(arg1)
-        ui->customLayoutToolBtn->setEnabled(true);
-    else ui->customLayoutToolBtn->setEnabled(false);
+    ui->customLayoutToolBtn->setEnabled(arg1);
 
     if(App_Common::inputsMap.value(OF_Const::solenoidPin) > OF_Const::btnUnmapped) {
         ui->solenoidFFBox->setEnabled(true);
@@ -1378,8 +1376,7 @@ void guiWindow::on_productNameInput_textEdited(const QString &arg1)
     } else {
         if(!ui->productNameInput->styleSheet().isEmpty())
             ui->productNameInput->setStyleSheet("");
-        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
-        strcpy(App_Common::tinyUSBtable.tinyUSBname, arg1.toLocal8Bit().constData());
+        strncpy(App_Common::tinyUSBtable.tinyUSBname, arg1.toLocal8Bit().constData(), sizeof(App_Common::tinyUSBtable_s::tinyUSBname)-1);
         DiffUpdate();
     }
 }
@@ -1708,7 +1705,7 @@ void guiWindow::serialPort_SearchFinished()
             if(serial.currentPorts.count()) {
                 ui->comPortSelector->addItem("[Select a device]");
                 ui->comPortSelector->setCurrentIndex(0);
-                for(const auto port : serial.currentPorts)
+                for(auto &port : qAsConst(serial.currentPorts))
                     ui->comPortSelector->addItem(port.portName()+" (" + port.description() + ')');
             }
         // if comPort is filled
@@ -1720,7 +1717,7 @@ void guiWindow::serialPort_SearchFinished()
                     while(ui->comPortSelector->count() > 1)
                         ui->comPortSelector->removeItem(1);
 
-                    for(const auto newPort : serial.currentPorts)
+                    for(const auto &newPort : qAsConst(serial.currentPorts))
                         ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 // if comPort is active
                 } else {
@@ -1735,7 +1732,7 @@ void guiWindow::serialPort_SearchFinished()
                     // check if current comPort is still in devices list
                     // TODO: probably a better way of doing this, meh
                     bool inList = false;
-                    for(const auto newPort : serial.currentPorts)
+                    for(const auto &newPort : qAsConst(serial.currentPorts))
                         if(ui->comPortSelector->currentText() == newPort.portName()+" (" + newPort.description() + ')')
                             inList = true;
                     if(!inList) {
@@ -1744,7 +1741,7 @@ void guiWindow::serialPort_SearchFinished()
                     }
 
                     // append new items to list
-                    for(const auto newPort : serial.currentPorts)
+                    for(const auto &newPort : qAsConst(serial.currentPorts))
                         if(ui->comPortSelector->currentText() != newPort.portName()+" (" + newPort.description() + ')')
                             ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 }
@@ -2033,16 +2030,15 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
             if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
                 ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
-                for(int i = 0; i < pinBoxes.count(); ++i)
-                    pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
+                for(const auto &box : qAsConst(pinBoxes))
+                    box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
+                QByteArray inBuf;
                 // import new maps
-                for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(!fileIn.atEnd()) {
-                        const int newIdx = fileIn.read(1).toHex().toInt(nullptr, 16);
-                        if(newIdx <= OF_Const::boardInputsCount)
-                            pinBoxes.at(i)->setCurrentIndex(newIdx);
-                    } else break;
+                while(!fileIn.atEnd()) {
+                    inBuf = fileIn.read(fileIn.peek(fileIn.bytesAvailable()).indexOf('\0')+1);
+                    if(App_Common::OFPresets.boardInputs_Strings.count(inBuf.constData()))
+                        pinBoxes.at(fileIn.read(1).at(0))->setCurrentIndex(App_Common::OFPresets.boardInputs_Strings.at(inBuf.constData())+1);
                 }
 
                 fileIn.close();
@@ -2067,8 +2063,12 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
         if(fileOut.open(QFile::WriteOnly)) {
             fileOut.write(App_Common::board.boardType + '\n');
 
-            for(int i = 0; i < pinBoxes.count(); ++i)
-                fileOut.putChar(pinBoxes.at(i)->currentIndex());
+            for(auto &pair : App_Common::OFPresets.boardInputs_Strings) {
+                if(pair.second > OF_Const::btnUnmapped && App_Common::inputsMap.value(pair.second) > OF_Const::btnUnmapped) {
+                    fileOut.write(pair.first.c_str(), pair.first.length()+1);
+                    fileOut.putChar(App_Common::inputsMap.value(pair.second));
+                }
+            }
 
             fileOut.close();
             ui->statusBar->showMessage("Custom layout export successful!", 5000);

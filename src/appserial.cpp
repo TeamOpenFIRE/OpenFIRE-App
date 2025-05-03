@@ -44,7 +44,7 @@ bool AppSerial::SearchPorts()
             printf("Current ports list does not match new list, overriding...\n");
             currentPortsNames = GeneratePortsList(currentPorts);
             return true;
-        } else for(const auto &foundPort : serialFoundList) {
+        } else for(const auto &foundPort : qAsConst(serialFoundList)) {
             if(!currentPortsNames.contains(foundPort.portName())) {
                 currentPorts = serialFoundList;
                 printf("%s not found in current ports, overriding old serial devices list...\n", foundPort.portName().toLocal8Bit().constData());
@@ -73,7 +73,7 @@ bool AppSerial::GetSettings(const QString &portName)
         port.close();
     }
 
-    for(const auto &curPort : currentPorts)
+    for(const auto &curPort : qAsConst(currentPorts))
         if(portName == curPort.portName()+" (" + curPort.description() + ')')
             port.setPort(curPort);
 
