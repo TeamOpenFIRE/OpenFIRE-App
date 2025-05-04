@@ -63,6 +63,10 @@ guiWindow::guiWindow(QWidget *parent)
     }
 #endif
 
+#ifndef OFAPP_DEBUG
+    ui->actionDebug_Window->setVisible(false);
+#endif
+
     // Connect together Serial stuff
     connect(&serialSearchWatcher, &QFutureWatcher<uint8_t>::finished, this, &guiWindow::serialPort_SearchFinished);
     connect(&serial.port, &QSerialPort::readyRead, this, &guiWindow::serialPort_readyRead);
@@ -75,7 +79,7 @@ guiWindow::guiWindow(QWidget *parent)
     aliveTimer.start(ALIVE_TIMER);
     aliveTimer_timeout();
 
-#if defined(OFAPP_GITHASH)
+#ifdef OFAPP_GITHASH
     this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + '-' + QString(OFAPP_GITHASH) + ']');
 #else
     this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + ']');
@@ -163,6 +167,10 @@ guiWindow::~guiWindow()
         statusBar()->showMessage("Sending undock request to board...");
         serial.Disconnect();
     }
+
+#ifdef OFAPP_DEBUG
+    debugWindow.close();
+#endif
 
     delete ui;
 }
@@ -1573,7 +1581,9 @@ void guiWindow::caliBtns_clicked()
 // TODO: move to appserial
 void guiWindow::serialPort_readyRead()
 {
+#ifdef OFAPP_DEBUG
     debugWindow.AppendText(serial.port.peek(serial.port.bytesAvailable()));
+#endif
 
     if(!serialActive) {
         while(serial.port.bytesAvailable()) {
@@ -2077,7 +2087,10 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
     } else ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
 }
 
+
 void guiWindow::on_actionDebug_Window_triggered()
 {
+    #ifdef OFAPP_DEBUG
     debugWindow.show();
+    #endif
 }

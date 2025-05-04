@@ -2088,14 +2088,13 @@
     <addaction name="actionOpenFIRE_on_the_Web"/>
     <addaction name="actionOpenFIRE_Documentation"/>
     <addaction name="actionOpenFIRE_Serial_Usage"/>
-    <addaction name="separator"/>
-    <addaction name="actionDebug_Window"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
     </property>
     <addaction name="actionShow_Unsafe_Settings"/>
+    <addaction name="actionDebug_Window"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
