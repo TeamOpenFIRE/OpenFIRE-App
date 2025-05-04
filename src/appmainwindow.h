@@ -205,8 +205,10 @@ private:
     /// @brief      Boards previewer window
     AppBoardsPreviewer boardsWindow;
 
+#ifdef OFAPP_DEBUG
     /// @brief      Serial debug window
     AppDebugWindow debugWindow;
+#endif
 
     /// @brief      Macro for making new CaliWindows
     /// @param      int

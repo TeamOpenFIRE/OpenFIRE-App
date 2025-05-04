@@ -10,6 +10,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+    add_compile_definitions(OFAPP_DEBUG)
+endif()
+
 if(NOT OFAPP_QT_VERSIONS)
     set(OFAPP_QT_VERSIONS Qt6)
 endif()
