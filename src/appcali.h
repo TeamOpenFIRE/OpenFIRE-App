@@ -132,7 +132,8 @@ signals:
 
 private:
     enum {
-        ScaleSmall = 0,
+        ScaleTiny = 0,
+        ScaleSmall,
         ScaleBig,
         ScaleHiDPI
     } ScaleTypes_e;
@@ -258,11 +259,9 @@ private slots:
 
     /// @brief      Key listener, which only listens for ESC keypresses and exits when pressed in not Cali mode
     void sceneKeyCloseReceiver() {
-        if(mode != modeCalibrate) {
-            emit WindowExiting(mode);
-        } else {
-            emit CaliRequestToExit();
-        }
+        if(mode != modeCalibrate)
+             emit WindowExiting(mode);
+        else emit CaliRequestToExit();
     }
 
 };

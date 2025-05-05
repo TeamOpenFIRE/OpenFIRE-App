@@ -122,7 +122,8 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         if(bitmapText) {
             headerBitmap->setPixmap(GenerateText({"       Depending on your desired layout,       ",
                                                   "      your IR emitters should be aligned       ",
-                                                  "to either one of the two sets of colored boxes:"}));
+                                                  "         to either one of the two sets         ",
+                                                  "               of colored boxes:               "}));
             headerBitmap->setPos(scene.sceneRect().center().x()     - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
                                  scene.sceneRect().height() * 0.15  - (headerBitmap->boundingRect().center().y() * headerBitmap->scale()));
 
@@ -132,7 +133,7 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                                                         "    bottom of the display;   ",
                                                                         "each one being aligned to the"}));
             alignmentBitmapLeft->setScale(GetTextScale(TextSmall));
-            alignmentBitmapLeft->setPos(scene.sceneRect().width() * 0.05,
+            alignmentBitmapLeft->setPos(scene.sceneRect().width() * 0.02,
                                         (scene.sceneRect().height() * 0.3) + (alignmentBitmapLeft->boundingRect().center().y() * alignmentBitmapLeft->scale()));
             alignmentBitmapColoredLeft = new QGraphicsPixmapItem(GenerateText({"      Red-colored boxes.     "}, QColor(255, 100, 100)));
             alignmentBitmapColoredLeft->setScale(GetTextScale(TextSmall));
@@ -145,7 +146,7 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
                                                                          "    edges of the display;    ",
                                                                          "each one being aligned to the"}));
             alignmentBitmapRight->setScale(GetTextScale(TextSmall));
-            alignmentBitmapRight->setPos(scene.sceneRect().width()   * 0.96   - (alignmentBitmapRight->boundingRect().width()      * alignmentBitmapRight->scale()),
+            alignmentBitmapRight->setPos(scene.sceneRect().width()   * 0.98   - (alignmentBitmapRight->boundingRect().width()      * alignmentBitmapRight->scale()),
                                          (scene.sceneRect().height() * 0.3) + (alignmentBitmapRight->boundingRect().center().y() * alignmentBitmapRight->scale()));
             alignmentBitmapColoredRight = new QGraphicsPixmapItem(GenerateText({"     Green-colored boxes.    "}, QColor(100, 255, 100)));
             alignmentBitmapColoredRight->setScale(GetTextScale(TextSmall));
@@ -159,7 +160,8 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
         } else {
             headerText->setHtml("<p align=\"justify\">Depending on your desired layout,<br>"
                                 "your IR Emitters should be aligned<br>"
-                                "to either one of the two sets of colored boxes:</p>");
+                                "to either one of the two sets<br>"
+                                "of colored boxes:</p>");
             headerText->setPos(scene.sceneRect().center().x()      - headerText->boundingRect().center().x(),
                                (scene.sceneRect().height() * 0.25) - headerText->boundingRect().center().y());
 
@@ -202,40 +204,57 @@ AppCaliWindow::AppCaliWindow(QWidget *parent, const int &windowMode)
             scene.addItem(alignmentBoxesDiamond[i]);
         }
 
-        alignmentBoxesSquare[0]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.330)-60, scene.sceneRect().top()-10),
-                                                QPointF((scene.sceneRect().width()*0.330)+60, scene.sceneRect().top()+40)));
-        alignmentBoxesSquare[1]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.665)-60, scene.sceneRect().top()-10),
-                                                QPointF((scene.sceneRect().width()*0.665)+60, scene.sceneRect().top()+40)));
-        alignmentBoxesSquare[2]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.330)-60, scene.sceneRect().bottom()+10),
-                                                QPointF((scene.sceneRect().width()*0.330)+60, scene.sceneRect().bottom()-40)));
-        alignmentBoxesSquare[3]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.665)-60, scene.sceneRect().bottom()+10),
-                                                QPointF((scene.sceneRect().width()*0.665)+60, scene.sceneRect().bottom()-40)));
+        // square aligners
+        // widescreen
+        if(scene.sceneRect().width() / scene.sceneRect().height() > 1.4) {
+            alignmentBoxesSquare[0]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.3)-(15*GetTextScale(TextSub)), scene.sceneRect().top()-10),
+                                                    QPointF((scene.sceneRect().width()*0.3)+(15*GetTextScale(TextSub)), scene.sceneRect().top()+(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[1]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.7)-(15*GetTextScale(TextSub)), scene.sceneRect().top()-10),
+                                                    QPointF((scene.sceneRect().width()*0.7)+(15*GetTextScale(TextSub)), scene.sceneRect().top()+(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[2]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.3)-(15*GetTextScale(TextSub)), scene.sceneRect().bottom()+10),
+                                                    QPointF((scene.sceneRect().width()*0.3)+(15*GetTextScale(TextSub)), scene.sceneRect().bottom()-(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[3]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.7)-(15*GetTextScale(TextSub)), scene.sceneRect().bottom()+10),
+                                                    QPointF((scene.sceneRect().width()*0.7)+(15*GetTextScale(TextSub)), scene.sceneRect().bottom()-(10*GetTextScale(TextSub)))));
+            alignmentLines[0] = new QGraphicsPolygonItem(QPolygonF() << QPointF(scene.sceneRect().width()*0.3, scene.sceneRect().top()-10)
+                                                                     << QPointF(scene.sceneRect().width()*0.3, scene.sceneRect().bottom()+10)
+                                                                     << QPointF(scene.sceneRect().width()*0.7, scene.sceneRect().bottom()+10)
+                                                                     << QPointF(scene.sceneRect().width()*0.7, scene.sceneRect().top()-10));
+        // 4:3
+        } else {
+            alignmentBoxesSquare[0]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.2)-(15*GetTextScale(TextSub)), scene.sceneRect().top()-10),
+                                                    QPointF((scene.sceneRect().width()*0.2)+(15*GetTextScale(TextSub)), scene.sceneRect().top()+(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[1]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.8)-(15*GetTextScale(TextSub)), scene.sceneRect().top()-10),
+                                                    QPointF((scene.sceneRect().width()*0.8)+(15*GetTextScale(TextSub)), scene.sceneRect().top()+(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[2]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.2)-(15*GetTextScale(TextSub)), scene.sceneRect().bottom()+10),
+                                                    QPointF((scene.sceneRect().width()*0.2)+(15*GetTextScale(TextSub)), scene.sceneRect().bottom()-(10*GetTextScale(TextSub)))));
+            alignmentBoxesSquare[3]->setRect(QRectF(QPointF((scene.sceneRect().width()*0.8)-(15*GetTextScale(TextSub)), scene.sceneRect().bottom()+10),
+                                                    QPointF((scene.sceneRect().width()*0.8)+(15*GetTextScale(TextSub)), scene.sceneRect().bottom()-(10*GetTextScale(TextSub)))));
+            alignmentLines[0] = new QGraphicsPolygonItem(QPolygonF() << QPointF(scene.sceneRect().width()*0.2, scene.sceneRect().top()-10)
+                                                                     << QPointF(scene.sceneRect().width()*0.2, scene.sceneRect().bottom()+10)
+                                                                     << QPointF(scene.sceneRect().width()*0.8, scene.sceneRect().bottom()+10)
+                                                                     << QPointF(scene.sceneRect().width()*0.8, scene.sceneRect().top()-10));
+        }
 
-        alignmentBoxesDiamond[0]->setRect(QRectF(QPointF(scene.sceneRect().center().x()-60, scene.sceneRect().top()-10),
-                                                 QPointF(scene.sceneRect().center().x()+60, scene.sceneRect().top()+40)));
-        alignmentBoxesDiamond[1]->setRect(QRectF(QPointF(scene.sceneRect().center().x()-60, scene.sceneRect().bottom()+10),
-                                                 QPointF(scene.sceneRect().center().x()+60, scene.sceneRect().bottom()-40)));
-        alignmentBoxesDiamond[2]->setRect(QRectF(QPointF(scene.sceneRect().left()-10,       scene.sceneRect().center().y()-60),
-                                                 QPointF(scene.sceneRect().left()+40,       scene.sceneRect().center().y()+60)));
-        alignmentBoxesDiamond[3]->setRect(QRectF(QPointF(scene.sceneRect().right()+10,      scene.sceneRect().center().y()-60),
-                                                 QPointF(scene.sceneRect().right()-40,      scene.sceneRect().center().y()+60)));
-
-        // square
-        alignmentLines[0] = new QGraphicsPolygonItem(QPolygonF() << QPointF(scene.sceneRect().width()*0.330, scene.sceneRect().top()-10)
-                                                                 << QPointF(scene.sceneRect().width()*0.330, scene.sceneRect().bottom()+10)
-                                                                 << QPointF(scene.sceneRect().width()*0.665, scene.sceneRect().bottom()+10)
-                                                                 << QPointF(scene.sceneRect().width()*0.665, scene.sceneRect().top()-10));
-        alignmentLines[0]->setPen(QPen(QColor("firebrick"), 2));
-        // diamond
+        // diamond aligners
+        alignmentBoxesDiamond[0]->setRect(QRectF(QPointF(scene.sceneRect().center().x()-(15*GetTextScale(TextSub)), scene.sceneRect().top()-10),
+                                                 QPointF(scene.sceneRect().center().x()+(15*GetTextScale(TextSub)), scene.sceneRect().top()+(10*GetTextScale(TextSub)))));
+        alignmentBoxesDiamond[1]->setRect(QRectF(QPointF(scene.sceneRect().center().x()-(15*GetTextScale(TextSub)), scene.sceneRect().bottom()+10),
+                                                 QPointF(scene.sceneRect().center().x()+(15*GetTextScale(TextSub)), scene.sceneRect().bottom()-(10*GetTextScale(TextSub)))));
+        alignmentBoxesDiamond[2]->setRect(QRectF(QPointF(scene.sceneRect().left()-10,                               scene.sceneRect().center().y()-(15*GetTextScale(TextSub))),
+                                                 QPointF(scene.sceneRect().left()+(10*GetTextScale(TextSub)),       scene.sceneRect().center().y()+(15*GetTextScale(TextSub)))));
+        alignmentBoxesDiamond[3]->setRect(QRectF(QPointF(scene.sceneRect().right()+10,                              scene.sceneRect().center().y()-(15*GetTextScale(TextSub))),
+                                                 QPointF(scene.sceneRect().right()-(10*GetTextScale(TextSub)),      scene.sceneRect().center().y()+(15*GetTextScale(TextSub)))));
         alignmentLines[1] = new QGraphicsPolygonItem(QPolygonF() << QPointF(scene.sceneRect().center().x(), scene.sceneRect().top()-10)
                                                                  << QPointF(scene.sceneRect().center().x(), scene.sceneRect().bottom()+10)
                                                                  << QPointF(scene.sceneRect().left()-10,    scene.sceneRect().bottom()+10)
                                                                  << QPointF(scene.sceneRect().left()-10,    scene.sceneRect().center().y())
                                                                  << QPointF(scene.sceneRect().right()+10,   scene.sceneRect().center().y())
                                                                  << QPointF(scene.sceneRect().right()+10,  scene.sceneRect().top()-10));
+
+        alignmentLines[0]->setPen(QPen(QColor("firebrick"), 2));
         alignmentLines[1]->setPen(QPen(QColor("olivedrab"), 2));
 
-        for(int i = 0; i < 2; i++)
+        for(int i = 0; i < 2; ++i)
             scene.addItem(alignmentLines[i]);
 
         if(bitmapText) {
@@ -321,10 +340,12 @@ int AppCaliWindow::GetTextScale(const int &type)
 {
     if(scale == -1) {
         if(scene.sceneRect().height() >= 1440)
-                scale = ScaleHiDPI;
+             scale = ScaleHiDPI;
         else if(scene.sceneRect().height() >= 1080)
-                scale = ScaleBig;
-        else    scale = ScaleSmall;
+             scale = ScaleBig;
+        else if(scene.sceneRect().height() >= 720)
+             scale = ScaleSmall;
+        else scale = ScaleTiny;
     }
 
     switch(scale) {
@@ -340,7 +361,7 @@ int AppCaliWindow::GetTextScale(const int &type)
             if(bitmapText) return 3;
             else return 16;
         case Crosshair:
-            return 3;
+            return 4;
         }
     case ScaleBig:
         switch(type) {
@@ -354,7 +375,7 @@ int AppCaliWindow::GetTextScale(const int &type)
             if(bitmapText) return 2;
             else return 14;
         case Crosshair:
-            return 2;
+            return 3;
         }
     case ScaleSmall:
         switch(type) {
@@ -367,6 +388,20 @@ int AppCaliWindow::GetTextScale(const int &type)
         case TextSmall:
             if(bitmapText) return 2;
             else return 12;
+        case Crosshair:
+            return 3;
+        }
+    case ScaleTiny:
+        switch(type) {
+        case TextHeading:
+            if(bitmapText) return 2;
+            else return 14;
+        case TextSub:
+            if(bitmapText) return 2;
+            else return 12;
+        case TextSmall:
+            if(bitmapText) return 1;
+            else return 10;
         case Crosshair:
             return 2;
         }
@@ -449,8 +484,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
             headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
                                  caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
 
-            tutorialBitmap->setPixmap(  GenerateText({"Calibration can be exited without changes by pressing",
-                                                      "either Button A, Button B, or Button C (if available)."}));
+            tutorialBitmap->setPixmap(  GenerateText({"Calibration can be exited without changes",
+                                                      "  by pressing either Button A, Button B, ",
+                                                      "       or Button C (if available).       "}));
             tutorialBitmap->setPos(scene.sceneRect().center().x()     - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                    (scene.sceneRect().bottom() * 0.8) - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
 
@@ -467,8 +503,9 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
             headerText->setPos(scene.sceneRect().center().x() - headerText->boundingRect().center().x(),
                                caliStageText->pos().y()       + caliStageText->boundingRect().height());
 
-            tutorialText->setHtml("<p align=\"center\">Calibration can be exited without changes by pressing<br>"
-                                  "either <i>Button A,</i> <i>Button B,</i> or <i>Button C (if available).</i></p>");
+            tutorialText->setHtml("<p align=\"center\">Calibration can be exited without changes<br>"
+                                  "by pressing either <i>Button A,</i> <i>Button B,</i><br>"
+                                  "or <i>Button C (if available).</i></p>");
             tutorialText->setPos(scene.sceneRect().center().x()     - tutorialText->boundingRect().center().x(),
                                  (scene.sceneRect().bottom() * 0.8) - tutorialText->boundingRect().center().y());
         }
@@ -628,7 +665,7 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
 
                 tutorialBitmap->setPixmap(GenerateText({""}));
             } else {
-                caliStageBitmap->setPixmap( GenerateText({"WARNING: Possibly Malformed Calibration!!"}, QColor(225,25,25)));
+                caliStageBitmap->setPixmap(GenerateText({"WARNING: Possibly Malformed Calibration!!"}, QColor(225,25,25)));
                 caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
                                         scene.sceneRect().height() * 0.15   - (caliStageBitmap->boundingRect().center().y() * caliStageBitmap->scale()));
 
@@ -639,7 +676,7 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
                                      caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
 
                 tutorialBitmap->setPixmap(GenerateText({"Press Button A or Button B to restart calibration,",
-                                                        "           or pull the trigger to exit.           "},
+                                                        "  or pull trigger to exit without saving changes. "},
                                                        QColor(225,25,25)));
                 tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                        (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
