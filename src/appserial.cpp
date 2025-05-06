@@ -269,7 +269,9 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                 buf += port.read(sizeRead);
             }
-            qDebug() << buf << buf.length();
+
+            // Report back received buffer to board for verification
+            // (board will re-send output if buffers aren't matching)
             OneShotSend(buf.constData(), buf.length());
         }
     }
