@@ -216,6 +216,7 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
     uint8_t sizeRead = 0;
     while(true) {
         if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+        else if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::sError) return false;
         else if(!port.bytesAvailable()) { if(!port.waitForReadyRead(500)) break; }
         else {
             buf = RecvDataName();
