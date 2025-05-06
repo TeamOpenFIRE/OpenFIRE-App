@@ -216,12 +216,14 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
     uint8_t sizeRead = 0;
     while(true) {
         if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::serialTerminator) break;
+        else if(port.bytesAvailable() && port.peek(1).at(0) == (char)OF_Const::sError) return false;
         else if(!port.bytesAvailable()) { if(!port.waitForReadyRead(500)) break; }
         else {
             buf = RecvDataName();
 
             if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
             port.read((char*)&sizeRead, 1);
+            buf += sizeRead;
 
             // is this string detected in strings map?
             if(dataMap.count(buf.constData())) {
@@ -229,27 +231,32 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 if(dataPtr == &App_Common::inputsMap_orig) {
                     if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                     port.read((char*)&App_Common::inputsMap_orig[dataMap.at(buf.constData())], sizeRead);
+                    buf += App_Common::inputsMap_orig.value(dataMap.at(buf.constData()));
                 // For Profile Data (has extra bits)
                 } else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
                     // Current Profile bit has no extra profile bit like the rest of the data
                     if(dataMap.at(buf.constData()) == OF_Const::profCurrent) {
                         if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&App_Common::board.selectedProfile, sizeRead);
+                        buf += App_Common::board.selectedProfile;
                     } else {
                         size_t profNum = 0;
                         if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&profNum, 1);
+                        buf += profNum;
 
                         if(profNum == App_Common::profilesTable.size())
                             App_Common::profilesTable << App_Common::profilesTable_s();
 
                         if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                         port.read((char*)&App_Common::profilesTable[profNum] + (dataSize * dataMap.at(buf.constData())), sizeRead);
+                        buf.append((char*)&App_Common::profilesTable.at(profNum) + (dataSize * dataMap.at(buf.constData())), sizeRead);
                     }
                 // All other (Generic) data
                 } else {
                     if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                     port.read((char*)dataPtr + (dataSize * dataMap.at(buf.constData())),  sizeRead);
+                    buf.append((char*)dataPtr + (dataSize * dataMap.at(buf.constData())), sizeRead);
                 }
             // String not detected, skip over
             } else {
@@ -257,11 +264,15 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 // skip the profile num byte if reading profile type data
                 if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
                     if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
-                    port.read(1);
+                    buf += port.read(1);
                 }
                 if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
-                port.read(sizeRead);
+                buf += port.read(sizeRead);
             }
+
+            // Report back received buffer to board for verification
+            // (board will re-send output if buffers aren't matching)
+            OneShotSend(buf.constData(), buf.length());
         }
     }
     // if exited from serialTerminator at start of RX buffer, prune that out before exiting
