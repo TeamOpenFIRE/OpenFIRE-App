@@ -111,6 +111,55 @@ guiWindow::guiWindow(QWidget *parent)
     ui->PinsCenter->insertWidget(0, &boardPic, 1);
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    // Setup inputs map screen stuff
+    for(auto i = App_Common::keyboardInputsMap.cbegin(), end = App_Common::keyboardInputsMap.cend(); i != end; ++i)
+        App_Common::kbOrderedStrings[i.value().at(1)] = (char*)i.key().c_str();
+    for(auto i = App_Common::mouseMap.cbegin(), end = App_Common::mouseMap.cend(); i != end; ++i)
+        App_Common::mouseOrderedStrings[i.value().at(1)] = (char*)i.key().c_str();
+    for(auto i = App_Common::gamepadMap.cbegin(), end = App_Common::gamepadMap.cend(); i != end; ++i)
+        App_Common::gpadOrderedStrings[i.value().at(1)] = (char*)i.key().c_str();
+
+    for(int i = 0; i < BUTTON_COUNT-1; ++i) {
+        for(const auto &item : App_Common::inputFuncTypesStrings) {
+            btnFuncBox[0][0][i].addItem(item);
+            btnFuncBox[1][0][i].addItem(item);
+            btnFuncBox[2][0][i].addItem(item);
+        }
+        for(const auto &item : App_Common::gpadOrderedStrings)
+            btnFuncBox[2][1][i].addItem(item);
+
+        btnFuncLayout[i].addWidget(new QLabel(App_Common::OFPresets.boardInputs_sortedStr[i+1]), 1, Qt::AlignRight);
+        btnFuncLayout[i].addSpacing(4);
+
+        for(int slot = 0; slot < 3; ++slot) {
+            if(slot > 0) btnFuncLayout[i].addSpacing(6);
+
+            btnFuncLayout[i].addWidget(&btnFuncBox[slot][0][i]);
+
+            // only onscreen/offscreen have editable func type selectors
+            if(slot < 2) {
+                btnFuncBox[slot][0][i].setProperty("curType", 0);
+                connect(&btnFuncBox[slot][0][i], SIGNAL(activated(int)), this, SLOT(btnFuncTypeBox_activated(int)));
+            } else {
+                btnFuncBox[slot][0][i].setProperty("curType", App_Common::inputGamepad);
+                btnFuncBox[slot][0][i].setEnabled(false);
+                btnFuncBox[slot][0][i].setFrame(false);
+                btnFuncBox[slot][0][i].setCurrentIndex(App_Common::inputGamepad);
+            }
+
+            btnFuncBox[slot][0][i].setProperty("slot", slot);
+            btnFuncBox[slot][0][i].setProperty("btn", i);
+
+            btnFuncLayout[i].addWidget(&btnFuncBox[slot][1][i], 1);
+            btnFuncBox[slot][1][i].setProperty("slot", slot);
+            btnFuncBox[slot][1][i].setProperty("btn", i);
+
+            connect(&btnFuncBox[slot][1][i], &QComboBox::currentTextChanged, this, &guiWindow::btnFuncBox_currentTextChanged);
+        }
+
+        ui->btnFuncLayout->addLayout(&btnFuncLayout[i]);
+    }
+
     // Setup test screen buttons
     for(int i = 0; i < 14; ++i) {
         testLabel << new QLabel(App_Common::OFPresets.boardInputs_sortedStr[i+1]);
@@ -220,6 +269,18 @@ bool guiWindow::eventFilter(QObject* object, QEvent* event)
 }
 
 
+void guiWindow::aliveTimer_timeout()
+{
+    serialSearchWatcher.setFuture(serialSearchFuture);
+    // Why did Qt6 change this syntax?
+#if QT_VERSION_MAJOR > 5
+    serialSearchFuture = QtConcurrent::run(&AppSerial::SearchPorts, &serial);
+#else
+    serialSearchFuture = QtConcurrent::run(&serial, &AppSerial::SearchPorts);
+#endif
+}
+
+
 void guiWindow::BoxesUpdate()
 {
     // enabling custom pins
@@ -302,6 +363,41 @@ void guiWindow::DiffUpdate()
         ui->confirmButton->setText("[Nothing To Save]");
         ui->confirmButton->setEnabled(false);
     }
+}
+
+
+// Only runs either on initial load or save
+void guiWindow::LabelsUpdate()
+{
+    // because App_Common::inputsMap uses pin no. starting from 0
+    for(uint8_t i = 0; i < testLabel.count(); ++i) {
+        testLabel.at(i)->setStyleSheet("");
+        if(App_Common::inputsMap.value(i) >= 0) {
+            testLabel.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[i+1]);
+            testLabel.at(i)->setEnabled(true);
+        } else {
+            testLabel.at(i)->setText(QByteArray(App_Common::OFPresets.boardInputs_sortedStr[i+1]) + " (N/C)");
+            testLabel.at(i)->setEnabled(false);
+        }
+    }
+
+    ui->tmp36Label->setStyleSheet("");
+    if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
+        ui->tmp36Label->setText("Temperature Read...");
+        ui->tmp36Label->setEnabled(true);
+    } else {
+        ui->tmp36Label->setText("Temperature Sensor (N/C)");
+        ui->tmp36Label->setEnabled(false);
+    }
+
+    if(App_Common::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
+    if(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0)
+        ui->analogGroup->setEnabled(true),  ui->aPosLabel->clear();
+    else ui->analogGroup->setEnabled(false), ui->aPosLabel->setText("Not Connected");
+
+    ui->boardLabel->setText(PrettifyName(App_Common::tinyUSBtable.tinyUSBname));
 }
 
 
@@ -415,18 +511,6 @@ void guiWindow::on_confirmButton_clicked()
         ui->comPortSelector->setEnabled(true);
         serialActive = false;
     } else { statusBar()->showMessage("Save operation canceled.", 3000); }
-}
-
-
-void guiWindow::aliveTimer_timeout()
-{
-    serialSearchWatcher.setFuture(serialSearchFuture);
-    // Why did Qt6 change this syntax?
-#if QT_VERSION_MAJOR > 5
-    serialSearchFuture = QtConcurrent::run(&AppSerial::SearchPorts, &serial);
-#else
-    serialSearchFuture = QtConcurrent::run(&serial, &AppSerial::SearchPorts);
-#endif
 }
 
 
@@ -857,40 +941,6 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 }
 
 
-// Only runs either on initial load or save
-void guiWindow::LabelsUpdate()
-{
-    // because App_Common::inputsMap uses pin no. starting from 0
-    for(uint8_t i = 0; i < testLabel.count(); ++i) {
-        testLabel.at(i)->setStyleSheet("");
-        if(App_Common::inputsMap.value(i) >= 0) {
-            testLabel.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[i+1]);
-            testLabel.at(i)->setEnabled(true);
-        } else {
-            testLabel.at(i)->setText(QByteArray(App_Common::OFPresets.boardInputs_sortedStr[i+1]) + " (N/C)");
-            testLabel.at(i)->setEnabled(false);
-        }
-    }
-
-    ui->tmp36Label->setStyleSheet("");
-    if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
-        ui->tmp36Label->setText("Temperature Read...");
-        ui->tmp36Label->setEnabled(true);
-    } else {
-        ui->tmp36Label->setText("Temperature Sensor (N/C)");
-        ui->tmp36Label->setEnabled(false);
-    }
-
-    if(App_Common::inputsMap.value(OF_Const::ledR) >= 0) ui->redLedTestBtn->setEnabled(true);   else ui->redLedTestBtn->setEnabled(false);
-    if(App_Common::inputsMap.value(OF_Const::ledG) >= 0) ui->greenLedTestBtn->setEnabled(true); else ui->greenLedTestBtn->setEnabled(false);
-    if(App_Common::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
-    if(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0)
-         ui->analogGroup->setEnabled(true),  ui->aPosLabel->clear();
-    else ui->analogGroup->setEnabled(false), ui->aPosLabel->setText("Not Connected");
-
-    ui->boardLabel->setText(PrettifyName(App_Common::tinyUSBtable.tinyUSBname));
-}
-
 void guiWindow::pinBoxes_currentIndexChanged(int index)
 {
     // using comboboxes' "slot" property to figure caller,
@@ -1011,65 +1061,80 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     ui->commonAnodeToggle->setEnabled(App_Common::inputsMap.value(OF_Const::ledR) > -1 && App_Common::inputsMap.value(OF_Const::ledG) > -1 && App_Common::inputsMap.value(OF_Const::ledB) > -1);
     ui->i2cGroup->setEnabled(App_Common::inputsMap.value(OF_Const::periphSDA) > -1 && App_Common::inputsMap.value(OF_Const::periphSCL) > -1);
 
-    DiffUpdate();
-}
-
-void guiWindow::profileBoxes_activated(int index)
-{
-    switch(sender()->property("type").toInt()) {
-    case App_Common::pBoxIRsens:
-        App_Common::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
-        break;
-    case App_Common::pBoxRunMode:
-        App_Common::profilesTable[sender()->property("slot").toInt()].runMode = index;
-        break;
-    case App_Common::pBoxLayout:
-        App_Common::profilesTable[sender()->property("slot").toInt()].layoutType = index;
-        break;
-    default:
-        break;
-    }
+    ui->aStickFuncBox->setEnabled(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0);
+    for(int i = 0; i < BUTTON_COUNT-1; ++i)
+        btnFuncLayout[i].setEnabled(App_Common::inputsMap.value(i) >= 0);
 
     DiffUpdate();
 }
 
 
-void guiWindow::renameBoxes_clicked()
+/// button mapping
+void guiWindow::btnFuncTypeBox_activated(int index)
 {
-    // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
-    QString newLabel = QInputDialog::getText(this,
-                                             "Input Name",
-                                             QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
+    if(sender()->property("curType").toInt() != index) {
+        QComboBox *btnFuncBoxPtr = &btnFuncBox[sender()->property("slot").toInt()][1][sender()->property("btn").toInt()];
 
-    if(!newLabel.isEmpty()) {
-        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
-        memset(App_Common::profilesTable[sender()->property("slot").toInt()].profName, 0, sizeof(App_Common::profilesTable_s::profName));
-        strncpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.toLocal8Bit().constData(), sizeof(App_Common::profilesTable_s::profName)-1);
-    }
+        sender()->setProperty("curType", index);
+        App_Common::inputFuncTable[App_Common::dataCurrent][sender()->property("btn").toInt()][sender()->property("slot").toInt() << 1] = index;
+        btnFuncBoxPtr->blockSignals(true);
+        btnFuncBoxPtr->clear();
 
-    DiffUpdate();
-}
+        switch(index) {
+        case App_Common::inputMouse:
+            for(const auto &item : App_Common::mouseOrderedStrings)
+                btnFuncBoxPtr->addItem(item);
+            break;
+        case App_Common::inputKB:
+            for(const auto &item : App_Common::kbOrderedStrings)
+                btnFuncBoxPtr->addItem(item);
+            break;
+        case App_Common::inputGamepad:
+            for(const auto &item : App_Common::gpadOrderedStrings)
+                btnFuncBoxPtr->addItem(item);
+            break;
+        }
 
+        btnFuncBoxPtr->blockSignals(false);
 
-void guiWindow::colorBoxes_clicked()
-{
-    QColor colorPick = QColorDialog::getColor(App_Common::profilesTable[sender()->property("slot").toInt()].color);
-    if(colorPick.isValid()) {
-        int red;
-        int green;
-        int blue;
-        colorPick.getRgb(&red, &green, &blue);
-        uint32_t packedColor = 0;
-        packedColor |= red << 16;
-        packedColor |= green << 8;
-        packedColor |= blue;
-        App_Common::profilesTable[sender()->property("slot").toInt()].color = packedColor;
-        color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        if(App_Common::inputFuncTable[App_Common::dataOrig][sender()->property("btn").toInt()][sender()->property("slot").toInt() << 1] == index)
+            btnFuncBoxPtr->setCurrentIndex(App_Common::inputFuncTable[App_Common::dataOrig][sender()->property("btn").toInt()][1 | sender()->property("slot").toInt() << 1]);
+
         DiffUpdate();
     }
 }
 
 
+void guiWindow::btnFuncBox_currentTextChanged(const QString &str)
+{
+    if(!str.isEmpty()) {
+        uint8_t *dataPtr = &App_Common::inputFuncTable[App_Common::dataCurrent][sender()->property("btn").toInt()][1 | sender()->property("slot").toInt() << 1];
+        switch(*dataPtr-1) {
+        case App_Common::inputMouse:
+            *dataPtr = App_Common::mouseMap.value(str.toStdString()).at(0);
+            break;
+        case App_Common::inputKB:
+            *dataPtr = App_Common::keyboardInputsMap.value(str.toStdString()).at(0);
+            break;
+        case App_Common::inputGamepad:
+            *dataPtr = App_Common::gamepadMap.value(str.toStdString()).at(0);
+            break;
+        }
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_aStickModeBox_currentIndexChanged(int index)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::analogMode] = index;
+
+    DiffUpdate();
+}
+
+
+/// settings
 void guiWindow::on_customPinsEnabled_stateChanged(int arg1)
 {
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins] = arg1;
@@ -1280,143 +1345,6 @@ void guiWindow::on_solenoidHoldLengthBox_valueChanged(int arg1)
 }
 
 
-void guiWindow::on_tUSB_p1_toggled(bool checked)
-{
-    if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = 1;
-        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
-        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P1");
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p2_toggled(bool checked)
-{
-    if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = 2;
-        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
-        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P2");
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p3_toggled(bool checked)
-{
-    if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = 3;
-        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
-        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P3");
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tUSB_p4_toggled(bool checked)
-{
-    if(checked) {
-        App_Common::tinyUSBtable.tinyUSBid = 4;
-        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
-        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P4");
-        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
-        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_productIdInput_valueChanged(int arg1)
-{
-    App_Common::tinyUSBtable.tinyUSBid = arg1;
-    if(ui->productNameInput->text().isEmpty()) {
-        switch(arg1) {
-        case 1:
-            ui->tUSB_p1->setChecked(true);
-            break;
-        case 2:
-            ui->tUSB_p2->setChecked(true);
-            break;
-        case 3:
-            ui->tUSB_p3->setChecked(true);
-            break;
-        case 4:
-            ui->tUSB_p4->setChecked(true);
-            break;
-        default:
-            ui->tUSB_p1->setChecked(false);
-            ui->tUSB_p2->setChecked(false);
-            ui->tUSB_p3->setChecked(false);
-            ui->tUSB_p4->setChecked(false);
-            break;
-        }
-    }
-
-    DiffUpdate();
-}
-
-
-void guiWindow::on_productNameInput_textEdited(const QString &arg1)
-{
-    bool badInput = false;
-    // Very unga-bunga way of doing this.
-    // if someone is aware of a validator for this, feel free to replace this.
-    for(int i = 0; i < arg1.length(); ++i) {
-        if(arg1.at(i).unicode() > 255) {
-            badInput = true;
-            break;
-        }
-    }
-
-    if(badInput) {
-        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
-        ui->productNameInput->setStyleSheet("color: red");
-    } else {
-        if(!ui->productNameInput->styleSheet().isEmpty())
-            ui->productNameInput->setStyleSheet("");
-        strncpy(App_Common::tinyUSBtable.tinyUSBname, arg1.toLocal8Bit().constData(), sizeof(App_Common::tinyUSBtable_s::tinyUSBname)-1);
-        DiffUpdate();
-    }
-}
-
-
-void guiWindow::on_tinyUSBLayoutToggle_stateChanged(int arg1)
-{
-    if(arg1) {
-        ui->tUSBLayoutSimple->setVisible(false);
-        ui->tUSBLayoutAdvanced->setVisible(true);
-    } else {
-        ui->tUSBLayoutAdvanced->setVisible(false);
-        ui->tUSBLayoutSimple->setVisible(true);
-    }
-}
-
-
-void guiWindow::selectedProfile_isChecked(bool isChecked)
-{
-    // apparently we get two signals at once? So just filter for the on.
-    if(isChecked && !serialActive) {
-        // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
-        if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
-            char buf[] = {(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())};
-            serial.OneShotSend(buf, 4);
-            App_Common::board.selectedProfile = sender()->property("slot").toInt();
-            DiffUpdate();
-        }
-    }
-}
-
-
 void guiWindow::on_neopixelStrandLengthBox_valueChanged(int arg1)
 {
     App_Common::settingsTable[App_Common::dataCurrent][OF_Const::customLEDcount] = arg1;
@@ -1564,6 +1492,200 @@ void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 }
 
 
+void guiWindow::on_tinyUSBLayoutToggle_stateChanged(int arg1)
+{
+    if(arg1) {
+        ui->tUSBLayoutSimple->setVisible(false);
+        ui->tUSBLayoutAdvanced->setVisible(true);
+    } else {
+        ui->tUSBLayoutAdvanced->setVisible(false);
+        ui->tUSBLayoutSimple->setVisible(true);
+    }
+}
+
+
+void guiWindow::on_tUSB_p1_toggled(bool checked)
+{
+    if(checked) {
+        App_Common::tinyUSBtable.tinyUSBid = 1;
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P1");
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p2_toggled(bool checked)
+{
+    if(checked) {
+        App_Common::tinyUSBtable.tinyUSBid = 2;
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P2");
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p3_toggled(bool checked)
+{
+    if(checked) {
+        App_Common::tinyUSBtable.tinyUSBid = 3;
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P3");
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_tUSB_p4_toggled(bool checked)
+{
+    if(checked) {
+        App_Common::tinyUSBtable.tinyUSBid = 4;
+        memset(App_Common::tinyUSBtable.tinyUSBname, 0, sizeof(App_Common::tinyUSBtable_s::tinyUSBname));
+        strcpy(App_Common::tinyUSBtable.tinyUSBname, "FIRECon P4");
+        ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::on_productIdInput_valueChanged(int arg1)
+{
+    App_Common::tinyUSBtable.tinyUSBid = arg1;
+    if(ui->productNameInput->text().isEmpty()) {
+        switch(arg1) {
+        case 1:
+            ui->tUSB_p1->setChecked(true);
+            break;
+        case 2:
+            ui->tUSB_p2->setChecked(true);
+            break;
+        case 3:
+            ui->tUSB_p3->setChecked(true);
+            break;
+        case 4:
+            ui->tUSB_p4->setChecked(true);
+            break;
+        default:
+            ui->tUSB_p1->setChecked(false);
+            ui->tUSB_p2->setChecked(false);
+            ui->tUSB_p3->setChecked(false);
+            ui->tUSB_p4->setChecked(false);
+            break;
+        }
+    }
+
+    DiffUpdate();
+}
+
+
+void guiWindow::on_productNameInput_textEdited(const QString &arg1)
+{
+    bool badInput = false;
+    // Very unga-bunga way of doing this.
+    // if someone is aware of a validator for this, feel free to replace this.
+    for(int i = 0; i < arg1.length(); ++i) {
+        if(arg1.at(i).unicode() > 255) {
+            badInput = true;
+            break;
+        }
+    }
+
+    if(badInput) {
+        ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
+        ui->productNameInput->setStyleSheet("color: red");
+    } else {
+        if(!ui->productNameInput->styleSheet().isEmpty())
+            ui->productNameInput->setStyleSheet("");
+        strncpy(App_Common::tinyUSBtable.tinyUSBname, arg1.toLocal8Bit().constData(), sizeof(App_Common::tinyUSBtable_s::tinyUSBname)-1);
+        DiffUpdate();
+    }
+}
+
+
+/// cali profiles
+void guiWindow::profileBoxes_activated(int index)
+{
+    switch(sender()->property("type").toInt()) {
+    case App_Common::pBoxIRsens:
+        App_Common::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
+        break;
+    case App_Common::pBoxRunMode:
+        App_Common::profilesTable[sender()->property("slot").toInt()].runMode = index;
+        break;
+    case App_Common::pBoxLayout:
+        App_Common::profilesTable[sender()->property("slot").toInt()].layoutType = index;
+        break;
+    default:
+        break;
+    }
+
+    DiffUpdate();
+}
+
+
+void guiWindow::renameBoxes_clicked()
+{
+    // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
+    QString newLabel = QInputDialog::getText(this,
+                                             "Input Name",
+                                             QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
+
+    if(!newLabel.isEmpty()) {
+        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
+        memset(App_Common::profilesTable[sender()->property("slot").toInt()].profName, 0, sizeof(App_Common::profilesTable_s::profName));
+        strncpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.toLocal8Bit().constData(), sizeof(App_Common::profilesTable_s::profName)-1);
+    }
+
+    DiffUpdate();
+}
+
+
+void guiWindow::colorBoxes_clicked()
+{
+    QColor colorPick = QColorDialog::getColor(App_Common::profilesTable[sender()->property("slot").toInt()].color);
+    if(colorPick.isValid()) {
+        int red;
+        int green;
+        int blue;
+        colorPick.getRgb(&red, &green, &blue);
+        uint32_t packedColor = 0;
+        packedColor |= red << 16;
+        packedColor |= green << 8;
+        packedColor |= blue;
+        App_Common::profilesTable[sender()->property("slot").toInt()].color = packedColor;
+        color[sender()->property("slot").toInt()]->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+
+void guiWindow::selectedProfile_isChecked(bool isChecked)
+{
+    // apparently we get two signals at once? So just filter for the on.
+    if(isChecked && !serialActive) {
+        // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
+        if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
+            char buf[] = {(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())};
+            serial.OneShotSend(buf, 4);
+            App_Common::board.selectedProfile = sender()->property("slot").toInt();
+            DiffUpdate();
+        }
+    }
+}
+
+
 void guiWindow::caliBtns_clicked()
 {
     NewCaliWindow(AppCaliWindow::modeCalibrate);
@@ -1577,6 +1699,107 @@ void guiWindow::caliBtns_clicked()
 }
 
 
+/// gun tests
+void guiWindow::on_rumbleTestBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sTestRumble, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
+}
+
+
+void guiWindow::on_solenoidTestBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sTestSolenoid, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
+}
+
+
+void guiWindow::on_redLedTestBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sTestLEDR, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        ui->statusBar->showMessage("Set LED to Red.", 2500);
+}
+
+
+void guiWindow::on_greenLedTestBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sTestLEDG, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        ui->statusBar->showMessage("Set LED to Green.", 2500);
+}
+
+
+void guiWindow::on_blueLedTestBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sTestLEDB, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        ui->statusBar->showMessage("Set LED to Blue.", 2500);
+}
+
+
+void guiWindow::on_testBtn_clicked()
+{
+    char buf[2] = { (char)OF_Const::sIRTest, true };
+    if(serial.OneShotSend(buf, sizeof(buf)))
+        NewCaliWindow(AppCaliWindow::modeIRTest);
+}
+
+
+void guiWindow::on_clearEepromBtn_clicked()
+{
+    // Do we really need all this msgbox setup?
+    QMessageBox messageBox;
+    messageBox.setText("Really delete saved data?");
+    messageBox.setInformativeText("This operation will delete all saved data, including:\n\n"
+                                  " - Calibration Profiles\n"
+                                  " - Toggles\n - Settings\n"
+                                  " - Custom Identifiers\n\n"
+                                  "Are you sure about this?");
+    messageBox.setWindowTitle("Delete Confirmation");
+    messageBox.setIcon(QMessageBox::Warning);
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+
+    if(messageBox.exec() == QMessageBox::Yes) {
+        ui->statusBar->showMessage("Board reset to initial settings.");
+        char buf[2] = { (char)OF_Const::sClearFlash, (char)OF_Const::sClearFlash };
+        serial.OneShotSend(buf, sizeof(buf));
+        ui->comPortSelector->setCurrentIndex(0);
+    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
+}
+
+
+void guiWindow::on_baudResetBtn_clicked()
+{
+    serial.RebootToBootldr();
+
+    /* test stuff for potential app FW update functionality
+    // At least on my system, the Bootloader device takes ~7s to appear
+    QThread::msleep(7000);
+    // Class-ify this function, maybe.
+    QString picoPath;
+    foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
+        if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
+            picoPath = storageDevices.device();
+            qDebug() << "Found a Pico bootloader!";
+            break;
+        } else {
+            qDebug() << "nope";
+        }
+    }
+    qDebug() << picoPath;
+    // QFile::copy("file", picoPath+"file");
+*/
+
+    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
+    ui->comPortSelector->setCurrentIndex(0);
+}
+
+
+/// System/background
 // WARNING: make sure "serialActive" is set ON for important operations, or this will eat the fucker
 // TODO: move to appserial
 void guiWindow::serialPort_readyRead()
@@ -1790,52 +2013,7 @@ void guiWindow::serialPort_progressUpdate(const int &pos, const char *statusText
 }
 
 
-void guiWindow::on_rumbleTestBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sTestRumble, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
-}
 
-
-void guiWindow::on_solenoidTestBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sTestSolenoid, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
-}
-
-
-void guiWindow::on_redLedTestBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sTestLEDR, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Red.", 2500);
-}
-
-
-void guiWindow::on_greenLedTestBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sTestLEDG, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Green.", 2500);
-}
-
-
-void guiWindow::on_blueLedTestBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sTestLEDB, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Blue.", 2500);
-}
-
-
-void guiWindow::on_testBtn_clicked()
-{
-    char buf[2] = { (char)OF_Const::sIRTest, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        NewCaliWindow(AppCaliWindow::modeIRTest);
-}
 
 
 void guiWindow::CaliWindowExiting(const int &mode,
@@ -1914,57 +2092,6 @@ void guiWindow::CaliWindowRequestedExit()
 }
 
 
-void guiWindow::on_clearEepromBtn_clicked()
-{
-    // Do we really need all this msgbox setup?
-    QMessageBox messageBox;
-    messageBox.setText("Really delete saved data?");
-    messageBox.setInformativeText("This operation will delete all saved data, including:\n\n"
-                                  " - Calibration Profiles\n"
-                                  " - Toggles\n - Settings\n"
-                                  " - Custom Identifiers\n\n"
-                                  "Are you sure about this?");
-    messageBox.setWindowTitle("Delete Confirmation");
-    messageBox.setIcon(QMessageBox::Warning);
-    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    messageBox.setDefaultButton(QMessageBox::No);
-
-    if(messageBox.exec() == QMessageBox::Yes) {
-        ui->statusBar->showMessage("Board reset to initial settings.");
-        char buf[2] = { (char)OF_Const::sClearFlash, (char)OF_Const::sClearFlash };
-        serial.OneShotSend(buf, sizeof(buf));
-        ui->comPortSelector->setCurrentIndex(0);
-    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
-}
-
-
-void guiWindow::on_baudResetBtn_clicked()
-{
-    serial.RebootToBootldr();
-
-/* test stuff for potential app FW update functionality
-    // At least on my system, the Bootloader device takes ~7s to appear
-    QThread::msleep(7000);
-    // Class-ify this function, maybe.
-    QString picoPath;
-    foreach(const QStorageInfo &storageDevices, QStorageInfo::mountedVolumes()) {
-        if(storageDevices.isValid() && storageDevices.isReady() && storageDevices.displayName() == "RPI-RP2") {
-            picoPath = storageDevices.device();
-            qDebug() << "Found a Pico bootloader!";
-            break;
-        } else {
-            qDebug() << "nope";
-        }
-    }
-    qDebug() << picoPath;
-    // QFile::copy("file", picoPath+"file");
-*/
-
-    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
-    ui->comPortSelector->setCurrentIndex(0);
-}
-
-
 void guiWindow::on_tabWidget_currentChanged(int index)
 {
     switch(index) {
@@ -1989,6 +2116,7 @@ void guiWindow::on_tabWidget_currentChanged(int index)
 }
 
 
+/// actions
 void guiWindow::on_actionShow_Unsafe_Settings_toggled(bool arg1)
 {
     if(arg1) ui->solenoidTempBox->setVisible(true);

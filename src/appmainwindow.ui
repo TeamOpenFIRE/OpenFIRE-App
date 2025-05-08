@@ -118,10 +118,19 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
       <widget class="QWidget" name="pinsTab">
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="QIcon::ThemeIcon::DocumentProperties"/>
+       </attribute>
        <attribute name="title">
         <string>Board Layout</string>
        </attribute>
@@ -146,7 +155,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>558</height>
+             <height>548</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -234,6 +243,9 @@
             <property name="text">
              <string>User Layouts</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::EditCopy"/>
+            </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
             </property>
@@ -256,10 +268,198 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="buttonFuncTab">
+       <attribute name="icon">
+        <iconset theme="QIcon::ThemeIcon::InputKeyboard"/>
+       </attribute>
+       <attribute name="title">
+        <string>Button Mapping</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_18">
+        <item>
+         <widget class="QScrollArea" name="buttonFuncScroller">
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignHCenter|Qt::AlignTop</set>
+          </property>
+          <widget class="QWidget" name="buttonFuncScrollLayout">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>938</width>
+             <height>579</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <item>
+             <widget class="QGroupBox" name="buttonFuncBox">
+              <property name="title">
+               <string>Digital Inputs</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_20">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="2,3,3,3">
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_17">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>On-Screen Function</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_19">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Off-Screen Function</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_18">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Gamepad Mode</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="btnFuncLayout"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="aStickFuncBox">
+              <property name="title">
+               <string>Analog Stick</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Send Analog Stick As:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="aStickModeBox">
+                 <item>
+                  <property name="text">
+                   <string>Gamepad Analog Stick (Left/Right)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gamepad D-Pad</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Keyboard Arrows</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="settingsTab">
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="QIcon::ThemeIcon::DriveHarddisk"/>
+       </attribute>
        <attribute name="title">
         <string>Gun Settings</string>
        </attribute>
@@ -282,7 +482,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-350</y>
              <width>924</width>
              <height>1192</height>
             </rect>
@@ -767,6 +967,7 @@
                      <widget class="QPushButton" name="customLEDstaticBtn1">
                       <property name="font">
                        <font>
+                        <pointsize>10</pointsize>
                         <bold>true</bold>
                         <underline>false</underline>
                         <kerning>false</kerning>
@@ -790,6 +991,7 @@
                      <widget class="QPushButton" name="customLEDstaticBtn2">
                       <property name="font">
                        <font>
+                        <pointsize>10</pointsize>
                         <bold>true</bold>
                        </font>
                       </property>
@@ -811,6 +1013,7 @@
                      <widget class="QPushButton" name="customLEDstaticBtn3">
                       <property name="font">
                        <font>
+                        <pointsize>10</pointsize>
                         <bold>true</bold>
                        </font>
                       </property>
@@ -1505,6 +1708,9 @@
        </layout>
       </widget>
       <widget class="QWidget" name="profilesTab">
+       <attribute name="icon">
+        <iconset theme="QIcon::ThemeIcon::Computer"/>
+       </attribute>
        <attribute name="title">
         <string>Calibration Profiles</string>
        </attribute>
@@ -1529,7 +1735,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>423</height>
+             <height>416</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -1819,6 +2025,9 @@
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <attribute name="icon">
+        <iconset theme="QIcon::ThemeIcon::InputTablet"/>
+       </attribute>
        <attribute name="title">
         <string>Gun Tests</string>
        </attribute>
@@ -2059,6 +2268,9 @@
       <property name="text">
        <string>[Nothing To Save]</string>
       </property>
+      <property name="icon">
+       <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+      </property>
      </widget>
     </item>
    </layout>
@@ -2132,6 +2344,9 @@
    </property>
   </action>
   <action name="actionImport_Custom_Layout">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+   </property>
    <property name="text">
     <string>Import Custom Layout...</string>
    </property>
@@ -2140,6 +2355,9 @@
    </property>
   </action>
   <action name="actionExport_Custom_Layout">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSaveAs"/>
+   </property>
    <property name="text">
     <string>Export Custom Layout...</string>
    </property>
