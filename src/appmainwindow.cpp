@@ -286,13 +286,13 @@ void guiWindow::BoxesUpdate()
     // enabling custom pins
     if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
         // enable pinboxes
-        for(const auto &box : qAsConst(pinBoxes))
+        for(const auto &box : std::as_const(pinBoxes))
             box->setEnabled(true);
 
         // if the custom pins setting *grabbed from the gun* has been set
         if(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]) {
             // reset pinboxes
-            for(const auto &box : qAsConst(pinBoxes))
+            for(const auto &box : std::as_const(pinBoxes))
                 box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
             // set pinboxes to copied values (pinbox index is off by 1)
@@ -319,7 +319,7 @@ void guiWindow::BoxesUpdate()
     // disabling custom pins, reset to presets
     } else {
         // reset inputs map, as it's not even referenced when custom pins are disabled
-        for(const auto &box : qAsConst(pinBoxes))
+        for(const auto &box : std::as_const(pinBoxes))
             box->setEnabled(false), box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
@@ -1938,7 +1938,7 @@ void guiWindow::serialPort_SearchFinished()
             if(serial.currentPorts.count()) {
                 ui->comPortSelector->addItem("[Select a device]");
                 ui->comPortSelector->setCurrentIndex(0);
-                for(auto &port : qAsConst(serial.currentPorts))
+                for(auto &port : std::as_const(serial.currentPorts))
                     ui->comPortSelector->addItem(port.portName()+" (" + port.description() + ')');
             }
         // if comPort is filled
@@ -1950,7 +1950,7 @@ void guiWindow::serialPort_SearchFinished()
                     while(ui->comPortSelector->count() > 1)
                         ui->comPortSelector->removeItem(1);
 
-                    for(const auto &newPort : qAsConst(serial.currentPorts))
+                    for(const auto &newPort : std::as_const(serial.currentPorts))
                         ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 // if comPort is active
                 } else {
@@ -1965,7 +1965,7 @@ void guiWindow::serialPort_SearchFinished()
                     // check if current comPort is still in devices list
                     // TODO: probably a better way of doing this, meh
                     bool inList = false;
-                    for(const auto &newPort : qAsConst(serial.currentPorts))
+                    for(const auto &newPort : std::as_const(serial.currentPorts))
                         if(ui->comPortSelector->currentText() == newPort.portName()+" (" + newPort.description() + ')')
                             inList = true;
                     if(!inList) {
@@ -1974,7 +1974,7 @@ void guiWindow::serialPort_SearchFinished()
                     }
 
                     // append new items to list
-                    for(const auto &newPort : qAsConst(serial.currentPorts))
+                    for(const auto &newPort : std::as_const(serial.currentPorts))
                         if(ui->comPortSelector->currentText() != newPort.portName()+" (" + newPort.description() + ')')
                             ui->comPortSelector->addItem(newPort.portName()+" (" + newPort.description() + ')');
                 }
@@ -2168,7 +2168,7 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
             if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
                 if(!ui->customPinsEnabled->isChecked()) ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
-                for(const auto &box : qAsConst(pinBoxes))
+                for(const auto &box : std::as_const(pinBoxes))
                     box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
                 QByteArray inBuf;
