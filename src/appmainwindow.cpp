@@ -2096,18 +2096,19 @@ void guiWindow::on_tabWidget_currentChanged(int index)
 {
     switch(index) {
     // settings tab
-    case 1:
+    case 2:
         ui->settingsDescBox->setTitle("");
         ui->settingsDescText->setText(ui->settingsDescText->whatsThis());
         break;
     // profiles tab
-    case 2:
+    case 3:
         ui->profilesDescBox->setTitle("");
         ui->profilesDescText->setText(ui->profilesDescText->whatsThis());
         break;
+    // button settings (doesn't have any)
+    case 1:
     // test tab (no use yet)
-    case 3:
-        break;
+    case 4:
     // pins tab (doesn't have any)
     case 0:
     default:
