@@ -319,6 +319,7 @@ private:
     QVector<QComboBox*> irSens;
     QVector<QComboBox*> runMode;
     QVector<QComboBox*> layoutMode;
+    QVector<QComboBox*> aspectRatio;
     QVector<QPushButton*> color;
     QVector<QPushButton*> renameBtn;
     QVector<QPushButton*> caliBtn;

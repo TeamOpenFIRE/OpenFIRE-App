@@ -236,8 +236,6 @@ guiWindow::guiWindow(QWidget *parent)
     ui->presetsBox->setVisible(false);
     ui->solenoidTempBox->setVisible(false);
 
-    ui->versionLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-
     statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
 
     statusProgressBar = new QProgressBar();
@@ -651,18 +649,17 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
                 selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Common::profilesTable.at(i).profName));
-                if(i == App_Common::board.selectedProfile)
-                    selectedProfile.at(i)->setChecked(true);
                 selectedProfile.at(i)->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+                if(i == App_Common::board.selectedProfile) selectedProfile.at(i)->setChecked(true);
                 selectedProfile.at(i)->setProperty("slot", i);
                 connect(selectedProfile.at(i), &QRadioButton::toggled, this, &guiWindow::selectedProfile_isChecked);
 
-                topOffset       << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).topOffset      ));
-                bottomOffset    << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).bottomOffset   ));
-                leftOffset      << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).leftOffset     ));
-                rightOffset     << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).rightOffset    ));
-                TLled           << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).TLled          ));
-                TRled           << new QLabel(QString("%1").arg(App_Common::profilesTable.at(i).TRled          ));
+                topOffset       << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).topOffset      ));
+                bottomOffset    << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).bottomOffset   ));
+                leftOffset      << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).leftOffset     ));
+                rightOffset     << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).rightOffset    ));
+                TLled           << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).TLled          ));
+                TRled           << new QLabel(QString("<tt>%1</tt>").arg(App_Common::profilesTable.at(i).TRled          ));
 
                 irSens << new QComboBox();
                 irSens.at(i)->addItems({"Default", "Higher", "Highest"});
@@ -715,6 +712,25 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                                "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>");
                 connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
+                aspectRatio << new QComboBox();
+                aspectRatio.at(i)->addItem({"16:9"});
+                aspectRatio.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).aspectRatio);
+                aspectRatio.at(i)->installEventFilter(this);
+                aspectRatio.at(i)->setProperty("slot", i);
+                aspectRatio.at(i)->setProperty("type", App_Common::pBoxAR);
+                aspectRatio.at(i)->setProperty("trackable", App_Common::trackProfileItem);
+                aspectRatio.at(i)->setAccessibleName(QString("Aspect Ratio Correction for Profile %1").arg(i+1));
+                aspectRatio.at(i)->setWhatsThis("<p>This setting determines the Aspect Ratio this Calibration Profile is calibrated for.</p>"
+                                                "<p>When <a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
+                                                "<tt>M3x1</tt> is received, the firmware stretches the effective range for fullscreen applications in Windows "
+                                                "that runs in resolutions <b>narrower</b> than the full display width; "
+                                                "this setting determines the stretch factor for 4:3 applications.</p>"
+                                                "<p>Do note that this restriction only applies to the <b>Windows Operating System ONLY "
+                                                "for legacy applications that DON'T support the monitor's full resolution;</b> Linux and games run via <i>Wine/Proton</i> does not need this workaround "
+                                                "except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
+                                                "<p>If unsure, set to <b>the aspect ratio of your display.</b></p>");
+                connect(aspectRatio.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
+
                 color << new QPushButton();
                 color.at(i)->setFixedWidth(32);
                 color.at(i)->setStyleSheet(QString("background-color: #%1").arg(App_Common::profilesTable.at(i).color, 6, 16, QLatin1Char('0')));
@@ -753,7 +769,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 ui->profilesArea->addWidget(irSens.at(i),          i+1, 15);
                 ui->profilesArea->addWidget(runMode.at(i),         i+1, 17);
                 ui->profilesArea->addWidget(layoutMode.at(i),      i+1, 19);
-                ui->profilesArea->addWidget(color.at(i),           i+1, 21);
+                ui->profilesArea->addWidget(aspectRatio.at(i),     i+1, 21);
+                ui->profilesArea->addWidget(color.at(i),           i+1, 23);
 
                 ui->caliBtnsLayout->addWidget(caliBtn.at(i), caliBtnRow, i);
             }
@@ -822,7 +839,10 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
-            ui->versionLabel->setText("FW v" + App_Common::board.versionNumber);
+            if(App_Common::board.versionNumber.indexOf('-') > -1)
+                ui->versionLabel->setText(QString("FW v<tt>%1<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/commit/%2'><span style=' text-decoration: underline; color:#8ab4f8;'>%2</span></a></tt>")
+                                                 .arg(App_Common::board.versionNumber.left(App_Common::board.versionNumber.indexOf('-')+1), App_Common::board.versionNumber.mid(App_Common::board.versionNumber.indexOf('-')+1)));
+            else ui->versionLabel->setText("FW v<tt>" + App_Common::board.versionNumber + "</tt>");
 
             // update presets box if this board has any
             ui->presetsBox->clear();
@@ -1736,7 +1756,7 @@ void guiWindow::renameBoxes_clicked()
                                              QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
 
     if(!newLabel.isEmpty()) {
-        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
+        selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. <tt>%2</tt>").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
         memset(App_Common::profilesTable[sender()->property("slot").toInt()].profName, 0, sizeof(App_Common::profilesTable_s::profName));
         strncpy(App_Common::profilesTable[sender()->property("slot").toInt()].profName, newLabel.toLocal8Bit().constData(), sizeof(App_Common::profilesTable_s::profName)-1);
     }

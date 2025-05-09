@@ -102,11 +102,14 @@
       <property name="text">
        <string notr="true"/>
       </property>
-      <property name="textFormat">
-       <enum>Qt::PlainText</enum>
-      </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
+      </property>
+      <property name="openExternalLinks">
+       <bool>true</bool>
+      </property>
+      <property name="textInteractionFlags">
+       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
       </property>
      </widget>
     </item>
@@ -296,7 +299,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>423</height>
+             <height>424</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1798,7 +1801,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>423</height>
+             <height>424</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -1809,35 +1812,11 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_5">
                <item>
-                <layout class="QGridLayout" name="profilesArea" columnstretch="0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
-                 <item row="0" column="6">
-                  <widget class="Line" name="line_5">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="16">
-                  <widget class="Line" name="line_8">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="19">
-                  <widget class="QLabel" name="layoutHeader">
+                <layout class="QGridLayout" name="profilesArea" columnstretch="0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
+                 <item row="0" column="5">
+                  <widget class="QLabel" name="bottomOffHeader">
                    <property name="text">
-                    <string>Layout</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="7">
-                  <widget class="QLabel" name="leftOffHeader">
-                   <property name="text">
-                    <string>Left</string>
+                    <string>Bottom</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -1851,6 +1830,94 @@
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="6">
+                  <widget class="Line" name="line_5">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="13">
+                  <widget class="QLabel" name="TRledHeader">
+                   <property name="text">
+                    <string>TRled</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="15">
+                  <widget class="QLabel" name="irSensHeader">
+                   <property name="text">
+                    <string>Sensitivity</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="11">
+                  <widget class="QLabel" name="TLledHeader">
+                   <property name="text">
+                    <string>TLled</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="17">
+                  <widget class="QLabel" name="runModeHeader">
+                   <property name="text">
+                    <string>Run Mode</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="19">
+                  <widget class="QLabel" name="layoutHeader">
+                   <property name="text">
+                    <string>Layout</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="22">
+                  <widget class="Line" name="line_12">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="16">
+                  <widget class="Line" name="line_8">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="7">
+                  <widget class="QLabel" name="leftOffHeader">
+                   <property name="text">
+                    <string>Left</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="12">
+                  <widget class="Line" name="line_10">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
                    </property>
                   </widget>
                  </item>
@@ -1871,64 +1938,17 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="1">
-                  <widget class="QLabel" name="headerPadding">
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="5">
-                  <widget class="QLabel" name="bottomOffHeader">
-                   <property name="text">
-                    <string>Bottom</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="17">
-                  <widget class="QLabel" name="runModeHeader">
-                   <property name="text">
-                    <string>Run Mode</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="10">
-                  <widget class="Line" name="line_7">
+                 <item row="0" column="20">
+                  <widget class="Line" name="line_9">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="13">
-                  <widget class="QLabel" name="TRledHeader">
+                 <item row="0" column="23">
+                  <widget class="QLabel" name="colorHeader">
                    <property name="text">
-                    <string>TRled</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="18">
-                  <widget class="Line" name="line_3">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="11">
-                  <widget class="QLabel" name="TLledHeader">
-                   <property name="text">
-                    <string>TLled</string>
+                    <string>Color</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -1942,12 +1962,35 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="8">
-                  <widget class="Line" name="line_6">
+                 <item row="0" column="1">
+                  <widget class="QLabel" name="headerPadding">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="10">
+                  <widget class="Line" name="line_7">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
                   </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <spacer name="horizontalSpacer_15">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                  <item row="0" column="3">
                   <widget class="QLabel" name="topOffHeader">
@@ -1968,52 +2011,26 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="20">
-                  <widget class="Line" name="line_9">
+                 <item row="0" column="8">
+                  <widget class="Line" name="line_6">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="12">
-                  <widget class="Line" name="line_10">
+                 <item row="0" column="18">
+                  <widget class="Line" name="line_3">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="21">
-                  <widget class="QLabel" name="colorHeader">
+                  <widget class="QLabel" name="label_20">
                    <property name="text">
-                    <string>Color</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <string>Display Ratio</string>
                    </property>
                   </widget>
-                 </item>
-                 <item row="0" column="15">
-                  <widget class="QLabel" name="irSensHeader">
-                   <property name="text">
-                    <string>Sensitivity</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="2">
-                  <spacer name="horizontalSpacer_15">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
                  </item>
                 </layout>
                </item>
