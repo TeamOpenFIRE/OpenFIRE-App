@@ -2026,9 +2026,12 @@
                   </widget>
                  </item>
                  <item row="0" column="21">
-                  <widget class="QLabel" name="label_20">
+                  <widget class="QLabel" name="aspectRatioHeader">
                    <property name="text">
                     <string>Display Ratio</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
