@@ -414,7 +414,11 @@ void guiWindow::DiffUpdate()
     if(settingsDiff) {
         ui->confirmButton->setText("Save and Send Settings");
         ui->confirmButton->setEnabled(true);
-        ui->confirmButton->setIcon(QIcon::fromTheme("DocumentSave"));
+#if QT_VERSION_MAJOR > 5 && QT_VERSION_MINOR > 6
+        ui->confirmButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentSave));
+#else
+        ui->confirmButton->setIcon(QIcon::fromTheme("document-save"));
+#endif
     } else {
         ui->confirmButton->setText("[Nothing To Save]");
         ui->confirmButton->setEnabled(false);
