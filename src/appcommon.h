@@ -46,6 +46,7 @@ public:
         trackPinbox = 0,
         trackSettingsItem,
         trackProfileItem,
+        trackButtonMapItem,
         trackTestItem
     } uiTrackableObjects_e;
 
@@ -132,7 +133,7 @@ public:
     // array 1 = original and current data array
     // array 2 = buttons count
     // array 3 = data for button ((func type : func num) * 3)
-    static inline uint8_t inputFuncTable[dataTablesCount][BUTTON_COUNT-1][inputTypes*2];
+    static inline uint8_t inputFuncTable[dataTablesCount][BUTTON_COUNT][inputTypes*2];
 
     // Keyboard inputs reference map
     // first int is the value representing the key used by the firmware,
@@ -241,6 +242,12 @@ public:
         "Mouse",
         "Keyboard",
         "Gamepad"
+    };
+
+    static const inline QMap<std::string, QVector<int>> *inputFuncMaps[3] = {
+        &mouseMap,
+        &keyboardInputsMap,
+        &gamepadMap
     };
 };
 

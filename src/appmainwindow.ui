@@ -155,7 +155,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>558</height>
+             <height>559</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -275,7 +275,7 @@
        <attribute name="title">
         <string>Button Mapping</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_18">
+       <layout class="QVBoxLayout" name="verticalLayout_18" stretch="8,3">
         <item>
          <widget class="QScrollArea" name="buttonFuncScroller">
           <property name="frameShadow">
@@ -296,7 +296,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>589</height>
+             <height>424</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -381,7 +381,11 @@
                 </layout>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="btnFuncLayout"/>
+                <layout class="QVBoxLayout" name="btnFuncLayout">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -427,6 +431,15 @@
                </item>
                <item>
                 <widget class="QComboBox" name="aStickModeBox">
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If an analog stick is enabled in the current &lt;span style=&quot; font-style:italic;&quot;&gt;Board Layout,&lt;/span&gt; this determines which type of Button Output it uses.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Gamepad Analog Stick&lt;/span&gt; will use either the Left or Right analog stick of the Gamepad device, depending on the circumstances and/or whether &lt;span style=&quot; font-style:italic;&quot;&gt;Gamepad Output Mode&lt;/span&gt; is set via Serial. The other two settings will translate the stick's analog movements into either digital &lt;span style=&quot; font-weight:700;&quot;&gt;Gamepad D-Pad&lt;/span&gt; or &lt;span style=&quot; font-weight:700;&quot;&gt;Keyboard Arrow Key&lt;/span&gt; presses.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Default: Gamepad Analog Stick&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="accessibleName">
+                  <string>Analog Stick Output Mode</string>
+                 </property>
+                 <property name="trackable" stdset="0">
+                  <number>3</number>
+                 </property>
                  <item>
                   <property name="text">
                    <string>Gamepad Analog Stick (Left/Right)</string>
@@ -449,6 +462,53 @@
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="btnFuncDescBox">
+          <property name="font">
+           <font>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QGroupBox::title { color: yellow }</string>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="btnDescLayout">
+           <item>
+            <widget class="QLabel" name="btnFuncDescText">
+             <property name="font">
+              <font>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="whatsThis">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab shows the currently loaded Button Mapping settings.&lt;/p&gt;&lt;p&gt;Any enabled button input in the current &lt;span style=&quot; font-style:italic;&quot;&gt;Board Layout&lt;/span&gt; can be assigned to output any button from any of the three Input Devices that OpenFIRE presents to any connected device (a Mouse, Keyboard, and Xbox-like Gamepad), depending on the condition that the input is pressed.&lt;/p&gt;&lt;p&gt;Hover over an option to view detailed info about it here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">color: lightgray</string>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This tab shows the currently loaded Button Mapping settings.&lt;/p&gt;&lt;p&gt;Any enabled button input in the current &lt;span style=&quot; font-style:italic;&quot;&gt;Board Layout&lt;/span&gt; can be assigned to output any button from any of the three Input Devices that OpenFIRE presents to any connected device (a Mouse, Keyboard, and Xbox-like Gamepad), depending on the condition that the input is pressed.&lt;/p&gt;&lt;p&gt;Hover over an option to view detailed info about it here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="openExternalLinks">
+              <bool>true</bool>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -482,7 +542,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-20</y>
              <width>924</width>
              <height>1192</height>
             </rect>
@@ -1700,6 +1760,9 @@
              <property name="openExternalLinks">
               <bool>true</bool>
              </property>
+             <property name="textInteractionFlags">
+              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+             </property>
             </widget>
            </item>
           </layout>
@@ -1735,7 +1798,7 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>423</height>
+             <height>424</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -2267,9 +2330,6 @@
       </property>
       <property name="text">
        <string>[Nothing To Save]</string>
-      </property>
-      <property name="icon">
-       <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
       </property>
      </widget>
     </item>

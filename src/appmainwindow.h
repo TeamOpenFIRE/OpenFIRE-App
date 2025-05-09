@@ -36,8 +36,8 @@
 #include <QGraphicsItem>
 #include <QPen>
 #include <QTimer>
-#include <QVBoxLayout>
-#include <QGridLayout>
+#include <QLayout>
+#include <QGroupBox>
 #include <QStandardItemModel>
 #include <QComboBox>
 #include <QLabel>
@@ -76,7 +76,7 @@ private slots:
     void on_presetsBox_currentIndexChanged(int index);
 
     /// button mapping
-    void btnFuncTypeBox_activated(int index);
+    void btnFuncTypeBox_currentIndexChanged(int index);
 
     void btnFuncBox_currentTextChanged(const QString &);
 
@@ -305,6 +305,7 @@ private:
     ///             Array 2: 0 = input type, 1 = input data
     ///             Array 3 = button
     QComboBox btnFuncBox[App_Common::inputTypes][App_Common::inputFuncTypes][BUTTON_COUNT-1];
+    QGroupBox btnFuncGBoxes[BUTTON_COUNT-1];
     QHBoxLayout btnFuncLayout[BUTTON_COUNT-1];
 
     /// @brief      Objects that makes up the elements of the profiles tab
