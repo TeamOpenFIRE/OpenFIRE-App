@@ -253,6 +253,8 @@ guiWindow::guiWindow(QWidget *parent)
         ui->settingsDescText->setStyleSheet("color: doubledarkgray");
         ui->profilesDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
         ui->profilesDescText->setStyleSheet("color: doubledarkgray");
+        ui->btnFuncDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
+        ui->btnFuncDescText->setStyleSheet("color: doubledarkgray");
     }
 }
 
