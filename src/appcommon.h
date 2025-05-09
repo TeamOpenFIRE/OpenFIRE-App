@@ -82,7 +82,8 @@ public:
         float      AdjY          = 0;
         uint32_t   irSensitivity = 0;
         uint32_t   runMode       = 0;
-        uint32_t   layoutType    = false;
+        uint32_t   layoutType    = 0;
+        uint32_t   aspectRatio   = 0;
         uint32_t   color         = 0;
         char       profName[16]  = "";
     } profilesTable_s;
