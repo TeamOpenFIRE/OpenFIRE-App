@@ -713,7 +713,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 aspectRatio << new QComboBox();
-                aspectRatio.at(i)->addItem({"16:9"});
+                aspectRatio.at(i)->addItems({"16:9", "16:10", "4:3"});
                 aspectRatio.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).aspectRatio);
                 aspectRatio.at(i)->installEventFilter(this);
                 aspectRatio.at(i)->setProperty("slot", i);
