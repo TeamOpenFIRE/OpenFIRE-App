@@ -36,8 +36,8 @@
 #include <QGraphicsItem>
 #include <QPen>
 #include <QTimer>
-#include <QVBoxLayout>
-#include <QGridLayout>
+#include <QLayout>
+#include <QGroupBox>
 #include <QStandardItemModel>
 #include <QComboBox>
 #include <QLabel>
@@ -63,28 +63,26 @@ public:
 private slots:
     void aliveTimer_timeout();
 
+    /// global
     void on_comPortSelector_currentTextChanged(const QString &);
 
     void on_confirmButton_clicked();
 
+    /// pin layouts
     void pinBoxes_currentIndexChanged(int index);
-
-    void renameBoxes_clicked();
-
-    void colorBoxes_clicked();
-
-    void profileBoxes_activated(int arg1);
 
     void on_customPinsEnabled_stateChanged(int arg1);
 
     void on_presetsBox_currentIndexChanged(int index);
 
-    void on_rumbleTestBtn_clicked();
+    /// button mapping
+    void btnFuncTypeBox_currentIndexChanged(int index);
 
-    void on_solenoidTestBtn_clicked();
+    void btnFuncBox_currentTextChanged(const QString &);
 
-    void on_baudResetBtn_clicked();
+    void on_aStickModeBox_currentIndexChanged(int index);
 
+    /// gun settings
     void on_rumbleToggle_stateChanged(int arg1);
 
     void on_solenoidToggle_stateChanged(int arg1);
@@ -117,21 +115,7 @@ private slots:
 
     void on_solenoidHoldLengthBox_valueChanged(int arg1);
 
-    void on_productIdInput_valueChanged(int arg1);
-
-    void on_productNameInput_textEdited(const QString &arg1);
-
     void on_neopixelStrandLengthBox_valueChanged(int arg1);
-
-    void on_clearEepromBtn_clicked();
-
-    void on_testBtn_clicked();
-
-    void selectedProfile_isChecked(bool isChecked);
-
-    void caliBtns_clicked();
-
-    void on_actionAbout_UI_triggered();
 
     void on_customLEDstaticSpinbox_valueChanged(int arg1);
 
@@ -157,12 +141,39 @@ private slots:
 
     void on_tUSB_p4_toggled(bool checked);
 
+    void on_productIdInput_valueChanged(int arg1);
+
+    void on_productNameInput_textEdited(const QString &arg1);
+
+    /// cali profiles
+    void renameBoxes_clicked();
+
+    void colorBoxes_clicked();
+
+    void profileBoxes_activated(int arg1);
+
+    void selectedProfile_isChecked(bool isChecked);
+
+    void caliBtns_clicked();
+
+    /// gun tests
+    void on_rumbleTestBtn_clicked();
+
+    void on_solenoidTestBtn_clicked();
+
     void on_redLedTestBtn_clicked();
 
     void on_greenLedTestBtn_clicked();
 
     void on_blueLedTestBtn_clicked();
 
+    void on_baudResetBtn_clicked();
+
+    void on_clearEepromBtn_clicked();
+
+    void on_testBtn_clicked();
+
+    /// system/background
     void on_tabWidget_currentChanged(int index);
 
     void serialPort_readyRead();
@@ -192,6 +203,8 @@ private slots:
     void CaliWindowRequestedExit();
 
     void on_actionDebug_Window_triggered();
+
+    void on_actionAbout_UI_triggered();
 
 private:
     Ui::guiWindow *ui;
@@ -286,6 +299,14 @@ private:
     /// @brief      Analog stick graphic view
     QGraphicsScene analogGfxScene;
     QGraphicsEllipseItem* analogPos;
+
+    /// @brief      Button Mapping elements
+    /// @details    Array 1 = onscreen input / offscreen input / gamepad mode input
+    ///             Array 2: 0 = input type, 1 = input data
+    ///             Array 3 = button
+    QComboBox btnFuncBox[App_Common::inputTypes][App_Common::inputFuncTypes][BUTTON_COUNT-1];
+    QGroupBox btnFuncGBoxes[BUTTON_COUNT-1];
+    QHBoxLayout btnFuncLayout[BUTTON_COUNT-1];
 
     /// @brief      Objects that makes up the elements of the profiles tab
     QVector<QRadioButton*> selectedProfile;

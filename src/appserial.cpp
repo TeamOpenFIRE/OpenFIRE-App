@@ -44,7 +44,7 @@ bool AppSerial::SearchPorts()
             printf("Current ports list does not match new list, overriding...\n");
             currentPortsNames = GeneratePortsList(currentPorts);
             return true;
-        } else for(const auto &foundPort : qAsConst(serialFoundList)) {
+        } else for(const auto &foundPort : std::as_const(serialFoundList)) {
             if(!currentPortsNames.contains(foundPort.portName())) {
                 currentPorts = serialFoundList;
                 printf("%s not found in current ports, overriding old serial devices list...\n", foundPort.portName().toLocal8Bit().constData());
@@ -73,7 +73,7 @@ bool AppSerial::GetSettings(const QString &portName)
         port.close();
     }
 
-    for(const auto &curPort : qAsConst(currentPorts))
+    for(const auto &curPort : std::as_const(currentPorts))
         if(portName == curPort.portName()+" (" + curPort.description() + ')')
             port.setPort(curPort);
 
@@ -88,7 +88,7 @@ bool AppSerial::GetSettings(const QString &portName)
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
                 if(buffer.size() >= 3) {
-                    emit Serial_SetProgressRange(5);
+                    emit Serial_SetProgressRange(6);
                     emit Serial_ProgressUpdate(1, "Getting Board Info");
 
                     ////* Opening board message bits *////
@@ -162,20 +162,40 @@ bool AppSerial::GetSettings(const QString &portName)
                                    App_Common::settingsTable[App_Common::dataCurrent],
                                    sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
-                            emit Serial_ProgressUpdate(4, "Getting Profiles Data");
+                            emit Serial_ProgressUpdate(4, "Getting Button Mappings");
 
-                            // profiles
-                            App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
-
+                            ////* buttons *////
                             port.clear();
-                            if(OneShotSend((char)OF_Const::sGetProfile, true)) {
-                                if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
-                                    App_Common::profilesTable_orig = App_Common::profilesTable;
-                                    App_Common::board.previousProfile = App_Common::board.selectedProfile;
-                                    emit Serial_ProgressUpdate(5, "Successfully synced data!");
-                                    port.clear();
-                                    return true;
-                                } else return false;
+                            if(OneShotSend((char)OF_Const::sGetBtns, true)) {
+                                memset(App_Common::inputFuncTable, 0, sizeof(App_Common::inputFuncTable));
+
+                                if(!BatchStoreSettings(App_Common::inputFuncTable[App_Common::dataCurrent],
+                                                       App_Common::OFPresets.boardInputs_Strings,
+                                                       sizeof(App_Common::inputFuncTable[App_Common::dataCurrent]) / BUTTON_COUNT))
+                                    return false;
+
+                                memcpy(App_Common::inputFuncTable[App_Common::dataOrig],
+                                       App_Common::inputFuncTable[App_Common::dataCurrent],
+                                       sizeof(App_Common::inputFuncTable[App_Common::dataCurrent]));
+
+                                emit Serial_ProgressUpdate(5, "Getting Profiles Data");
+
+                                ////* profiles *////
+                                App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
+
+                                port.clear();
+                                if(OneShotSend((char)OF_Const::sGetProfile, true)) {
+                                    if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
+                                        App_Common::profilesTable_orig = App_Common::profilesTable;
+                                        App_Common::board.previousProfile = App_Common::board.selectedProfile;
+                                        emit Serial_ProgressUpdate(6, "Successfully synced data!");
+                                        port.clear();
+                                        return true;
+                                    } else return false;
+                                } else {
+                                    printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
+                                    return false;
+                                }
                             } else {
                                 printf("Couldn't send any data in time! Was it disconnected mid-transaction?\n");
                                 return false;
@@ -269,7 +289,6 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                 buf += port.read(sizeRead);
             }
-
             // Report back received buffer to board for verification
             // (board will re-send output if buffers aren't matching)
             OneShotSend(buf.constData(), buf.length());
@@ -324,7 +343,7 @@ bool AppSerial::OneShotSend(const char &chara, const bool &waitForResponse)
 bool AppSerial::CommitSettings()
 {
     if(port.isOpen()) {
-        emit Serial_SetProgressRange(7);
+        emit Serial_SetProgressRange(8);
 
         char message[2] = { (char)OF_Const::sCommitStart, true };
         if(OneShotSend(message, sizeof(message), true)) {
@@ -362,7 +381,13 @@ bool AppSerial::CommitSettings()
                                   sizeof(App_Common::settingsTable[App_Common::dataCurrent]) / OF_Const::settingsTypesCount))
                 return false;
 
-            emit Serial_ProgressUpdate(4, "Sending Profile Data...");
+            emit Serial_ProgressUpdate(4, "Sending Buttons...");
+            if(!BatchSendSettings(App_Common::inputFuncTable[App_Common::dataCurrent],
+                                  App_Common::OFPresets.boardInputs_Strings,
+                                  sizeof(App_Common::inputFuncTable[App_Common::dataCurrent]) / BUTTON_COUNT))
+                return false;
+
+            emit Serial_ProgressUpdate(5, "Sending Profile Data...");
             for(size_t i = 0; i < App_Common::profilesTable.count(); ++i) {
                 if(!BatchSendSettings(&App_Common::profilesTable[i],
                                       App_Common::OFPresets.profSettingTypes_Strings,
@@ -371,7 +396,7 @@ bool AppSerial::CommitSettings()
                     return false;
             }
 
-            emit Serial_ProgressUpdate(5, "Sending TinyUSB ID Data...");
+            emit Serial_ProgressUpdate(6, "Sending TinyUSB ID Data...");
             TXbuf[0] = (char)OF_Const::sCommitID;
             memcpy(&TXbuf[1], (uint8_t*)&App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
             for(size_t sendAttempt = 1;; ++sendAttempt) {
@@ -383,10 +408,10 @@ bool AppSerial::CommitSettings()
                 } else return false;
             }
 
-            emit Serial_ProgressUpdate(6, "Saving...");
+            emit Serial_ProgressUpdate(7, "Saving...");
             if(OneShotSend((char)OF_Const::sSave, true)) {
                 if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
-                    emit Serial_ProgressUpdate(7);
+                    emit Serial_ProgressUpdate(8);
                     port.clear();
                     return true;
                 } else return false;
@@ -399,51 +424,58 @@ bool AppSerial::BatchSendSettings(void *dataPtr, const std::unordered_map<std::s
 {
     size_t txLen = 0;
     bool profCurrentMarked = false;
-    if(&dataMap == &App_Common::OFPresets.boolTypes_Strings)
+
+    if(dataPtr == &App_Common::boolSettings[App_Common::dataCurrent])
         TXbuf[txLen++] = OF_Const::sCommitToggles;
+    else if(dataPtr == &App_Common::inputFuncTable[App_Common::dataCurrent])
+        TXbuf[txLen++] = OF_Const::sCommitBtns;
     else if(&dataMap == &App_Common::OFPresets.boardInputs_Strings)
         TXbuf[txLen++] = OF_Const::sCommitPins;
-    else if(&dataMap == &App_Common::OFPresets.settingsTypes_Strings)
+    else if(dataPtr == &App_Common::settingsTable[App_Common::dataCurrent])
         TXbuf[txLen++] = OF_Const::sCommitSettings;
     else if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings)
         TXbuf[txLen++] = OF_Const::sCommitProfile;
+
     for(auto &pair : dataMap) {
-        txLen = 1;
-        strcpy(&TXbuf[txLen], pair.first.c_str());
-        // std::string length doesn't account for terminator
-        txLen += pair.first.length()+1;
+        if(pair.second >= 0) {
+            txLen = 1;
+            strcpy(&TXbuf[txLen], pair.first.c_str());
+            // std::string length doesn't account for terminator
+            txLen += pair.first.length()+1;
 
-        if(dataMap == App_Common::OFPresets.profSettingTypes_Strings) {
-            if(pair.second < OF_Const::profIrSens) continue;
-            else if(pair.second == OF_Const::profCurrent) {
-                if(profCurrentMarked) continue;
-                TXbuf[txLen++] = sizeof(uint8_t);
-                TXbuf[txLen++] = App_Common::board.selectedProfile;
-                profCurrentMarked = true;
+            if(dataMap == App_Common::OFPresets.profSettingTypes_Strings) {
+                if(pair.second < OF_Const::profIrSens) continue;
+                else if(pair.second == OF_Const::profCurrent) {
+                    if(profCurrentMarked) continue;
+                    TXbuf[txLen++] = sizeof(uint8_t);
+                    TXbuf[txLen++] = App_Common::board.selectedProfile;
+                    profCurrentMarked = true;
+                } else {
+                    if(pair.second == OF_Const::profName)
+                        TXbuf[txLen++] = sizeof(App_Common::profilesTable_s::profName);
+                    else TXbuf[txLen++] = dataSize;
+
+                    TXbuf[txLen++] = profNum;
+
+                    memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), TXbuf[txLen-2]);
+                    txLen += TXbuf[txLen-2];
+                }
             } else {
-                if(pair.second == OF_Const::profName)
-                     TXbuf[txLen++] = sizeof(App_Common::profilesTable_s::profName);
-                else TXbuf[txLen++] = dataSize;
-
-                TXbuf[txLen++] = profNum;
-
-                memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), TXbuf[txLen-2]);
-                txLen += TXbuf[txLen-2];
+                if(dataPtr == App_Common::inputFuncTable[App_Common::dataCurrent] && pair.second >= BUTTON_COUNT-1) continue;
+                TXbuf[txLen++] = dataSize;
+                memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), dataSize);
+                txLen += dataSize;
             }
-        } else {
-            TXbuf[txLen++] = dataSize;
-            memcpy(&TXbuf[txLen], (uint8_t*)dataPtr + (dataSize * pair.second), dataSize);
-            txLen += dataSize;
-        }
 
-        // try to resend data if not matching, fail after three tries
-        for(size_t sendAttempt = 1;; ++sendAttempt) {
-            if(OneShotSend(TXbuf, txLen, true)) {
-                port.read(RXbuf, port.bytesAvailable());
-                if(memcmp(&TXbuf[1], RXbuf, txLen-1)) {
-                    if(sendAttempt >= 3) return false;
-                } else break;
-            } else return false;
+            // try to resend data if not matching, fail after three tries
+            for(size_t sendAttempt = 1;; ++sendAttempt) {
+                if(OneShotSend(TXbuf, txLen, true)) {
+                    port.read(RXbuf, port.bytesAvailable());
+                    if(memcmp(&TXbuf[1], RXbuf, txLen-1)) {
+                        if(sendAttempt >= 3) return false;
+                    } else break;
+                } else return false;
+            }
         }
     }
     return true;
