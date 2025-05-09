@@ -726,8 +726,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                                 "that runs in resolutions <b>narrower</b> than the full display width; "
                                                 "this setting determines the stretch factor for 4:3 applications.</p>"
                                                 "<p>Do note that this restriction only applies to the <b>Windows Operating System ONLY "
-                                                "for legacy applications that DON'T support the monitor's full resolution;</b> Linux and games run via <i>Wine/Proton</i> does not need this workaround "
-                                                "except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
+                                                "for legacy applications that DON'T support the monitor's full resolution;</b> <i>Linux-based systems</i> and games run via <i>Wine/Proton</i> "
+                                                "<b>does not need this workaround,</b> except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
                                                 "<p>If unsure, set to <b>the aspect ratio of your display.</b></p>");
                 connect(aspectRatio.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
