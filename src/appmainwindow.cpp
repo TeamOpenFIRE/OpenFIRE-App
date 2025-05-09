@@ -612,6 +612,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 delete irSens.at(i);
                 delete runMode.at(i);
                 delete layoutMode.at(i);
+                delete aspectRatio.at(i);
                 delete color.at(i);
                 delete caliBtn.at(i);
             }
@@ -627,6 +628,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             irSens.clear();
             runMode.clear();
             layoutMode.clear();
+            aspectRatio.clear();
             color.clear();
             caliBtn.clear();
 
@@ -1791,9 +1793,7 @@ void guiWindow::selectedProfile_isChecked(bool isChecked)
         // Demultiplexing to figure out which "pin" this combobox that's calling correlates to.
         if(sender()->property("slot").toInt() != App_Common::board.selectedProfile) {
             char buf[] = {(char)OF_Const::sCaliProfile, static_cast<char>(sender()->property("slot").toInt())};
-            serial.OneShotSend(buf, 4);
-            App_Common::board.selectedProfile = sender()->property("slot").toInt();
-            DiffUpdate();
+            serial.OneShotSend(buf, 2);
         }
     }
 }
