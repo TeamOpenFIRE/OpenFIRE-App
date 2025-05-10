@@ -150,6 +150,7 @@ guiWindow::guiWindow(QWidget *parent)
             btnFuncBox[slot][0][i].installEventFilter(this);
 
             btnFuncLayout[i].addWidget(&btnFuncBox[slot][1][i], 1);
+            btnFuncBox[slot][1][i].setMaxVisibleItems(10);
             btnFuncBox[slot][1][i].setProperty("slot", slot);
             btnFuncBox[slot][1][i].setProperty("btn", i);
             btnFuncBox[slot][1][i].setProperty("trackable", App_Common::trackButtonMapItem);
