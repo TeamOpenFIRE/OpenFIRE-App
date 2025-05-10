@@ -948,7 +948,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             }
 
             ui->tabWidget->setEnabled(true);
-            ui->customPinsEnabled->setChecked(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]);
+            ui->customPinsEnabled->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]);
+
+            ui->aStickModeBox->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::analogMode]);
 
             ui->rumbleToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
             ui->rumbleSettingsBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
