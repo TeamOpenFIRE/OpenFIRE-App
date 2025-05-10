@@ -1742,6 +1742,9 @@ void guiWindow::profileBoxes_activated(int index)
     case App_Common::pBoxLayout:
         App_Common::profilesTable[sender()->property("slot").toInt()].layoutType = index;
         break;
+    case App_Common::pBoxAR:
+        App_Common::profilesTable[sender()->property("slot").toInt()].aspectRatio = index;
+        break;
     default:
         break;
     }
