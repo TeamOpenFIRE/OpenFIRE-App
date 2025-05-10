@@ -2302,6 +2302,13 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
                 }
 
                 fileIn.close();
+
+                // recover previous toggles that may have been turned off in the process
+                if(App_Common::inputsMap.value(OF_Const::solenoidPin) >= 0)
+                    ui->solenoidToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::solenoid]);
+                if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0)
+                    ui->rumbleToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
+
                 ui->statusBar->showMessage("Successfully imported custom layout!", 5000);
             } else QMessageBox::warning(this, "Board Doesn't Match",
                                               "Custom layout file is not compatible with this board.");
