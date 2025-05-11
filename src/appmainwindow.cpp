@@ -243,7 +243,7 @@ guiWindow::guiWindow(QWidget *parent)
     statusProgressBar->setVisible(false);
     ui->statusBar->addPermanentWidget(statusProgressBar);
 
-#if QT_VERSION_MAJOR < 6 || (QT_VERSION_MAJOR == 6 && QT_VERSION_MINOR < 6)
+#if QT_VERSION_MAJOR < 6 || (QT_VERSION_MAJOR == 6 && QT_VERSION_MINOR < 8)
     // Fixup tab icons for older Qt builds to use XDG names
     ui->tabWidget->setTabIcon(0, QIcon::fromTheme("document-properties"));
     ui->tabWidget->setTabIcon(1, QIcon::fromTheme("input-keyboard"));
