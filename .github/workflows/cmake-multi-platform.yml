@@ -119,11 +119,11 @@ jobs:
 
     - name: Setup AppImage
       if: ${{ matrix.os != 'windows-2019' }}
-      # thanks linuxdeploy for not preinstalling your dependencies :<
+      env:
+        EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so
+        EXTRA_QT_MODULES: waylandcompositor
       run: |
         make install DESTDIR=AppDir
-        install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
-        install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
         "${{ runner.temp }}/linuxdeploy/linuxdeploy-${{ matrix.sys_arch }}.AppImage" --plugin=qt --output appimage --appdir AppDir --desktop-file "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" --icon-file "${{ github.workspace }}/img/ico/openfire.svg"
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
