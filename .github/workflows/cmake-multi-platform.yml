@@ -92,7 +92,7 @@ jobs:
       with:
         version: '${{ matrix.qt_version }}'
         host: '${{ matrix.qt_arch }}'
-        modules: 'qtserialport'
+        modules: 'qtserialport qtwaylandcompositor'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
 
     - name: Configure CMake
