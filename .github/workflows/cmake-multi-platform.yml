@@ -28,6 +28,7 @@ jobs:
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
             qt_arch: linux
+            sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
           - os: ubuntu-24.04-arm
@@ -35,6 +36,7 @@ jobs:
             cpp_compiler: clang++
             file: OpenFIRE_App-aarch64.AppImage
             qt_arch: linux_arm64
+            sys_arch: aarch64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux ARM AppImage"
         exclude:
@@ -114,7 +116,7 @@ jobs:
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
         install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
-        ${{ runner.temp }}/linuxdeploy --plugin=qt --output=appimage --appdir AppDir
+        ${{ runner.temp }}/linuxdeploy/linuxdeploy-${{matrix.sys_arch}}.AppImage --plugin=qt --output=appimage --appdir AppDir
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
 
