@@ -23,6 +23,7 @@ jobs:
             file: build
             qt_arch: windows
             qt_version: 6.8.3
+            qt6_modules: "qtserialport"
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
             c_compiler: clang
@@ -30,6 +31,7 @@ jobs:
             file: OpenFIRE_App-x86_64.AppImage
             qt_arch: linux
             qt_version: 5.15.2
+            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
@@ -39,6 +41,7 @@ jobs:
             file: OpenFIRE_App-x86_64.AppImage
             qt_arch: linux
             qt_version: 6.8.3
+            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
@@ -48,6 +51,7 @@ jobs:
             file: OpenFIRE_App-aarch64.AppImage
             qt_arch: linux_arm64
             qt_version: 6.7.3
+            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: aarch64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux ARM AppImage"
@@ -92,7 +96,7 @@ jobs:
       with:
         version: '${{ matrix.qt_version }}'
         host: '${{ matrix.qt_arch }}'
-        modules: 'qtserialport qtwaylandcompositor'
+        modules: '${{ matrix.qt6_modules }}'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
 
     - name: Configure CMake
