@@ -102,7 +102,6 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
-      id: install-linuxdeploy
       if: ${{ matrix.os != 'windows-2019' }}
       uses: pcolby/install-linuxdeploy@v1
       with:
@@ -115,7 +114,7 @@ jobs:
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
         install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
-        ${{ steps.install-linuxdeploy.outputs.linuxdeploy }} --plugin=qt --output=appimage --appdir AppDir
+        ${{ runner.temp }}/linuxdeploy --plugin=qt --output=appimage --appdir AppDir
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
 
