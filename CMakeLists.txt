@@ -14,10 +14,6 @@ if(NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
     add_compile_definitions(OFAPP_DEBUG)
 endif()
 
-if(NOT OFAPP_QT_VERSIONS)
-    set(OFAPP_QT_VERSIONS Qt6)
-endif()
-
 # required to make use of definitions in `OpenFIREshared.h` for App usage
 add_compile_definitions(OF_APP)
 
@@ -45,8 +41,13 @@ if(OFAPP_GITHASH)
     add_compile_definitions(OFAPP_GITHASH="${OFAPP_GITHASH}")
 endif()
 
-find_package(QT NAMES ${OFAPP_QT_VERSIONS} REQUIRED COMPONENTS Widgets LinguistTools Concurrent)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Concurrent)
+if(NOT OFAPP_QT_VERSION)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED)
+else()
+    find_package(QT NAMES ${OFAPP_QT_VERSION} REQUIRED)
+endif()
+
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Concurrent SerialPort)
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
@@ -95,14 +96,9 @@ else()
 
 endif()
 
-target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
+target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort)
 
-# Serial Port
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS SerialPort)
-target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::SerialPort)
-
-# SVG Renderer
+# SVG Renderer has a different package name >= 6.1 for some reason
 if(${QT_VERSION} VERSION_LESS 6.1.0)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Svg)
     target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Svg)

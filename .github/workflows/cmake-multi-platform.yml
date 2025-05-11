@@ -13,31 +13,55 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-22.04, windows-2019]
+        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
+        qt_version: [5.15.2, 6.7.3, 6.8.3]
         build_type: [Release]
-        c_compiler: [clang, cl]
-        qt_version: [5.15.2, 6.8.2]
         include:
           - os: windows-2019
             c_compiler: cl
             cpp_compiler: cl
             file: build
+            qt_arch: windows
+            qt_version: 6.8.3
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
+            qt_arch: linux
+            qt_version: 5.15.2
+            sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
-            pretty: "Linux AppImage"
+            pretty: "Linux x86 AppImage"
+          - os: ubuntu-22.04
+            c_compiler: clang
+            cpp_compiler: clang++
+            file: OpenFIRE_App-x86_64.AppImage
+            qt_arch: linux
+            qt_version: 6.8.3
+            sys_arch: x86_64
+            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
+            pretty: "Linux x86 AppImage"
+          - os: ubuntu-22.04-arm
+            c_compiler: clang
+            cpp_compiler: clang++
+            file: OpenFIRE_App-aarch64.AppImage
+            qt_arch: linux_arm64
+            qt_version: 6.7.3
+            sys_arch: aarch64
+            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
+            pretty: "Linux ARM AppImage"
         exclude:
           - os: windows-2019
-            c_compiler: clang
-          - os: ubuntu-22.04
-            c_compiler: cl
-            qt_version: 6.8.2
-          - os: ubuntu-22.04
-            c_compiler: cl
             qt_version: 5.15.2
+          - os: windows-2019
+            qt_version: 6.7.3
+          - os: ubuntu-22.04
+            qt_version: 6.7.3
+          - os: ubuntu-22.04-arm
+            qt_version: 5.15.2
+          - os: ubuntu-22.04-arm
+            qt_version: 6.8.3
 
     steps:
     - uses: actions/checkout@v4
@@ -55,37 +79,25 @@ jobs:
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+    # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
       if: ${{ matrix.qt_version == '5.15.2' }}
-      uses: jurplel/install-qt-action@v4
+      uses: jdpurcell/install-qt-action@v5
       with:
-        aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
-      uses: jurplel/install-qt-action@v4
+      if: ${{ matrix.qt_version != '5.15.2' }}
+      uses: jdpurcell/install-qt-action@v5
       with:
-        aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
+        host: '${{ matrix.qt_arch }}'
         modules: 'qtserialport'
         archives: 'qtbase qttranslations qttools qtsvg icu'
 
-    - name: Configure CMake (for Qt5)
-      if: ${{ matrix.qt_version == '5.15.2' }}
+    - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DOFAPP_GITHASH=${{steps.get-short-sha.outputs.id}}
-        -DOFAPP_QT_VERSIONS=Qt5
-        ${{ matrix.install_prefix }}
-        -S ${{ github.workspace }}
-    - name: Configure CMake (for Qt6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -100,20 +112,19 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
-      if: ${{ matrix.os == 'ubuntu-22.04' }}
-      uses: miurahr/install-linuxdeploy-action@v1
+      if: ${{ matrix.os != 'windows-2019' }}
+      uses: pcolby/install-linuxdeploy@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      if: ${{ matrix.os != 'windows-2019' }}
       # thanks linuxdeploy for not preinstalling your dependencies :<
       run: |
-        sudo apt install -y appstream libfuse2
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
         install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
-        linuxdeploy-x86_64.AppImage --plugin=qt --output=appimage --appdir AppDir
+        "${{ runner.temp }}/linuxdeploy/linuxdeploy-${{ matrix.sys_arch }}.AppImage" --plugin=qt --output appimage --appdir AppDir --desktop-file "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" --icon-file "${{ github.workspace }}/img/ico/openfire.svg"
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
 
