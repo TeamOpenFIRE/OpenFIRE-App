@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
         build_type: [Release]
-        qt_version: [5.15.2, 6.8.0]
+        qt_version: [5.15.2, 6.7.3]
         include:
           - os: windows-2019
             c_compiler: cl
@@ -67,7 +67,7 @@ jobs:
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
-      if: ${{ matrix.qt_version == '6.8.0' }}
+      if: ${{ matrix.qt_version == '6.7.3' }}
       uses: jdpurcell/install-qt-action@v5
       with:
         version: '${{ matrix.qt_version }}'
@@ -89,7 +89,7 @@ jobs:
         ${{ matrix.install_prefix }}
         -S ${{ github.workspace }}
     - name: Configure CMake (for Qt6)
-      if: ${{ matrix.qt_version == '6.8.0' }}
+      if: ${{ matrix.qt_version == '6.7.3' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
