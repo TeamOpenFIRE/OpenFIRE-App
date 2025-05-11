@@ -57,18 +57,17 @@ jobs:
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+    # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
       if: ${{ matrix.qt_version == '5.15.2' }}
-      uses: jurplel/install-qt-action@v4
+      uses: jdpurcell/install-qt-action@v5
       with:
-        aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
       if: ${{ matrix.qt_version == '6.8.3' }}
-      uses: jurplel/install-qt-action@v4
+      uses: jdpurcell/install-qt-action@v5
       with:
-        aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
         host: '${{ matrix.qt_arch }}'
         modules: 'qtserialport'
