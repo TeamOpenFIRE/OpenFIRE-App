@@ -19,7 +19,7 @@ When a board(s) is connected, select the port corresponding to your microcontrol
 
 ### For Linux:
 ##### Requirements: Anything that supports Qt 5.15.X at minimum.
- - Arch Linux: AUR PKGBUILD @ [`openfireapp`](https://aur.archlinux.org/packages/openfireapp)
+ - Arch Linux: AUR PKGBUILD @ ~~[`openfireapp`](https://aur.archlinux.org/packages/openfireapp)~~ [`openfireapp-git`](https://aur.archlinux.org/packages/openfireapp-git)
  - Other distros: Use `OpenFIRE_App-[x86_64/aarch64].AppImage` [from the releases page](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest)
  - Make sure your user is part of the `dialout` group (`# usermod -a -G dialout insertusernamehere`); you'll be notified on startup if this is necessary. Log out and back in again for the change to take effect.
    - If you get the error message `usermod: group 'dialout' does not exist` when running the command above, you'll need to create the group (`# groupadd dialout`) and reboot for the change to take effect before trying again.
