@@ -13,30 +13,32 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-22.04, windows-2019]
+        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
         build_type: [Release]
-        c_compiler: [clang, cl]
-        qt_version: [5.15.2, 6.8.2]
+        qt_version: [5.15.2, 6.8.3]
         include:
           - os: windows-2019
             c_compiler: cl
             cpp_compiler: cl
             file: build
+            qt_arch: windows
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
+            qt_arch: linux
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
-            pretty: "Linux AppImage"
-        exclude:
-          - os: windows-2019
+            pretty: "Linux x86 AppImage"
+          - os: ubuntu-22.04-arm
             c_compiler: clang
-          - os: ubuntu-22.04
-            c_compiler: cl
-            qt_version: 6.8.2
-          - os: ubuntu-22.04
-            c_compiler: cl
+            cpp_compiler: clang++
+            file: OpenFIRE_App-aarch64.AppImage
+            qt_arch: linux_arm64
+            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
+            pretty: "Linux ARM AppImage"
+        exclude:
+          - os: ubuntu-22.04-arm
             qt_version: 5.15.2
 
     steps:
@@ -68,6 +70,7 @@ jobs:
       with:
         aqtversion: '==3.1.*'
         version: '${{ matrix.qt_version }}'
+        host: '${{ matrix.qt_arch }}'
         modules: 'qtserialport'
         archives: 'qtbase qttranslations qttools qtsvg icu'
 
@@ -85,7 +88,7 @@ jobs:
         ${{ matrix.install_prefix }}
         -S ${{ github.workspace }}
     - name: Configure CMake (for Qt6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
+      if: ${{ matrix.qt_version == '6.8.3' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -100,20 +103,20 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
-      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      if: ${{ matrix.os != 'windows-2019' }}
       uses: miurahr/install-linuxdeploy-action@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      if: ${{ matrix.os != 'windows-2019' }}
       # thanks linuxdeploy for not preinstalling your dependencies :<
       run: |
         sudo apt install -y appstream libfuse2
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" "AppDir/usr/share/applications/org.TeamOpenFIRE.OpenFIREapp.desktop"
         install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
-        linuxdeploy-x86_64.AppImage --plugin=qt --output=appimage --appdir AppDir
+        ${{ steps.install-linuxdeploy.outputs.linuxdeploy }} --plugin=qt --output=appimage --appdir AppDir
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
 
