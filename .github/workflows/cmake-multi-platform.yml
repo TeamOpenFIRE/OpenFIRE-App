@@ -14,6 +14,7 @@ jobs:
 
       matrix:
         os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
+        qt_version: [5.15.2, 6.7.3, 6.8.3]
         build_type: [Release]
         include:
           - os: windows-2019
@@ -31,7 +32,7 @@ jobs:
             qt_version: 5.15.2
             sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
-            pretty: "Linux x86 AppImage (Qt 5)"
+            pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
@@ -40,7 +41,7 @@ jobs:
             qt_version: 6.8.3
             sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
-            pretty: "Linux x86 AppImage (Qt 6)"
+            pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04-arm
             c_compiler: clang
             cpp_compiler: clang++
@@ -50,6 +51,17 @@ jobs:
             sys_arch: aarch64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux ARM AppImage"
+        exclude:
+          - os: windows-2019
+            qt_version: 5.15.2
+          - os: windows-2019
+            qt_version: 6.7.3
+          - os: ubuntu-22.04
+            qt_version: 6.7.3
+          - os: ubuntu-22.04-arm
+            qt_version: 5.15.2
+          - os: ubuntu-22.04-arm
+            qt_version: 6.8.3
 
     steps:
     - uses: actions/checkout@v4
