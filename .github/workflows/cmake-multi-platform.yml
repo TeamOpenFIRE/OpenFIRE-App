@@ -102,6 +102,7 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Install linuxdeploy
+      id: install-linuxdeploy
       if: ${{ matrix.os != 'windows-2019' }}
       uses: pcolby/install-linuxdeploy@v1
       with:
