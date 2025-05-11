@@ -124,7 +124,8 @@ jobs:
         EXTRA_QT_MODULES: waylandcompositor
       run: |
         make install DESTDIR=AppDir
-        "${{ runner.temp }}/linuxdeploy/linuxdeploy-${{ matrix.sys_arch }}.AppImage" --plugin=qt --output appimage --appdir AppDir --desktop-file "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop" --icon-file "${{ github.workspace }}/img/ico/openfire.svg"
+        install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
+        "${{ runner.temp }}/linuxdeploy/linuxdeploy-${{ matrix.sys_arch }}.AppImage" --plugin=qt --output appimage --appdir AppDir --desktop-file "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop"
         cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
 
