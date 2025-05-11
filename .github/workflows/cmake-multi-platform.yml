@@ -65,7 +65,7 @@ jobs:
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
+      if: ${{ matrix.qt_version == '6.8.3' }}
       uses: jurplel/install-qt-action@v4
       with:
         aqtversion: '==3.1.*'
