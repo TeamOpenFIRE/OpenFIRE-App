@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04-arm, windows-2019]
         build_type: [Release]
-        qt_version: [5.15.2, 6.8.2]
+        qt_version: [5.15.2, 6.8.0]
         include:
           - os: windows-2019
             c_compiler: cl
@@ -31,7 +31,7 @@ jobs:
             sys_arch: x86_64
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-22.04-arm
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-aarch64.AppImage
@@ -67,7 +67,7 @@ jobs:
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qttranslations qttools qtsvg qtserialport icu'
     - name: Install Qt(6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
+      if: ${{ matrix.qt_version == '6.8.0' }}
       uses: jdpurcell/install-qt-action@v5
       with:
         version: '${{ matrix.qt_version }}'
@@ -89,7 +89,7 @@ jobs:
         ${{ matrix.install_prefix }}
         -S ${{ github.workspace }}
     - name: Configure CMake (for Qt6)
-      if: ${{ matrix.qt_version == '6.8.2' }}
+      if: ${{ matrix.qt_version == '6.8.0' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
