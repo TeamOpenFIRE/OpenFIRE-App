@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
         qt_version: [5.15.2, 6.7.3, 6.8.3]
-        build_type: [Release]
+        build_type: [Debug, Release]
         include:
           - os: windows-2019
             c_compiler: cl
@@ -137,7 +137,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # Artifact name
-        name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }} # optional, default is artifact
+        name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }}-${{ matrix.build_type }} # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ matrix.file }}
 

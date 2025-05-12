@@ -85,6 +85,9 @@ bool AppSerial::GetSettings(const QString &portName)
             port.clear();
 
             if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
+                #ifdef OFAPP_DEBUG
+                qDebug() << port.peek(port.bytesAvailable());
+                #endif
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
                 if(buffer.size() >= 3) {
@@ -112,6 +115,8 @@ bool AppSerial::GetSettings(const QString &portName)
                                   "if they should be mapped different GPIO;<br>"
                                   "Otherwise, the camera wires must be resoldered to resolve this error.</p>",
                                   QMessageBox::Warning);
+
+                    port.clear();
 
                     ////* toggles *////
                     if(OneShotSend((char)OF_Const::sGetToggles, true)) {
@@ -280,15 +285,20 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 }
             // String not detected, skip over
             } else {
-                printf("No data found for %s\n", buf.constData());
+                qDebug() << "No data found for" << buf;
                 // skip the profile num byte if reading profile type data
                 if(&dataMap == &App_Common::OFPresets.profSettingTypes_Strings) {
-                    if(!port.bytesAvailable()) if(!port.waitForReadyRead(500)) return false;
+                    if(!port.bytesAvailable()) port.waitForReadyRead(500);
                     buf += port.read(1);
                 }
-                if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
+                if(port.bytesAvailable() < sizeRead) port.waitForReadyRead(500);
                 buf += port.read(sizeRead);
             }
+
+            #ifdef OFAPP_DEBUG
+            qDebug() << buf;
+            #endif
+
             // Report back received buffer to board for verification
             // (board will re-send output if buffers aren't matching)
             OneShotSend(buf.constData(), buf.length());
