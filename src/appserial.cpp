@@ -85,6 +85,9 @@ bool AppSerial::GetSettings(const QString &portName)
             port.clear();
 
             if(char buf[] = {(char)OF_Const::sDock1, (char)OF_Const::sDock2}; OneShotSend(buf, 2, true)) {
+                #ifdef OFAPP_DEBUG
+                qDebug() << port.peek(port.bytesAvailable());
+                #endif
                 QList<QByteArray> buffer = port.readLine().split((char)OF_Const::serialTerminator);
 
                 if(buffer.size() >= 3) {
@@ -289,6 +292,11 @@ bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::
                 if(port.bytesAvailable() < sizeRead) if(!port.waitForReadyRead(500)) return false;
                 buf += port.read(sizeRead);
             }
+
+            #ifdef OFAPP_DEBUG
+            qDebug() << buf;
+            #endif
+
             // Report back received buffer to board for verification
             // (board will re-send output if buffers aren't matching)
             OneShotSend(buf.constData(), buf.length());
