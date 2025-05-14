@@ -83,6 +83,10 @@ jobs:
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+    - uses: actions/setup-python@v5
+      with:
+        cache: 'pip' # caching pip dependencies
+
     # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
       if: ${{ matrix.qt_version == '5.15.2' }}
