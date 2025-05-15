@@ -20,7 +20,7 @@ jobs:
           - os: windows-2019
             c_compiler: cl
             cpp_compiler: cl
-            file: build/${{ matrix.build_type }}
+            file: build
             qt_arch: windows
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
