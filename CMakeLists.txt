@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(VERSION 3.5)
 
-project(OpenFIREapp VERSION 3.0.0 LANGUAGES CXX)
+project(OpenFIREapp
+        VERSION 3.0.0
+        DESCRIPTION "OpenFIRE Configuration Desktop App"
+        LANGUAGES CXX)
+set(OFAPP_CODENAME "Tokinomiya")
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -19,9 +23,6 @@ add_compile_definitions(OF_APP)
 
 add_compile_definitions(OFAPP_VERSION="${PROJECT_VERSION}")
 
-if(NOT OFAPP_CODENAME)
-    set(OFAPP_CODENAME "Tokinomiya")
-endif()
 set(MINORVER_TIERLIST_NAMES
   "" ": Alpha" ": Beta" ": Gamma" ": Omega" ": Sigma"
 )
