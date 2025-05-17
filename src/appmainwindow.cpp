@@ -243,17 +243,6 @@ guiWindow::guiWindow(QWidget *parent)
     statusProgressBar->setVisible(false);
     ui->statusBar->addPermanentWidget(statusProgressBar);
 
-#if QT_VERSION_MAJOR < 6 || (QT_VERSION_MAJOR == 6 && QT_VERSION_MINOR < 8)
-    // Fixup tab icons for older Qt builds to use XDG names
-    ui->tabWidget->setTabIcon(0, QIcon::fromTheme("document-properties"));
-    ui->tabWidget->setTabIcon(1, QIcon::fromTheme("input-keyboard"));
-    ui->tabWidget->setTabIcon(2, QIcon::fromTheme("drive-harddisk"));
-    ui->tabWidget->setTabIcon(3, QIcon::fromTheme("computer"));
-    ui->tabWidget->setTabIcon(4, QIcon::fromTheme("input-tablet"));
-    ui->customLayoutToolBtn->setIcon(QIcon::fromTheme("edit-copy"));
-    ui->actionExport_Custom_Layout->setIcon(QIcon::fromTheme("document-open"));
-    ui->actionImport_Custom_Layout->setIcon(QIcon::fromTheme("document-save-as"));
-#endif
     // Disable ONLY the tab widget (doing this from the form also disables children, including the scroll area)
     ui->tabWidget->setEnabled(false);
 
@@ -270,10 +259,8 @@ guiWindow::guiWindow(QWidget *parent)
 
 guiWindow::~guiWindow()
 {
-    if(ui->comPortSelector->currentIndex() > 0) {
-        statusBar()->showMessage("Sending undock request to board...");
+    if(ui->comPortSelector->currentIndex() > 0)
         serial.Disconnect();
-    }
 
 #ifdef OFAPP_DEBUG
     debugWindow.close();
@@ -424,11 +411,7 @@ void guiWindow::DiffUpdate()
     if(settingsDiff) {
         ui->confirmButton->setText("Save and Send Settings");
         ui->confirmButton->setEnabled(true);
-#if QT_VERSION_MAJOR > 5 && QT_VERSION_MINOR > 6
-        ui->confirmButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentSave));
-#else
         ui->confirmButton->setIcon(QIcon::fromTheme("document-save"));
-#endif
     } else {
         ui->confirmButton->setText("[Nothing To Save]");
         ui->confirmButton->setEnabled(false);

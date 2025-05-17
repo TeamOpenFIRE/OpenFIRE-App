@@ -132,7 +132,7 @@
         <bool>true</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="QIcon::ThemeIcon::DocumentProperties"/>
+        <iconset theme="document-properties"/>
        </attribute>
        <attribute name="title">
         <string>Board Layout</string>
@@ -247,7 +247,7 @@
              <string>User Layouts</string>
             </property>
             <property name="icon">
-             <iconset theme="QIcon::ThemeIcon::EditCopy"/>
+             <iconset theme="edit-copy"/>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -273,7 +273,7 @@
       </widget>
       <widget class="QWidget" name="buttonFuncTab">
        <attribute name="icon">
-        <iconset theme="QIcon::ThemeIcon::InputKeyboard"/>
+        <iconset theme="input-keyboard"/>
        </attribute>
        <attribute name="title">
         <string>Button Mapping</string>
@@ -521,7 +521,7 @@
         <bool>true</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="QIcon::ThemeIcon::DriveHarddisk"/>
+        <iconset theme="drive-harddisk"/>
        </attribute>
        <attribute name="title">
         <string>Gun Settings</string>
@@ -1775,7 +1775,7 @@
       </widget>
       <widget class="QWidget" name="profilesTab">
        <attribute name="icon">
-        <iconset theme="QIcon::ThemeIcon::Computer"/>
+        <iconset theme="computer"/>
        </attribute>
        <attribute name="title">
         <string>Calibration Profiles</string>
@@ -2109,7 +2109,7 @@
         <bool>true</bool>
        </property>
        <attribute name="icon">
-        <iconset theme="QIcon::ThemeIcon::InputTablet"/>
+        <iconset theme="input-tablet"/>
        </attribute>
        <attribute name="title">
         <string>Gun Tests</string>
@@ -2291,6 +2291,9 @@
           <property name="text">
            <string>Open IR Camera Tester...</string>
           </property>
+          <property name="icon">
+           <iconset theme="camera-web"/>
+          </property>
          </widget>
         </item>
         <item>
@@ -2324,6 +2327,9 @@
              <property name="text">
               <string>Clear Save Memory [!]</string>
              </property>
+             <property name="icon">
+              <iconset theme="edit-delete"/>
+             </property>
             </widget>
            </item>
            <item>
@@ -2333,6 +2339,9 @@
              </property>
              <property name="text">
               <string>Reboot to Bootloader</string>
+             </property>
+             <property name="icon">
+              <iconset theme="system-reboot"/>
              </property>
             </widget>
            </item>
@@ -2349,7 +2358,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>[Nothing To Save]</string>
+       <string>[Currently Not Connected]</string>
       </property>
      </widget>
     </item>
