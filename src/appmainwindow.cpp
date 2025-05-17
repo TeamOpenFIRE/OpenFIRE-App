@@ -1844,9 +1844,24 @@ void guiWindow::on_blueLedTestBtn_clicked()
 
 void guiWindow::on_testBtn_clicked()
 {
-    char buf[2] = { (char)OF_Const::sIRTest, true };
-    if(serial.OneShotSend(buf, sizeof(buf)))
-        NewCaliWindow(AppCaliWindow::modeIRTest);
+    if(App_Common::profilesTable.at(App_Common::board.selectedProfile).layoutType != App_Common::profilesTable_orig.at(App_Common::board.selectedProfile).layoutType) {
+        if(QMessageBox::information(this,
+                                    "Warning: Unsaved Changes",
+                                    "Your current calibration profile has an unsaved IR Layout type change.\n"
+                                    "Test Mode relies on the profile's settings since the last save, and may not work as expected.\n"
+                                    "It is recommended that you save your changes before continuing.\n\n"
+                                    "Continue to Test Mode?",
+                                    QMessageBox::Yes | QMessageBox::No)
+            == QMessageBox::Yes) {
+            char buf[2] = { (char)OF_Const::sIRTest, true };
+            if(serial.OneShotSend(buf, sizeof(buf)))
+                NewCaliWindow(AppCaliWindow::modeIRTest);
+        }
+    } else {
+        char buf[2] = { (char)OF_Const::sIRTest, true };
+        if(serial.OneShotSend(buf, sizeof(buf)))
+            NewCaliWindow(AppCaliWindow::modeIRTest);
+    }
 }
 
 
