@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>980</width>
-    <height>830</height>
+    <height>832</height>
    </rect>
   </property>
   <property name="windowIcon">
@@ -152,13 +152,13 @@
           <property name="alignment">
            <set>Qt::AlignHCenter|Qt::AlignTop</set>
           </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
+          <widget class="QWidget" name="pinsScrollContents">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>559</height>
+             <height>561</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -293,16 +293,28 @@
           <property name="alignment">
            <set>Qt::AlignHCenter|Qt::AlignTop</set>
           </property>
-          <widget class="QWidget" name="buttonFuncScrollLayout">
+          <widget class="QWidget" name="buttonFuncScrollContents">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>424</height>
+             <height>426</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_19">
+           <layout class="QVBoxLayout" name="verticalLayout_19" stretch="0,1,0">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="QGroupBox" name="buttonFuncBox">
               <property name="title">
@@ -1360,7 +1372,7 @@
                   <string/>
                  </property>
                  <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="accessibleName">
                   <string>Simple Pause Menu Toggle</string>
@@ -1801,10 +1813,22 @@
              <x>0</x>
              <y>0</y>
              <width>938</width>
-             <height>424</height>
+             <height>426</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_16">
+           <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,1">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="QGroupBox" name="profilesBox">
               <property name="title">
@@ -2114,238 +2138,281 @@
        <attribute name="title">
         <string>Gun Tests</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1,0,0">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QGroupBox" name="buttonsTestArea">
-          <property name="title">
-           <string>Inputs Test</string>
+         <widget class="QScrollArea" name="testScrollArea">
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
-            <widget class="QGroupBox" name="btnsGroup">
-             <property name="title">
-              <string>Buttons</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_11" stretch="3,1">
-              <property name="topMargin">
-               <number>0</number>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignHCenter|Qt::AlignTop</set>
+          </property>
+          <widget class="QWidget" name="testScrollContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>938</width>
+             <height>592</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_10" stretch="0,0,0,1,0,0">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="buttonsTestArea">
+              <property name="title">
+               <string>Inputs Test</string>
               </property>
-              <property name="rightMargin">
-               <number>0</number>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QGroupBox" name="btnsGroup">
+                 <property name="title">
+                  <string>Buttons</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_11" stretch="3,1">
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <layout class="QGridLayout" name="btnsLayout"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="tmp36Label">
+                    <property name="frameShape">
+                     <enum>QFrame::Box</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <property name="text">
+                     <string>Temperature Sensor (N/A)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="analogGroup">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="title">
+                  <string>Analog Stick</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_8" stretch="0,1">
+                  <property name="spacing">
+                   <number>4</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="aPosLabel">
+                    <property name="font">
+                     <font>
+                      <italic>true</italic>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QGraphicsView" name="analogGfxView">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>256</width>
+                      <height>256</height>
+                     </size>
+                    </property>
+                    <property name="verticalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOff</enum>
+                    </property>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOff</enum>
+                    </property>
+                    <property name="interactive">
+                     <bool>false</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="feedbackTestsBox">
+              <property name="title">
+               <string>Feedback Tests</string>
               </property>
-              <property name="bottomMargin">
-               <number>0</number>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                 <item>
+                  <widget class="QPushButton" name="rumbleTestBtn">
+                   <property name="text">
+                    <string>Test Rumble Motor</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="solenoidTestBtn">
+                   <property name="text">
+                    <string>Test Solenoid</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QPushButton" name="redLedTestBtn">
+                   <property name="text">
+                    <string>Test Red LED</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="greenLedTestBtn">
+                   <property name="text">
+                    <string>Test Green LED</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="blueLedTestBtn">
+                   <property name="text">
+                    <string>Test Blue LED</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="testBtn">
+              <property name="text">
+               <string>Open IR Camera Tester...</string>
               </property>
-              <item>
-               <layout class="QGridLayout" name="btnsLayout"/>
-              </item>
-              <item>
-               <widget class="QLabel" name="tmp36Label">
-                <property name="frameShape">
-                 <enum>QFrame::Box</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <property name="text">
-                 <string>Temperature Sensor (N/A)</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="analogGroup">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>Analog Stick</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_8" stretch="0,1">
-              <property name="spacing">
-               <number>4</number>
+              <property name="icon">
+               <iconset theme="camera-web"/>
               </property>
-              <property name="topMargin">
-               <number>0</number>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
               </property>
-              <property name="rightMargin">
-               <number>0</number>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
               </property>
-              <property name="bottomMargin">
-               <number>0</number>
+             </spacer>
+            </item>
+            <item>
+             <widget class="Line" name="line_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-              <item>
-               <widget class="QLabel" name="aPosLabel">
-                <property name="font">
-                 <font>
-                  <italic>true</italic>
-                 </font>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGraphicsView" name="analogGfxView">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>256</width>
-                  <height>256</height>
-                 </size>
-                </property>
-                <property name="verticalScrollBarPolicy">
-                 <enum>Qt::ScrollBarAlwaysOff</enum>
-                </property>
-                <property name="horizontalScrollBarPolicy">
-                 <enum>Qt::ScrollBarAlwaysOff</enum>
-                </property>
-                <property name="interactive">
-                 <bool>false</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="feedbackTestsBox">
-          <property name="title">
-           <string>Feedback Tests</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_9">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
-              <widget class="QPushButton" name="rumbleTestBtn">
-               <property name="text">
-                <string>Test Rumble Motor</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="solenoidTestBtn">
-               <property name="text">
-                <string>Test Solenoid</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QPushButton" name="redLedTestBtn">
-               <property name="text">
-                <string>Test Red LED</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="greenLedTestBtn">
-               <property name="text">
-                <string>Test Green LED</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="blueLedTestBtn">
-               <property name="text">
-                <string>Test Blue LED</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="testBtn">
-          <property name="text">
-           <string>Open IR Camera Tester...</string>
-          </property>
-          <property name="icon">
-           <iconset theme="camera-web"/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="Line" name="line_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="dangerZoneBox">
-          <property name="title">
-           <string>Board Actions</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_10">
-           <item>
-            <widget class="QPushButton" name="clearEepromBtn">
-             <property name="text">
-              <string>Clear Save Memory [!]</string>
-             </property>
-             <property name="icon">
-              <iconset theme="edit-delete"/>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="baudResetBtn">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Reboot to Bootloader</string>
-             </property>
-             <property name="icon">
-              <iconset theme="system-reboot"/>
-             </property>
-            </widget>
-           </item>
-          </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="dangerZoneBox">
+              <property name="title">
+               <string>Board Actions</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0">
+               <item>
+                <widget class="QPushButton" name="baudResetBtn">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>Reboot to Bootloader</string>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="system-reboot"/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="clearEepromBtn">
+                 <property name="styleSheet">
+                  <string notr="true">color: red;</string>
+                 </property>
+                 <property name="text">
+                  <string>Clear Save Memory [!]</string>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="edit-delete"/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -2412,6 +2479,9 @@
    </property>
   </action>
   <action name="actionOpenFIRE_Documentation">
+   <property name="icon">
+    <iconset theme="network-idle"/>
+   </property>
    <property name="text">
     <string>&amp;OpenFIRE Documentation on the Repo...</string>
    </property>
@@ -2420,6 +2490,9 @@
    </property>
   </action>
   <action name="actionOpenFIRE_Serial_Usage">
+   <property name="icon">
+    <iconset theme="network-idle"/>
+   </property>
    <property name="text">
     <string>OpenFIRE &amp;Serial Usage Docs on the Wiki...</string>
    </property>
@@ -2428,13 +2501,16 @@
    </property>
   </action>
   <action name="actionOpen_IR_Emitter_Alignment_Assistant">
+   <property name="icon">
+    <iconset theme="view-fullscreen"/>
+   </property>
    <property name="text">
     <string>Open &amp;IR Emitter Alignment Assistant</string>
    </property>
   </action>
   <action name="actionImport_Custom_Layout">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+    <iconset theme="document-open"/>
    </property>
    <property name="text">
     <string>Import Custom Layout...</string>
@@ -2445,7 +2521,7 @@
   </action>
   <action name="actionExport_Custom_Layout">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::DocumentSaveAs"/>
+    <iconset theme="document-save-as"/>
    </property>
    <property name="text">
     <string>Export Custom Layout...</string>
@@ -2455,6 +2531,9 @@
    </property>
   </action>
   <action name="actionDebug_Window">
+   <property name="icon">
+    <iconset theme="application-x-executable"/>
+   </property>
    <property name="text">
     <string>Debug Window</string>
    </property>
@@ -2473,6 +2552,9 @@
    </property>
   </action>
   <action name="actionCompatible_Boards">
+   <property name="icon">
+    <iconset theme="help-about"/>
+   </property>
    <property name="text">
     <string>View Compatible Boards</string>
    </property>

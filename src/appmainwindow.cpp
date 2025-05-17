@@ -706,15 +706,15 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 aspectRatio.at(i)->setProperty("type", App_Common::pBoxAR);
                 aspectRatio.at(i)->setProperty("trackable", App_Common::trackProfileItem);
                 aspectRatio.at(i)->setAccessibleName(QString("Aspect Ratio Correction for Profile %1").arg(i+1));
-                aspectRatio.at(i)->setWhatsThis("<p>This setting determines the Aspect Ratio this Calibration Profile is calibrated for.</p>"
+                aspectRatio.at(i)->setWhatsThis("<p>This setting determines the type of Aspect Ratio Correction used for this Profile when <i>4:3 Mode</i> is set.</p>"
                                                 "<p>When <a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
                                                 "<tt>M3x1</tt> is received, the firmware stretches the effective range for fullscreen applications in Windows "
-                                                "that runs in resolutions <b>narrower</b> than the full display width; "
-                                                "this setting determines the stretch factor for 4:3 applications.</p>"
-                                                "<p>Do note that this restriction only applies to the <b>Windows Operating System ONLY "
+                                                "that runs in resolutions <b>narrower</b> than the full display width/height; "
+                                                "this setting determines the stretch factor that will be used for these 4:3 applications.</p>"
+                                                "<p>Do note that this restriction exclusively applies to the <b>Windows Operating System ONLY "
                                                 "for legacy applications that DON'T support the monitor's full resolution;</b> <i>Linux-based systems</i> and games run via <i>Wine/Proton</i> "
-                                                "<b>does not need this workaround,</b> except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
-                                                "<p>If unsure, set to <b>the aspect ratio of your display.</b></p>");
+                                                "<b>do not need this workaround,</b> except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
+                                                "<p>If unsure, set to <b>the aspect ratio of your display.</b> Setting to <i>4:3</i> effectively disables range stretching when toggled.</p>");
                 connect(aspectRatio.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 color << new QPushButton();
