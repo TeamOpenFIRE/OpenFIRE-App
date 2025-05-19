@@ -359,10 +359,10 @@ void guiWindow::BoxesUpdate()
             App_Common::inputsMap = App_Common::inputsMap_orig;
 
             // copy presets to inputs map
-            if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
+            if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.toStdString()))
                 for(size_t i = 0; i < pinBoxes.count(); ++i)
-                    if(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i) > OF_Const::btnUnmapped)
-                        App_Common::inputsMap[App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)] = i;
+                    if(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i) > OF_Const::btnUnmapped)
+                        App_Common::inputsMap[App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i)] = i;
         }
 
         return;
@@ -374,9 +374,9 @@ void guiWindow::BoxesUpdate()
             box->setEnabled(false), box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
-        if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.boardType.toStdString()))
+        if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.toStdString()))
             for(size_t i = 0; i < pinBoxes.count(); ++i)
-                pinBoxes.at(i)->setCurrentIndex(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).at(i)+1);
+                pinBoxes.at(i)->setCurrentIndex(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i)+1);
 
         return;
     }
@@ -463,8 +463,8 @@ QString guiWindow::PrettifyName(QString name)
         name = "Unnamed Device";
 
     // append name of board to gun name string.
-    if(App_Common::OFPresets.boardNames.count(App_Common::board.boardType.toStdString()))
-         return name + " | " + App_Common::OFPresets.boardNames.at(App_Common::board.boardType.toStdString());
+    if(App_Common::OFPresets.boardNames.count(App_Common::board.type.toStdString()))
+         return name + " | " + App_Common::OFPresets.boardNames.at(App_Common::board.type.toStdString());
     else return name + " | " + App_Common::OFPresets.boardNames.at("generic");
 }
 
@@ -786,7 +786,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.boardType.toStdString()).size(); ++i) {
+            for(uint8_t i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
@@ -827,19 +827,19 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1\n\nBlue pin numbers are members of I2C0\nOrange are members of I2C1").arg(i));
             }
 
-            if(App_Common::board.versionNumber.indexOf('-') > -1)
+            if(App_Common::board.version.indexOf('-') > -1)
                 ui->versionLabel->setText(QString("FW v<tt>%1<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/commit/%2'><span style=' text-decoration: underline; color:#8ab4f8;'>%2</span></a></tt>")
-                                                 .arg(App_Common::board.versionNumber.left(App_Common::board.versionNumber.indexOf('-')+1), App_Common::board.versionNumber.mid(App_Common::board.versionNumber.indexOf('-')+1)));
-            else ui->versionLabel->setText("FW v<tt>" + App_Common::board.versionNumber + "</tt>");
+                                                 .arg(App_Common::board.version.left(App_Common::board.version.indexOf('-')+1), App_Common::board.version.mid(App_Common::board.version.indexOf('-')+1)));
+            else ui->versionLabel->setText("FW v<tt>" + App_Common::board.version + "</tt>");
 
             // update presets box if this board has any
             ui->presetsBox->clear();
 
-            if(App_Common::OFPresets.boardsAltPresets.count(App_Common::board.boardType.toStdString())) {
+            if(App_Common::OFPresets.boardsAltPresets.count(App_Common::board.type.toStdString())) {
                 ui->presetsBox->setHidden(false);
                 ui->presetsBox->setEnabled(true);
 
-                auto iter = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.boardType.toStdString());
+                auto iter = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.type.toStdString());
                 for(auto i = iter.first; i != iter.second; ++i)
                     ui->presetsBox->addItem(i->second.name);
             } else {
@@ -853,33 +853,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             LabelsUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            if(App_Common::OFPresets.boardsBoxPositions.count(App_Common::board.boardType.toStdString())) {
-                QFile resource(":/boardPics/" + App_Common::board.boardType);
+            if(App_Common::OFPresets.boardsBoxPositions.count(App_Common::board.type.toStdString())) {
+                QFile resource(":/boardPics/" + App_Common::board.type);
                 resource.open(QIODevice::ReadOnly);
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posLeft) {
+                    if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posLeft) {
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posLeft,
+                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 1);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posRight) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posRight) {
                         ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posRight,
+                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
                                                  0);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) & OF_Const::posMiddle) {
+                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posMiddle) {
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
-                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
-                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.boardType.toStdString()).at(i) ^ OF_Const::posMiddle);
+                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
                     }
                 }
             } else {
@@ -1276,7 +1276,7 @@ void guiWindow::on_presetsBox_currentIndexChanged(int index)
             pinBoxes.at(i)->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // set pinboxes to alt preset values (and let the index changed signal handle the rest)
-        auto preset = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.boardType.toStdString()).first;
+        auto preset = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.type.toStdString()).first;
         for(int i = 0; i < index; ++i)
             preset++;
 
@@ -2290,7 +2290,7 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
     if(!path.isEmpty()) {
         QFile fileIn(path);
         if(fileIn.open(QFile::ReadOnly)) {
-            if(fileIn.readLine().trimmed() == App_Common::board.boardType) {
+            if(fileIn.readLine().trimmed() == App_Common::board.type) {
                 if(!ui->customPinsEnabled->isChecked()) ui->customPinsEnabled->setChecked(true);
                 // clear current mapping
                 for(const auto &box : std::as_const(pinBoxes))
@@ -2331,7 +2331,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
     if(!path.isEmpty()) {
         QFile fileOut(path);
         if(fileOut.open(QFile::WriteOnly)) {
-            fileOut.write(App_Common::board.boardType + '\n');
+            fileOut.write(App_Common::board.type + '\n');
 
             for(auto &pair : App_Common::OFPresets.boardInputs_Strings) {
                 if(pair.second > OF_Const::btnUnmapped && App_Common::inputsMap.value(pair.second) > OF_Const::btnUnmapped) {

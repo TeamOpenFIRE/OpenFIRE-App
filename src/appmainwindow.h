@@ -25,7 +25,9 @@
 
 #include "appcommon.h"
 #include "appcali.h"
+#ifdef OFAPP_DEBUG
 #include "appdebug.h"
+#endif
 #include "appserial.h"
 #include "apppreviewer.h"
 

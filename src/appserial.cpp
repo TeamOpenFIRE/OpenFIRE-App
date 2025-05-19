@@ -95,11 +95,15 @@ bool AppSerial::GetSettings(const QString &portName)
                     emit Serial_ProgressUpdate(1, "Getting Board Info");
 
                     ////* Opening board message bits *////
-                    App_Common::board.versionNumber = buffer.takeFirst().constData();
-                    printf("Version number: %s\n", App_Common::board.versionNumber.constData());
+                    App_Common::board.version = buffer.takeFirst().constData();
+                    printf("Version number: %s\n", App_Common::board.version.constData());
 
-                    App_Common::board.boardType = buffer.takeFirst().constData();
-                    printf("Board type: %s\n", App_Common::board.boardType.constData());
+                    App_Common::board.type = buffer.takeFirst().constData();
+                    printf("Board type: %s\n", App_Common::board.type.constData());
+
+                    if(App_Common::board.type.contains("esp32"))
+                         App_Common::board.arch = App_Common::OFPresets.boardArchs[OF_Const::boardESP32];
+                    else App_Common::board.arch = App_Common::OFPresets.boardArchs[OF_Const::boardRP];
 
                     memcpy(&App_Common::tinyUSBtable, buffer.takeFirst().constData(), sizeof(App_Common::tinyUSBtable_s));
                     memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
