@@ -126,13 +126,14 @@ guiWindow::guiWindow(QWidget *parent)
             btnFuncBox[2][0][i].addItem(item);
         }
 
-        btnFuncLayout[i].addWidget(new QLabel(App_Common::OFPresets.boardInputs_sortedStr[i+1]), 1, Qt::AlignRight);
-        btnFuncLayout[i].addSpacing(4);
+        btnFuncLayout << new QHBoxLayout();
+        btnFuncLayout.at(i)->addWidget(new QLabel(App_Common::OFPresets.boardInputs_sortedStr[i+1]), 1, Qt::AlignRight);
+        btnFuncLayout.at(i)->addSpacing(4);
 
         for(int slot = 0; slot < 3; ++slot) {
-            if(slot > 0) btnFuncLayout[i].addSpacing(6);
+            if(slot > 0) btnFuncLayout.at(i)->addSpacing(6);
 
-            btnFuncLayout[i].addWidget(&btnFuncBox[slot][0][i]);
+            btnFuncLayout.at(i)->addWidget(&btnFuncBox[slot][0][i]);
 
             btnFuncBox[slot][0][i].setCurrentIndex(-1);
             btnFuncBox[slot][0][i].setProperty("curType", -1);
@@ -149,7 +150,7 @@ guiWindow::guiWindow(QWidget *parent)
             btnFuncBox[slot][0][i].setProperty("trackable", App_Common::trackButtonMapItem);
             btnFuncBox[slot][0][i].installEventFilter(this);
 
-            btnFuncLayout[i].addWidget(&btnFuncBox[slot][1][i], 1);
+            btnFuncLayout.at(i)->addWidget(&btnFuncBox[slot][1][i], 1);
             btnFuncBox[slot][1][i].setMaxVisibleItems(10);
             btnFuncBox[slot][1][i].setProperty("slot", slot);
             btnFuncBox[slot][1][i].setProperty("btn", i);
@@ -201,10 +202,11 @@ guiWindow::guiWindow(QWidget *parent)
             connect(&btnFuncBox[slot][1][i], &QComboBox::currentTextChanged, this, &guiWindow::btnFuncBox_currentTextChanged);
         }
 
-        btnFuncGBoxes[i].setFlat(true);
-        btnFuncGBoxes[i].setLayout(&btnFuncLayout[i]);
+        btnFuncGBoxes << new QGroupBox();
+        btnFuncGBoxes.at(i)->setFlat(true);
+        btnFuncGBoxes.at(i)->setLayout(btnFuncLayout.at(i));
 
-        ui->btnFuncLayout->addWidget(&btnFuncGBoxes[i]);
+        ui->btnFuncLayout->addWidget(btnFuncGBoxes.at(i));
     }
 
     // Setup test screen buttons
@@ -1156,7 +1158,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
 
     ui->aStickFuncBox->setEnabled(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0);
     for(int i = 0; i < BUTTON_COUNT-1; ++i)
-        btnFuncGBoxes[i].setEnabled(App_Common::inputsMap.value(i) >= 0);
+        btnFuncGBoxes.at(i)->setEnabled(App_Common::inputsMap.value(i) >= 0);
 
     DiffUpdate();
 }

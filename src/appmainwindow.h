@@ -305,8 +305,8 @@ private:
     ///             Array 2: 0 = input type, 1 = input data
     ///             Array 3 = button
     QComboBox btnFuncBox[App_Common::inputTypes][App_Common::inputFuncTypes][BUTTON_COUNT-1];
-    QGroupBox btnFuncGBoxes[BUTTON_COUNT-1];
-    QHBoxLayout btnFuncLayout[BUTTON_COUNT-1];
+    QVector<QGroupBox*> btnFuncGBoxes;
+    QVector<QHBoxLayout*> btnFuncLayout;
 
     /// @brief      Objects that makes up the elements of the profiles tab
     QVector<QRadioButton*> selectedProfile;
