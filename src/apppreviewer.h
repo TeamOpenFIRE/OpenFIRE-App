@@ -45,8 +45,20 @@ private:
 
     bool eventFilter(QObject* object, QEvent* event) override;
 
-    /// @brief      Macro font to enable bold
+    void showEvent(QShowEvent* event) override;
+
+    /// @brief      Board type, one of OF_Const::boardArchs_e
+    int boardType;
+
+    /// @brief      Main fonts for pinLabels
+    QFont mainFont;
     QFont boldFont;
+
+    /// @brief      Small font for pinCapabilityMarks
+    QFont smallFont;
+
+    /// @brief      Last highlighted box
+    int lastHighlight = -1;
 
     /// @brief      Renderer that makes up the centerpiece of the board view tab
     QSvgWidget boardPic;
@@ -60,7 +72,6 @@ private:
     QVector<QLabel*> pinDefaultFunc;
     QVector<QLabel*> pinLabel;
     QVector<QLabel*> pinCapabilityMarks;
-    int boardType;
 };
 
 #endif // APPPREVIEWER_H

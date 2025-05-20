@@ -251,6 +251,18 @@ public:
         &keyboardInputsMap,
         &gamepadMap
     };
+
+    static inline const char* i2cTypeLabels[2] = {
+        "SDA",
+        "SCL"
+    };
+
+    static inline const char* spiTypeLabels[4] = {
+        "RX",
+        "TX",
+        "SCK",
+        "CSn"
+    };
 };
 
 #endif // CONSTANTS_H
