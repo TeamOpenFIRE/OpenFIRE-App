@@ -901,27 +901,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posLeft) {
+                    switch(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posCheck) {
+                    case OF_Const::posLeft:
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
                                                 1);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posRight) {
+                        break;
+                    case OF_Const::posRight:
                         ui->PinsRight->addWidget(pinBoxes.at(i),
                                                  App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
                                                  App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
                                                  0);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posMiddle) {
+                        break;
+                    case OF_Const::posMiddle:
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
                                                      App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
                                                      App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
+                        break;
+                    case OF_Const::posNothing:
+                        break;
                     }
                 }
             } else {
@@ -930,27 +936,33 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 origBoardPicFile = resource.readAll();
 
                 for(int i = 0; i < pinBoxes.count(); ++i) {
-                    if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posLeft) {
+                    switch(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posCheck) {
+                    case OF_Const::posLeft:
                         ui->PinsLeft->addWidget(pinBoxes.at(i),
                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
                                                 0);
                         ui->PinsLeft->addWidget(pinLabel.at(i),
                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
                                                 1);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posRight) {
+                        break;
+                    case OF_Const::posRight:
                         ui->PinsRight->addWidget(pinBoxes.at(i),
                                                  App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
                                                  1);
                         ui->PinsRight->addWidget(pinLabel.at(i),
                                                  App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
                                                  0);
-                    } else if(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posMiddle) {
+                        break;
+                    case OF_Const::posMiddle:
                         ui->PinsCenterSub->addWidget(pinBoxes.at(i),
                                                      1,
                                                      App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
                         ui->PinsCenterSub->addWidget(pinLabel.at(i),
                                                      0,
                                                      App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
+                        break;
+                    case OF_Const::posNothing:
+                        break;
                     }
                 }
             }
@@ -1041,12 +1053,15 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
+            ui->tabWidget->setCurrentIndex(0);
+
         } else ui->comPortSelector->setCurrentIndex(0);
 
         serialPort_progressSet(0);
     } else {
         ui->boardLabel->clear();
         ui->versionLabel->clear();
+        App_Common::board.type.clear();
 
         // just in case
         ui->buttonsTestArea->setEnabled(true);

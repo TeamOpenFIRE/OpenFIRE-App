@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
+    <width>980</width>
     <height>700</height>
    </rect>
   </property>
@@ -61,6 +61,15 @@
    </item>
    <item>
     <widget class="Line" name="line">
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="lineWidth">
+      <number>3</number>
+     </property>
+     <property name="midLineWidth">
+      <number>2</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
