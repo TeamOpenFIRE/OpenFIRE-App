@@ -59,7 +59,8 @@ private:
     /// @brief      Objects that makes up the elements of the board view tab
     QVector<QLabel*> pinDefaultFunc;
     QVector<QLabel*> pinLabel;
-    QVector<QWidget*> padding;
+    QVector<QLabel*> pinCapabilityMarks;
+    int boardType;
 };
 
 #endif // APPPREVIEWER_H

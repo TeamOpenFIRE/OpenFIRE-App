@@ -293,7 +293,6 @@ private:
     /// @details    Pinboxes stores the state of each pin to one function
     QVector<QComboBox*> pinBoxes;
     QVector<QLabel*> pinLabel;
-    QVector<QWidget*> padding;
 
     /// @brief      Test "Buttons" in the test screen representing each button
     QVector<QLabel*> testLabel;
