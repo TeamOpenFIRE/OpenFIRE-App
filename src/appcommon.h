@@ -62,8 +62,9 @@ public:
     typedef struct boardInfo_t {
         int        selectedProfile;
         int        previousProfile;
-        QByteArray boardType;
-        QByteArray versionNumber;
+        QByteArray type;
+        QByteArray arch;
+        QByteArray version;
     } boardInfo_s;
 
     typedef struct tinyUSBtable_t {

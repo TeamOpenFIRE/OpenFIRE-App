@@ -25,7 +25,9 @@
 
 #include "appcommon.h"
 #include "appcali.h"
+#ifdef OFAPP_DEBUG
 #include "appdebug.h"
+#endif
 #include "appserial.h"
 #include "apppreviewer.h"
 
@@ -291,7 +293,6 @@ private:
     /// @details    Pinboxes stores the state of each pin to one function
     QVector<QComboBox*> pinBoxes;
     QVector<QLabel*> pinLabel;
-    QVector<QWidget*> padding;
 
     /// @brief      Test "Buttons" in the test screen representing each button
     QVector<QLabel*> testLabel;
