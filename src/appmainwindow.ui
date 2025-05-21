@@ -176,7 +176,7 @@
              <x>0</x>
              <y>0</y>
              <width>958</width>
-             <height>587</height>
+             <height>582</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -219,6 +219,9 @@
            <number>6</number>
           </property>
           <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
            <number>6</number>
           </property>
           <item alignment="Qt::AlignBottom">
