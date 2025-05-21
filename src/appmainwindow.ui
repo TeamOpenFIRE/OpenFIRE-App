@@ -138,20 +138,26 @@
         <string>Board Layout</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
          <number>0</number>
         </property>
         <property name="rightMargin">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>4</number>
+         <number>0</number>
         </property>
         <item>
          <widget class="QScrollArea" name="pinsScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -162,15 +168,15 @@
            <bool>true</bool>
           </property>
           <property name="alignment">
-           <set>Qt::AlignHCenter|Qt::AlignTop</set>
+           <set>Qt::AlignCenter</set>
           </property>
           <widget class="QWidget" name="pinsScrollContents">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>948</width>
-             <height>575</height>
+             <width>958</width>
+             <height>582</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -209,6 +215,15 @@
         </item>
         <item>
          <layout class="QHBoxLayout" name="PinsBottomHalf">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
           <item alignment="Qt::AlignBottom">
            <widget class="QCheckBox" name="customPinsEnabled">
             <property name="enabled">
@@ -291,6 +306,9 @@
         <string>Button Mapping</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_18" stretch="8,3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -305,6 +323,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="buttonFuncScroller">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -322,8 +343,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>439</height>
+             <width>958</width>
+             <height>445</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_19" stretch="0,1,0">
@@ -563,6 +584,9 @@
         <string>Gun Settings</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7" stretch="8,3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -577,6 +601,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="settingsScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -594,7 +621,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>942</width>
+             <width>944</width>
              <height>1200</height>
             </rect>
            </property>
@@ -1829,6 +1856,9 @@
         <string>Calibration Profiles</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="8,3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -1843,6 +1873,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="profilesScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -1860,8 +1893,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>439</height>
+             <width>958</width>
+             <height>445</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,1">
@@ -2187,6 +2220,9 @@
         <string>Gun Tests</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -2201,6 +2237,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="testScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -2218,8 +2257,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>610</height>
+             <width>958</width>
+             <height>612</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10" stretch="0,0,0,1,0,0">

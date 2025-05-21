@@ -17,7 +17,7 @@
    <iconset resource="../img/vectors.qrc">
     <normaloff>:/icon/icon.png</normaloff>:/icon/icon.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
    <item>
     <layout class="QHBoxLayout" name="selectorLayout">
      <item>
@@ -43,21 +43,67 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="PinsLayout">
-     <item>
-      <layout class="QGridLayout" name="PinsLeft"/>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="PinsCenter">
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>962</width>
+        <height>613</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QGridLayout" name="PinsCenterSub"/>
+        <layout class="QHBoxLayout" name="PinsLayout">
+         <item>
+          <layout class="QGridLayout" name="PinsLeft"/>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="PinsCenter">
+           <item>
+            <layout class="QGridLayout" name="PinsCenterSub"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="PinsRight"/>
+         </item>
+        </layout>
        </item>
       </layout>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="PinsRight"/>
-     </item>
-    </layout>
+     </widget>
+    </widget>
    </item>
    <item>
     <widget class="Line" name="line">
