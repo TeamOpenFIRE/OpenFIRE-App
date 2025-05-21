@@ -152,6 +152,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="pinsScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -162,15 +165,15 @@
            <bool>true</bool>
           </property>
           <property name="alignment">
-           <set>Qt::AlignHCenter|Qt::AlignTop</set>
+           <set>Qt::AlignCenter</set>
           </property>
           <widget class="QWidget" name="pinsScrollContents">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>948</width>
-             <height>575</height>
+             <width>950</width>
+             <height>577</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -305,6 +308,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="buttonFuncScroller">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -322,8 +328,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>439</height>
+             <width>958</width>
+             <height>441</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_19" stretch="0,1,0">
@@ -577,6 +583,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="settingsScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -594,7 +603,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>942</width>
+             <width>944</width>
              <height>1200</height>
             </rect>
            </property>
@@ -1843,6 +1852,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="profilesScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -1860,8 +1872,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>439</height>
+             <width>958</width>
+             <height>441</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,1">
@@ -2201,6 +2213,9 @@
         </property>
         <item>
          <widget class="QScrollArea" name="testScrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
@@ -2218,8 +2233,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>956</width>
-             <height>610</height>
+             <width>958</width>
+             <height>612</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10" stretch="0,0,0,1,0,0">
