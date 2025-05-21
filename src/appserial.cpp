@@ -518,7 +518,7 @@ void AppSerial::RequestToReboot()
 void AppSerial::RebootToBootldr()
 {
     // RP boards with Earle's core can use the 1200 Baud magic number reset
-    if(App_Common::board.type == App_Common::OFPresets.boardArchs[OF_Const::boardRP]) {
+    if(App_Common::board.arch == App_Common::OFPresets.boardArchs[OF_Const::boardRP]) {
         // The py script had this backwards. huh.
         port.setBaudRate(QSerialPort::Baud1200);
         port.setDataTerminalReady(false);
