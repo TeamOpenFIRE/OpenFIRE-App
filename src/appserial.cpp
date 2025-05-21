@@ -101,8 +101,8 @@ bool AppSerial::GetSettings(const QString &portName)
                     App_Common::board.type = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.type.constData());
 
-                    if(App_Common::board.type.contains("esp32"))
-                         App_Common::board.arch = App_Common::OFPresets.boardArchs[OF_Const::boardESP32];
+                    if(App_Common::board.type.contains("esp32-s3"))
+                         App_Common::board.arch = App_Common::OFPresets.boardArchs[OF_Const::boardESP32_S3];
                     else App_Common::board.arch = App_Common::OFPresets.boardArchs[OF_Const::boardRP];
 
                     memcpy(&App_Common::tinyUSBtable, buffer.takeFirst().constData(), sizeof(App_Common::tinyUSBtable_s));
@@ -517,8 +517,16 @@ void AppSerial::RequestToReboot()
 
 void AppSerial::RebootToBootldr()
 {
-    // The py script had this backwards. huh.
-    port.setBaudRate(QSerialPort::Baud1200);
-    port.setDataTerminalReady(false);
+    // RP boards with Earle's core can use the 1200 Baud magic number reset
+    if(App_Common::board.type == App_Common::OFPresets.boardArchs[OF_Const::boardRP]) {
+        // The py script had this backwards. huh.
+        port.setBaudRate(QSerialPort::Baud1200);
+        port.setDataTerminalReady(false);
+    // other boards will just need to be told to reboot with an unambiguous message.
+    // client should verify this is intentional by peeking for the second character.
+    } else {
+        char buf[] = { (char)OF_Const::sRebootToBootloader, (char)OF_Const::sRebootToBootloader };
+        OneShotSend(buf, 2);
+    }
     port.close();
 }

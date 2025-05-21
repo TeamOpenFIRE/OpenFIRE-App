@@ -774,16 +774,16 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
             // Clears old board layout items
             if(pinBoxes.count()) {
-                for(uint8_t i = 0; i < pinBoxes.count(); ++i)
+                for(int i = 0; i < pinBoxes.count(); ++i)
                     delete pinBoxes.at(i);
-                for(uint8_t i = 0; i < pinLabel.count(); ++i)
+                for(int i = 0; i < pinLabel.count(); ++i)
                     delete pinLabel.at(i);
 
                 pinBoxes.clear();
                 pinLabel.clear();
             }
 
-            for(uint8_t i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).size(); ++i) {
+            for(int i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
@@ -805,25 +805,27 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                     }
 
                     // filter out SCL/SDA if possible.
-                    if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinCanI2C) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2CSCL) {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                        } else {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                        }
+                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinAnyI2C)) {
+                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinCanI2C) {
+                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2CSCL) {
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                            } else {
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                            }
 
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2C1)
-                             pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                        else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                    } else {
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                        pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                    }
+                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2C1)
+                                pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
+                            else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+                        } else {
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                            pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
+                        }
+                    } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
                 } else {
                     // clear out analog options for digital pins
                     // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
@@ -834,27 +836,30 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                     }
 
                     // filter out SCL/SDA if possible.
-                    if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinCanI2C) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2CSCL) {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                        } else {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                        }
+                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinAnyI2C)) {
+                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinCanI2C) {
+                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2CSCL) {
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                            } else {
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                            }
 
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2C1)
-                             pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                        else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                    } else {
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                        pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                    }
+                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2C1)
+                                pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
+                            else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+                        } else {
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                            pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
+                        }
+                    } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
                 }
 
+                // NOTE: only change/remove this if non-RP boards properly implements on-board clock pulse generation.
                 if(App_Common::board.arch != App_Common::OFPresets.boardArchs[OF_Const::boardRP])
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::wiiClockGen+1, false);
 
@@ -863,16 +868,24 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 pinLabel.at(i)->setEnabled(false);
                 pinLabel.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-                pinLabel.at(i)->setToolTip(QString("GPIO Pin number %1.\n\n"
+                pinLabel.at(i)->setToolTip(QString("GPIO Pin No. %1.\n\n"
                                                    "Blue pin numbers are members of I2C0.\n"
                                                    "Orange are members of I2C1.\n"
+                                                   "Purple pin numbers can automatically select any I2C channel in software.\n"
                                                    "Gray cannot use I2C devices.").arg(i));
             }
 
-            if(App_Common::board.version.indexOf('-') > -1)
-                ui->versionLabel->setText(QString("FW v<tt>%1<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/commit/%2'><span style=' text-decoration: underline; color:#8ab4f8;'>%2</span></a></tt>")
-                                                 .arg(App_Common::board.version.left(App_Common::board.version.indexOf('-')+1), App_Common::board.version.mid(App_Common::board.version.indexOf('-')+1)));
-            else ui->versionLabel->setText("FW v<tt>" + App_Common::board.version + "</tt>");
+            if(App_Common::board.version.indexOf('-') > -1) {
+                QString orgName;
+
+                if(App_Common::board.arch == App_Common::OFPresets.boardArchs[OF_Const::boardRP])
+                    orgName = "TeamOpenFIRE";
+                else if(App_Common::board.arch == App_Common::OFPresets.boardArchs[OF_Const::boardESP32_S3])
+                    orgName = "alessandro-satanassi";
+
+                ui->versionLabel->setText(QString("FW <tt>v%1<a href='https://github.com/%2/OpenFIRE-Firmware/commit/%3'><span style=' text-decoration: underline; color:#8ab4f8;'>%3</span></a></tt>")
+                                                 .arg(App_Common::board.version.left(App_Common::board.version.indexOf('-')+1), orgName, App_Common::board.version.mid(App_Common::board.version.indexOf('-')+1)));
+            } else ui->versionLabel->setText("FW <tt>v" + App_Common::board.version + "</tt>");
 
             // update presets box if this board has any
             ui->presetsBox->clear();
@@ -1124,72 +1137,74 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             pinBoxes.at(App_Common::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if function is I2C, check for other things
-        // I2C Data Members
-        if(btnRequest == OF_Const::camSDA || btnRequest == OF_Const::periphSDA) {
-            // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
-            if(App_Common::inputsMap.value(btnRequest+1) > OF_Const::btnUnmapped &&
-               (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest+1)) & OF_Const::pinIsI2C1)) {
-                // channels mismatched, unmap the other pin
-                if(btnRequest == OF_Const::camSDA) {
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
-                } else {
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
+        if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.toStdString()).at(sender()->property("slot").toInt()) & OF_Const::pinAnyI2C)) {
+            // I2C Data Members
+            if(btnRequest == OF_Const::camSDA || btnRequest == OF_Const::periphSDA) {
+                // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
+                if(App_Common::inputsMap.value(btnRequest+1) > OF_Const::btnUnmapped &&
+                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest+1)) & OF_Const::pinIsI2C1)) {
+                    // channels mismatched, unmap the other pin
+                    if(btnRequest == OF_Const::camSDA) {
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
+                    } else {
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
+                    }
                 }
+                // check that opposite I2C type SDA isn't mapped to this I2C channel
+                switch(btnRequest) {
+                case OF_Const::camSDA:
+                    if(App_Common::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
+                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSDA)) & OF_Const::pinIsI2C1)) {
+                        // channels matched, unmap peripheral data
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SDA.", 10000);
+                    }
+                    break;
+                case OF_Const::periphSDA:
+                    if(App_Common::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
+                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSDA)) & OF_Const::pinIsI2C1)) {
+                        // channels matched, unmap peripheral data
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SDA.", 10000);
+                    }
+                    break;
+                }
+            } else if(btnRequest == OF_Const::camSCL || btnRequest == OF_Const::periphSCL) {
+                // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
+                if(App_Common::inputsMap.value(btnRequest-1) > OF_Const::btnUnmapped &&
+                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest-1)) & OF_Const::pinIsI2C1)) {
+                    // channels mismatched, unmap the other pin
+                    if(btnRequest == OF_Const::camSCL) {
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
+                    } else {
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
+                    }
+                }
+                // check that opposite I2C type SCL isn't mapped to this I2C channel
+                switch(btnRequest) {
+                case OF_Const::camSCL:
+                    if(App_Common::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
+                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSCL)) & OF_Const::pinIsI2C1)) {
+                        // channels matched, unmap peripheral data
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SCL.", 10000);
+                    }
+                    break;
+                case OF_Const::periphSCL:
+                    if(App_Common::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
+                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSCL)) & OF_Const::pinIsI2C1)) {
+                        // channels matched, unmap peripheral data
+                        pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
+                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SCL.", 10000);
+                    }
+                    break;
+                }
+            // if we ever get SPI accessories, we'll need to add them here too.
             }
-            // check that opposite I2C type SDA isn't mapped to this I2C channel
-            switch(btnRequest) {
-            case OF_Const::camSDA:
-                if(App_Common::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSDA)) & OF_Const::pinIsI2C1)) {
-                    // channels matched, unmap peripheral data
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SDA.", 10000);
-                }
-                break;
-            case OF_Const::periphSDA:
-                if(App_Common::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSDA)) & OF_Const::pinIsI2C1)) {
-                    // channels matched, unmap peripheral data
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SDA.", 10000);
-                }
-                break;
-            }
-        } else if(btnRequest == OF_Const::camSCL || btnRequest == OF_Const::periphSCL) {
-            // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
-            if(App_Common::inputsMap.value(btnRequest-1) > OF_Const::btnUnmapped &&
-               (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest-1)) & OF_Const::pinIsI2C1)) {
-                // channels mismatched, unmap the other pin
-                if(btnRequest == OF_Const::camSCL) {
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
-                } else {
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
-                }
-            }
-            // check that opposite I2C type SCL isn't mapped to this I2C channel
-            switch(btnRequest) {
-            case OF_Const::camSCL:
-                if(App_Common::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSCL)) & OF_Const::pinIsI2C1)) {
-                    // channels matched, unmap peripheral data
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SCL.", 10000);
-                }
-                break;
-            case OF_Const::periphSCL:
-                if(App_Common::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSCL)) & OF_Const::pinIsI2C1)) {
-                    // channels matched, unmap peripheral data
-                    pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                    ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SCL.", 10000);
-                }
-                break;
-            }
-        // if we ever get SPI accessories, we'll need to add them here too.
         }
 
         // Then map the thing, and sync this change to the property value
