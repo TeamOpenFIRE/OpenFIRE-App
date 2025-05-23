@@ -44,7 +44,7 @@ AppBoardsPreviewer::AppBoardsPreviewer(QWidget *parent)
     boardPic.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     for(auto &item : App_Common::OFPresets.boardNames)
-        if(strcmp(item.first.data(), "generic"))
+        if(strstr(item.first.data(), "generic") == nullptr)
             ui->boardSelector->addItem(item.second);
 }
 
@@ -130,7 +130,17 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
 
             ui->line->setVisible(true);
 
-            for(int i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(board.first).size(); ++i) {
+            // get maps for current board
+            // (in this case, safe to assume it's always a valid entry, otherwise it wouldn't show in the first place)
+            std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap = App_Common::OFPresets.boardsPresetsMap.find(board.first);
+            std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap = App_Common::OFPresets.boardsBoxPositions.find(board.first);
+
+            // check if board has pin capability overrides, else fallback to architecture capabilities
+            std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(board.first);
+            if(pinCapableMap == App_Common::OFPresets.mcuCapableMaps.cend())
+                pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::OFPresets.boardArchs[boardType]);
+
+            for(int i = 0; i < presetMap->second.size(); ++i) {
                 pinDefaultFunc << new QLabel();
                 pinDefaultFunc.at(i)->setFont(mainFont);
                 pinDefaultFunc.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -143,93 +153,48 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
                 pinCapabilityMarks.at(i)->setProperty("slot", i);
                 pinCapabilityMarks.at(i)->installEventFilter(this);
 
-                // check if this board has pin capability overrides
-                if(App_Common::OFPresets.mcuCapableMaps.count(board.first.c_str())) {
-                    // Analog pin
-                    if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinHasADC)
-                         pinCapabilityMarks.at(i)->setText("<font color=#FF0099><tt><b>ADC</b></tt></font>");
-                    else pinCapabilityMarks.at(i)->setText("<font color=#555555><tt>ADC</tt></font>");
+                // render pin capabilities
+                // Analog pin
+                if(pinCapableMap->second.at(i) & OF_Const::pinHasADC)
+                    pinCapabilityMarks.at(i)->setText("<font color=#FF0099><tt><b>ADC</b></tt></font>");
+                else pinCapabilityMarks.at(i)->setText("<font color=#555555><tt>ADC</tt></font>");
 
-                    // I2C channel coloring
-                    // check if ESP-style any pin kinda setup
-                    if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinAnyI2C) {
-                        pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#BE00B0><tt><b>I2C(*)</b></tt></font>");
-                    // check for channels
-                    } else if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinCanI2C) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsI2C1) {
-                            pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                            pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                              QString(" <font color=#FF8800><tt><b>I2C%1%2</b></tt></font>")
-                                                              .arg((App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsI2C1) >> 3)
-                                                              .arg(App_Common::i2cTypeLabels[(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsI2CSCL) >> 2]));
-                        } else {
-                            pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                            pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                              QString(" <font color=#0099FF><tt><b>I2C%1%2</b></tt></font>")
-                                                              .arg((App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsI2C1) >> 3)
-                                                              .arg(App_Common::i2cTypeLabels[(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsI2CSCL) >> 2]));
-                        }
-                    // no I2C capability
-                    } else {
-                        pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>I2C</tt></font>");
-                    }
-
-                    // SPI
-                    // check if ESP-style any pin kinda setup
-                    if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinAnySPI)
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#D1003D><tt>SPI(*)</tt></font>");
-                    else if(App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinCanSPI)
+                // I2C channel coloring
+                // check if ESP-style any pin kinda setup
+                if(pinCapableMap->second.at(i) & OF_Const::pinAnyI2C) {
+                    pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
+                    pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#BE00B0><tt><b>I2C(*)</b></tt></font>");
+                // check for channels
+                } else if(pinCapableMap->second.at(i) & OF_Const::pinCanI2C) {
+                    if(pinCapableMap->second.at(i) & OF_Const::pinIsI2C1) {
+                        pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
                         pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                          QString(" <font color=#009C3A><tt><b>SPI%1%2</b></tt></font>")
-                                                                                                 .arg((App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinIsSPI1) >> 4)
-                                                                                                 .arg(App_Common::spiTypeLabels[((App_Common::OFPresets.mcuCapableMaps.at(board.first.c_str()).at(i) & OF_Const::pinCanSPI) >> 5)-1]));
-                    else pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>SPI</tt></font>");
-                // fallback to default architecture capabilities
+                                                          QString(" <font color=#FF8800><tt><b>I2C%1%2</b></tt></font>")
+                                                          .arg((pinCapableMap->second.at(i) & OF_Const::pinIsI2C1) >> 3)
+                                                          .arg(App_Common::i2cTypeLabels[(pinCapableMap->second.at(i) & OF_Const::pinIsI2CSCL) >> 2]));
+                    } else {
+                        pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
+                                                          QString(" <font color=#0099FF><tt><b>I2C%1%2</b></tt></font>")
+                                                          .arg((pinCapableMap->second.at(i) & OF_Const::pinIsI2C1) >> 3)
+                                                          .arg(App_Common::i2cTypeLabels[(pinCapableMap->second.at(i) & OF_Const::pinIsI2CSCL) >> 2]));
+                    }
+                // no I2C capability
                 } else {
-                    // Analog pin
-                    if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinHasADC)
-                         pinCapabilityMarks.at(i)->setText("<font color=#FF0099><tt><b>ADC</b></tt></font>");
-                    else pinCapabilityMarks.at(i)->setText("<font color=#555555><tt>ADC</tt></font>");
-
-                    // I2C channel coloring
-                    // check if ESP-style any pin kinda setup
-                    if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinAnyI2C) {
-                        pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#BE00B0><tt><b>I2C(*)</b></tt></font>");
-                    // check for channels
-                    } else if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinCanI2C) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsI2C1) {
-                            pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                            pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                              QString(" <font color=#FF8800><tt><b>I2C%1%2</b></tt></font>")
-                                                                                                     .arg((App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsI2C1) >> 3)
-                                                                                                     .arg(App_Common::i2cTypeLabels[(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsI2CSCL) >> 2]));
-                        } else {
-                            pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                            pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                              QString(" <font color=#0099FF><tt><b>I2C%1%2</b></tt></font>")
-                                                                                                     .arg((App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsI2C1) >> 3)
-                                                                                                     .arg(App_Common::i2cTypeLabels[(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsI2CSCL) >> 2]));
-                        }
-                    // no I2C capability
-                    } else {
-                        pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>I2C</tt></font>");
-                    }
-
-                    // SPI
-                    // check if ESP-style any pin kinda setup
-                    if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinAnySPI)
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#D1003D><tt>SPI(*)</tt></font>");
-                    else if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinCanSPI)
-                        pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
-                                                          QString(" <font color=#009C3A><tt><b>SPI%1%2</b></tt></font>")
-                                                                                                 .arg((App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinIsSPI1) >> 4)
-                                                                                                 .arg(App_Common::spiTypeLabels[((App_Common::OFPresets.mcuCapableMaps.at(App_Common::OFPresets.boardArchs[boardType]).at(i) & OF_Const::pinCanSPI) >> 5)-1]));
-                    else pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>SPI</tt></font>");
+                    pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
+                    pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>I2C</tt></font>");
                 }
+
+                // SPI
+                // check if ESP-style any pin kinda setup
+                if(pinCapableMap->second.at(i) & OF_Const::pinAnySPI)
+                    pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#D1003D><tt>SPI(*)</tt></font>");
+                else if(pinCapableMap->second.at(i) & OF_Const::pinCanSPI)
+                    pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() +
+                                                      QString(" <font color=#009C3A><tt><b>SPI%1%2</b></tt></font>")
+                                                      .arg((pinCapableMap->second.at(i) & OF_Const::pinIsSPI1) >> 4)
+                                                      .arg(App_Common::spiTypeLabels[((pinCapableMap->second.at(i) & OF_Const::pinCanSPI) >> 5)-1]));
+                else pinCapabilityMarks.at(i)->setText(pinCapabilityMarks.at(i)->text() + " <font color=#555555><tt>SPI</tt></font>");
 
                 pinLabel.at(i)->setEnabled(false);
                 pinLabel.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -248,38 +213,38 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
             }
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            QFile resource(QString(":/boardPics/%1").arg(board.first.data()));
+            QFile resource((QString)":/boardPics/" + board.first.c_str());
             resource.open(QIODevice::ReadOnly);
             origBoardPicFile = resource.readAll();
 
             for(int i = 0; i < pinDefaultFunc.count(); ++i) {
-                switch(App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) & OF_Const::posCheck) {
+                switch(layoutMap->second.at(i) & OF_Const::posCheck) {
                 case OF_Const::posLeft:
                     ui->PinsLeft->addWidget(pinDefaultFunc.at(i),
-                                            App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posLeft, 0, Qt::AlignRight);
+                                            layoutMap->second.at(i) ^ OF_Const::posLeft, 0, Qt::AlignRight);
                     ui->PinsLeft->addWidget(pinLabel.at(i),
-                                            App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posLeft, 1, Qt::AlignCenter);
+                                            layoutMap->second.at(i) ^ OF_Const::posLeft, 1, Qt::AlignCenter);
                     ui->PinsLeft->addWidget(pinCapabilityMarks.at(i),
-                                            App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posLeft, 3, Qt::AlignCenter);
-                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[App_Common::OFPresets.boardsPresetsMap.at(board.first).at(i)+1]);
+                                            layoutMap->second.at(i) ^ OF_Const::posLeft, 3, Qt::AlignCenter);
+                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[presetMap->second.at(i)+1]);
                     break;
                 case OF_Const::posRight:
                     ui->PinsRight->addWidget(pinCapabilityMarks.at(i),
-                                             App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posRight, 0, Qt::AlignCenter);
+                                             layoutMap->second.at(i) ^ OF_Const::posRight, 0, Qt::AlignCenter);
                     ui->PinsRight->addWidget(pinLabel.at(i),
-                                             App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posRight, 2, Qt::AlignCenter);
+                                             layoutMap->second.at(i) ^ OF_Const::posRight, 2, Qt::AlignCenter);
                     ui->PinsRight->addWidget(pinDefaultFunc.at(i),
-                                             App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posRight, 3, Qt::AlignLeft);
-                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[App_Common::OFPresets.boardsPresetsMap.at(board.first).at(i)+1]);
+                                             layoutMap->second.at(i) ^ OF_Const::posRight, 3, Qt::AlignLeft);
+                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[presetMap->second.at(i)+1]);
                     break;
                 case OF_Const::posMiddle:
                     ui->PinsCenterSub->addWidget(pinCapabilityMarks.at(i), 0,
-                                                 App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
+                                                 layoutMap->second.at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
                     ui->PinsCenterSub->addWidget(pinLabel.at(i), 2,
-                                                 App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
+                                                 layoutMap->second.at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
                     ui->PinsCenterSub->addWidget(pinDefaultFunc.at(i), 3,
-                                                 App_Common::OFPresets.boardsBoxPositions.at(board.first).at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
-                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[App_Common::OFPresets.boardsPresetsMap.at(board.first).at(i)+1]);
+                                                 layoutMap->second.at(i) ^ OF_Const::posMiddle, Qt::AlignCenter);
+                    pinDefaultFunc.at(i)->setText(App_Common::OFPresets.boardInputs_sortedStr[presetMap->second.at(i)+1]);
                     break;
                 case OF_Const::posNothing:
                     break;

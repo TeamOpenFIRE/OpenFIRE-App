@@ -783,7 +783,22 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 pinLabel.clear();
             }
 
-            for(int i = 0; i < App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).size(); ++i) {
+            // check for recognized board; else, refer to generic maps
+            QFile resource;
+            std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap = App_Common::OFPresets.boardsPresetsMap.find(App_Common::board.type.constData());
+            std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap = App_Common::OFPresets.boardsBoxPositions.find(App_Common::board.type.constData());
+            if(presetMap == App_Common::OFPresets.boardsPresetsMap.cend()) {
+                presetMap = App_Common::OFPresets.boardsPresetsMap.find("generic");
+                layoutMap = App_Common::OFPresets.boardsBoxPositions.find("generic");
+                resource.setFileName(":/boardPics/generic");
+            } else resource.setFileName(":/boardPics/" + App_Common::board.type);
+
+            // check if board has pin capability overrides, else fallback to architecture capabilities
+            std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.type.constData());
+            if(pinCapableMap == App_Common::OFPresets.mcuCapableMaps.cend())
+                pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.arch.constData());
+
+            for(int i = 0; i < presetMap->second.size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
@@ -794,70 +809,36 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 for(auto item : App_Common::OFPresets.boardInputs_sortedStr)
                     pinBoxes.at(i)->addItem(item);
 
-                // check if this board has pin capability overrides
-                if(App_Common::OFPresets.mcuCapableMaps.count(App_Common::board.type.constData())) {
-                    // clear out analog options for digital pins
-                    // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
-                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinHasADC)) {
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
-                    }
-
-                    // filter out SCL/SDA if possible.
-                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinAnyI2C)) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinCanI2C) {
-                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2CSCL) {
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                            } else {
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                            }
-
-                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.type.constData()).at(i) & OF_Const::pinIsI2C1)
-                                pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                            else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                        } else {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                            pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                        }
-                    } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
-                } else {
-                    // clear out analog options for digital pins
-                    // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
-                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinHasADC)) {
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
-                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
-                    }
-
-                    // filter out SCL/SDA if possible.
-                    if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinAnyI2C)) {
-                        if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinCanI2C) {
-                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2CSCL) {
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                            } else {
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                                SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                            }
-
-                            if(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(i) & OF_Const::pinIsI2C1)
-                                pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
-                            else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
-                        } else {
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
-                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
-                            pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
-                        }
-                    } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
+                // clear out analog options for digital pins
+                // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
+                if(!(pinCapableMap->second.at(i) & OF_Const::pinHasADC)) {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
                 }
+
+                // filter out SCL/SDA if possible.
+                if(!(pinCapableMap->second.at(i) & OF_Const::pinAnyI2C)) {
+                    if(pinCapableMap->second.at(i) & OF_Const::pinCanI2C) {
+                        if(pinCapableMap->second.at(i) & OF_Const::pinIsI2CSCL) {
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                        } else {
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                            SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                        }
+
+                        if(pinCapableMap->second.at(i) & OF_Const::pinIsI2C1)
+                            pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
+                        else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
+                    } else {
+                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
+                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSCL+1,     false);
+                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
+                        SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
+                        pinLabel << new QLabel(QString("«GPIO%1»").arg(i));
+                    }
+                } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
 
                 // NOTE: only change/remove this if non-RP boards properly implements on-board clock pulse generation.
                 if(App_Common::board.arch != App_Common::OFPresets.boardArchs[OF_Const::boardRP])
@@ -890,11 +871,11 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             // update presets box if this board has any
             ui->presetsBox->clear();
 
-            if(App_Common::OFPresets.boardsAltPresets.count(App_Common::board.type.toStdString())) {
+            if(App_Common::OFPresets.boardsAltPresets.count(App_Common::board.type.constData())) {
                 ui->presetsBox->setHidden(false);
                 ui->presetsBox->setEnabled(true);
 
-                auto iter = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.type.toStdString());
+                auto iter = App_Common::OFPresets.boardsAltPresets.equal_range(App_Common::board.type.constData());
                 for(auto i = iter.first; i != iter.second; ++i)
                     ui->presetsBox->addItem(i->second.name);
             } else {
@@ -908,75 +889,37 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             LabelsUpdate();
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            if(App_Common::OFPresets.boardsBoxPositions.count(App_Common::board.type.toStdString())) {
-                QFile resource(":/boardPics/" + App_Common::board.type);
-                resource.open(QIODevice::ReadOnly);
-                origBoardPicFile = resource.readAll();
+            resource.open(QIODevice::ReadOnly);
+            origBoardPicFile = resource.readAll();
 
-                for(int i = 0; i < pinBoxes.count(); ++i) {
-                    switch(App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) & OF_Const::posCheck) {
-                    case OF_Const::posLeft:
-                        ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
-                                                0);
-                        ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posLeft,
-                                                1);
-                        break;
-                    case OF_Const::posRight:
-                        ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
-                                                 1);
-                        ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posRight,
-                                                 0);
-                        break;
-                    case OF_Const::posMiddle:
-                        ui->PinsCenterSub->addWidget(pinBoxes.at(i),
-                                                     1,
-                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
-                        ui->PinsCenterSub->addWidget(pinLabel.at(i),
-                                                     0,
-                                                     App_Common::OFPresets.boardsBoxPositions.at(App_Common::board.type.toStdString()).at(i) ^ OF_Const::posMiddle);
-                        break;
-                    case OF_Const::posNothing:
-                        break;
-                    }
-                }
-            } else {
-                QFile resource(":/boardPics/generic");
-                resource.open(QIODevice::ReadOnly);
-                origBoardPicFile = resource.readAll();
-
-                for(int i = 0; i < pinBoxes.count(); ++i) {
-                    switch(App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) & OF_Const::posCheck) {
-                    case OF_Const::posLeft:
-                        ui->PinsLeft->addWidget(pinBoxes.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
-                                                0);
-                        ui->PinsLeft->addWidget(pinLabel.at(i),
-                                                App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posLeft,
-                                                1);
-                        break;
-                    case OF_Const::posRight:
-                        ui->PinsRight->addWidget(pinBoxes.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
-                                                 1);
-                        ui->PinsRight->addWidget(pinLabel.at(i),
-                                                 App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posRight,
-                                                 0);
-                        break;
-                    case OF_Const::posMiddle:
-                        ui->PinsCenterSub->addWidget(pinBoxes.at(i),
-                                                     1,
-                                                     App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
-                        ui->PinsCenterSub->addWidget(pinLabel.at(i),
-                                                     0,
-                                                     App_Common::OFPresets.boardsBoxPositions.at("generic").at(i) ^ OF_Const::posMiddle);
-                        break;
-                    case OF_Const::posNothing:
-                        break;
-                    }
+            for(int i = 0; i < pinBoxes.count(); ++i) {
+                switch(layoutMap->second.at(i) & OF_Const::posCheck) {
+                case OF_Const::posLeft:
+                    ui->PinsLeft->addWidget(pinBoxes.at(i),
+                                            layoutMap->second.at(i) ^ OF_Const::posLeft,
+                                            0);
+                    ui->PinsLeft->addWidget(pinLabel.at(i),
+                                            layoutMap->second.at(i) ^ OF_Const::posLeft,
+                                            1);
+                    break;
+                case OF_Const::posRight:
+                    ui->PinsRight->addWidget(pinBoxes.at(i),
+                                             layoutMap->second.at(i) ^ OF_Const::posRight,
+                                             1);
+                    ui->PinsRight->addWidget(pinLabel.at(i),
+                                             layoutMap->second.at(i) ^ OF_Const::posRight,
+                                             0);
+                    break;
+                case OF_Const::posMiddle:
+                    ui->PinsCenterSub->addWidget(pinBoxes.at(i),
+                                                 1,
+                                                 layoutMap->second.at(i) ^ OF_Const::posMiddle);
+                    ui->PinsCenterSub->addWidget(pinLabel.at(i),
+                                                 0,
+                                                 layoutMap->second.at(i) ^ OF_Const::posMiddle);
+                    break;
+                case OF_Const::posNothing:
+                    break;
                 }
             }
 
