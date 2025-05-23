@@ -261,7 +261,13 @@ private:
     //
     // vvv---Internal Values---vvv
 
+    // Instance of App's Serial operators
     AppSerial serial;
+
+    /// @brief      Current pointers to device/layout maps for synced device
+    std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap;
+    std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap;
+    std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapabilityMap;
 
     // result of async serial operations
     QFuture<bool> serialSearchFuture;

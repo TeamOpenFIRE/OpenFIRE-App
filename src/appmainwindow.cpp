@@ -359,10 +359,10 @@ void guiWindow::BoxesUpdate()
             App_Common::inputsMap = App_Common::inputsMap_orig;
 
             // copy presets to inputs map
-            if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.toStdString()))
+            if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.constData()))
                 for(size_t i = 0; i < pinBoxes.count(); ++i)
-                    if(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i) > OF_Const::btnUnmapped)
-                        App_Common::inputsMap[App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i)] = i;
+                    if(presetMap->second.at(i) > OF_Const::btnUnmapped)
+                        App_Common::inputsMap[presetMap->second.at(i)] = i;
         }
 
         return;
@@ -374,9 +374,9 @@ void guiWindow::BoxesUpdate()
             box->setEnabled(false), box->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if available, copy preset layout to pinboxes
-        if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.toStdString()))
+        if(App_Common::OFPresets.boardsPresetsMap.count(App_Common::board.type.constData()))
             for(size_t i = 0; i < pinBoxes.count(); ++i)
-                pinBoxes.at(i)->setCurrentIndex(App_Common::OFPresets.boardsPresetsMap.at(App_Common::board.type.toStdString()).at(i)+1);
+                pinBoxes.at(i)->setCurrentIndex(presetMap->second.at(i)+1);
 
         return;
     }
@@ -785,8 +785,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
             // check for recognized board; else, refer to generic maps
             QFile resource;
-            std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap = App_Common::OFPresets.boardsPresetsMap.find(App_Common::board.type.constData());
-            std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap = App_Common::OFPresets.boardsBoxPositions.find(App_Common::board.type.constData());
+            presetMap = App_Common::OFPresets.boardsPresetsMap.find(App_Common::board.type.constData());
+            layoutMap = App_Common::OFPresets.boardsBoxPositions.find(App_Common::board.type.constData());
             if(presetMap == App_Common::OFPresets.boardsPresetsMap.cend()) {
                 presetMap = App_Common::OFPresets.boardsPresetsMap.find("generic");
                 layoutMap = App_Common::OFPresets.boardsBoxPositions.find("generic");
@@ -794,9 +794,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             } else resource.setFileName(":/boardPics/" + App_Common::board.type);
 
             // check if board has pin capability overrides, else fallback to architecture capabilities
-            std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.type.constData());
-            if(pinCapableMap == App_Common::OFPresets.mcuCapableMaps.cend())
-                pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.arch.constData());
+            pinCapabilityMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.type.constData());
+            if(pinCapabilityMap == App_Common::OFPresets.mcuCapableMaps.cend())
+                pinCapabilityMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.arch.constData());
 
             for(int i = 0; i < layoutMap->second.size(); ++i) {
                 pinBoxes << new QComboBox();
@@ -811,16 +811,16 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 // clear out analog options for digital pins
                 // (entrylist is offset by one, as "Unmapped" == -1 in our enum)
-                if(!(pinCapableMap->second.at(i) & OF_Const::pinHasADC)) {
+                if(!(pinCapabilityMap->second.at(i) & OF_Const::pinHasADC)) {
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogX+1, false);
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::analogY+1, false);
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::tempPin+1, false);
                 }
 
                 // filter out SCL/SDA if possible.
-                if(!(pinCapableMap->second.at(i) & OF_Const::pinAnyI2C)) {
-                    if(pinCapableMap->second.at(i) & OF_Const::pinCanI2C) {
-                        if(pinCapableMap->second.at(i) & OF_Const::pinIsI2CSCL) {
+                if(!(pinCapabilityMap->second.at(i) & OF_Const::pinAnyI2C)) {
+                    if(pinCapabilityMap->second.at(i) & OF_Const::pinCanI2C) {
+                        if(pinCapabilityMap->second.at(i) & OF_Const::pinIsI2CSCL) {
                             SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::camSDA+1,     false);
                             SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSDA+1,  false);
                         } else {
@@ -828,7 +828,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                             SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::periphSCL+1,  false);
                         }
 
-                        if(pinCapableMap->second.at(i) & OF_Const::pinIsI2C1)
+                        if(pinCapabilityMap->second.at(i) & OF_Const::pinIsI2C1)
                             pinLabel << new QLabel(QString("<font color=#FF8800>«GPIO%1»</font>").arg(i));
                         else pinLabel << new QLabel(QString("<font color=#0099FF>«GPIO%1»</font>").arg(i));
                     } else {
@@ -1010,6 +1010,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
             ui->tabWidget->setCurrentIndex(0);
+            ui->comPortSelector->setItemText(0, "[Disconnect Current Device]");
 
         } else ui->comPortSelector->setCurrentIndex(0);
 
@@ -1028,6 +1029,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         ui->dangerZoneBox->setEnabled(true);
 
         ui->tabWidget->setEnabled(false);
+
+        if(ui->comPortSelector->count() > 0)
+            ui->comPortSelector->setItemText(0, "[Select a Device to Configure]");
 
         if(serial.port.isOpen())
             serial.Disconnect();
@@ -1080,12 +1084,12 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             pinBoxes.at(App_Common::inputsMap.value(btnRequest))->setCurrentIndex(OF_Const::btnUnmapped+1);
 
         // if function is I2C, check for other things
-        if(!(App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.toStdString()).at(sender()->property("slot").toInt()) & OF_Const::pinAnyI2C)) {
+        if(!(pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinAnyI2C)) {
             // I2C Data Members
             if(btnRequest == OF_Const::camSDA || btnRequest == OF_Const::periphSDA) {
                 // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
                 if(App_Common::inputsMap.value(btnRequest+1) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest+1)) & OF_Const::pinIsI2C1)) {
+                   (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (pinCapabilityMap->second.at(App_Common::inputsMap.value(btnRequest+1)) & OF_Const::pinIsI2C1)) {
                     // channels mismatched, unmap the other pin
                     if(btnRequest == OF_Const::camSDA) {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
@@ -1099,7 +1103,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                 switch(btnRequest) {
                 case OF_Const::camSDA:
                     if(App_Common::inputsMap.value(OF_Const::periphSDA) > OF_Const::btnUnmapped &&
-                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSDA)) & OF_Const::pinIsI2C1)) {
+                       (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::periphSDA)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                         ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SDA.", 10000);
@@ -1107,7 +1111,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                     break;
                 case OF_Const::periphSDA:
                     if(App_Common::inputsMap.value(OF_Const::camSDA) > OF_Const::btnUnmapped &&
-                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSDA)) & OF_Const::pinIsI2C1)) {
+                       (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::camSDA)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
                         ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SDA.", 10000);
@@ -1117,7 +1121,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
             } else if(btnRequest == OF_Const::camSCL || btnRequest == OF_Const::periphSCL) {
                 // if it's mapped, check that this I2C type's pair pin isn't mapped to the opposite I2C channel
                 if(App_Common::inputsMap.value(btnRequest-1) > OF_Const::btnUnmapped &&
-                    (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(btnRequest-1)) & OF_Const::pinIsI2C1)) {
+                   (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) != (pinCapabilityMap->second.at(App_Common::inputsMap.value(btnRequest-1)) & OF_Const::pinIsI2C1)) {
                     // channels mismatched, unmap the other pin
                     if(btnRequest == OF_Const::camSCL) {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
@@ -1131,7 +1135,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                 switch(btnRequest) {
                 case OF_Const::camSCL:
                     if(App_Common::inputsMap.value(OF_Const::periphSCL) > OF_Const::btnUnmapped &&
-                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::periphSCL)) & OF_Const::pinIsI2C1)) {
+                       (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::periphSCL)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                         ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SCL.", 10000);
@@ -1139,7 +1143,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                     break;
                 case OF_Const::periphSCL:
                     if(App_Common::inputsMap.value(OF_Const::camSCL) > OF_Const::btnUnmapped &&
-                        (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (App_Common::OFPresets.mcuCapableMaps.at(App_Common::board.arch.constData()).at(App_Common::inputsMap.value(OF_Const::camSCL)) & OF_Const::pinIsI2C1)) {
+                       (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::camSCL)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
                         ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SCL.", 10000);
@@ -2073,7 +2077,7 @@ void guiWindow::serialPort_SearchFinished()
         // if comPort only has "Nothing", safe to add items
         if(ui->comPortSelector->count() == 0) {
             if(serial.currentPorts.count()) {
-                ui->comPortSelector->addItem("[Select a device]");
+                ui->comPortSelector->addItem("[Select a Device to Configure]");
                 ui->comPortSelector->setCurrentIndex(0);
                 for(auto &port : std::as_const(serial.currentPorts))
                     ui->comPortSelector->addItem(port.portName()+" (" + port.description() + ')');
@@ -2095,7 +2099,7 @@ void guiWindow::serialPort_SearchFinished()
                     int i = 1;
                     while(ui->comPortSelector->count() > 2) {
                         if(i == ui->comPortSelector->currentIndex())
-                            i++;
+                            ++i;
                         else ui->comPortSelector->removeItem(i);
                     }
 

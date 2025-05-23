@@ -29,7 +29,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,0">
+     <layout class="QHBoxLayout" name="comPortLayout" stretch="1,0,0">
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -55,14 +55,11 @@
       </item>
       <item>
        <widget class="QComboBox" name="comPortSelector">
-        <property name="minimumSize">
-         <size>
-          <width>160</width>
-          <height>0</height>
-         </size>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
         </property>
         <property name="placeholderText">
-         <string>[No devices detected]</string>
+         <string>[No devices currently available]</string>
         </property>
        </widget>
       </item>
