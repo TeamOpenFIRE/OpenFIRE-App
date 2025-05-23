@@ -798,7 +798,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             if(pinCapableMap == App_Common::OFPresets.mcuCapableMaps.cend())
                 pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::board.arch.constData());
 
-            for(int i = 0; i < presetMap->second.size(); ++i) {
+            for(int i = 0; i < layoutMap->second.size(); ++i) {
                 pinBoxes << new QComboBox();
                 pinBoxes.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinBoxes.at(i)->setProperty("slot", i);
