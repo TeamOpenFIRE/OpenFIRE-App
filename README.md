@@ -22,7 +22,9 @@ When a board(s) is connected, select the port corresponding to your microcontrol
 
 ### For Linux:
 ##### Requirements: Anything that supports Qt 5.15.X at minimum.
- - Arch Linux: AUR PKGBUILD @ ~~[`openfireapp`](https://aur.archlinux.org/packages/openfireapp)~~ [`openfireapp-git`](https://aur.archlinux.org/packages/openfireapp-git)
+ - Arch Linux: Either of the following AUR PKGBUILDs:
+   - [`openfireapp`](https://aur.archlinux.org/packages/openfireapp): Current Stable Builds
+   - [`openfireapp-git`](https://aur.archlinux.org/packages/openfireapp-git): Unstable, built directly from source
  - Other distros: Use `OpenFIRE_App-[x86_64/aarch64].AppImage` [from the releases page](https://github.com/TeamOpenFIRE/OpenFIRE-App/releases/latest)
  - Make sure your user is part of the `dialout` group (`# usermod -a -G dialout insertusernamehere`); you'll be notified on startup if this is necessary. Log out and back in again for the change to take effect.
    - If you get the error message `usermod: group 'dialout' does not exist` when running the command above, you'll need to create the group (`# groupadd dialout`) and reboot for the change to take effect before trying again.
@@ -62,7 +64,7 @@ When a board(s) is connected, select the port corresponding to your microcontrol
 #### Qt 6.x requires installing the respective SerialPort extension for the version
  - The project can be opened in the Qt Creator IDE, assuming the system has the appropriate Qt libraries for their desired version/environment installed. Alternatively, it should be buildable via CMake inside of an mingw-w64 environment, however this has yet to be tested adequately to be confirmed.
 
-### Special Thanks:
+## Special Thanks:
  * Samuel Ballentyne, Prow7, and co. for their work on the SAMCO system & derivatives, and supporting work and conception of OpenFIRE.
  * Odwalla-J, mrkylegp, RG2020 & lemmingDev for prerelease consultation, bug testing and feedback.
  * All early IR-GUN4ALL testers and ArcadeForums users whom provided early testing and feedback.
