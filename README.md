@@ -1,6 +1,6 @@
 #### Like our work? [Remember to support the developers!](https://github.com/TeamOpenFIRE/.github/blob/main/profile/README.md)
 
-![header](OFA-header.png)
+![header](OFA_header.png)
 # OpenFIRE Desktop Configuration App
 ### Reference configuration utility for the [OpenFIRE light gun system](https://github.com/TeamOpenFIRE/OpenFIRE-Firmware), written in Qt & C++.
 
@@ -18,7 +18,7 @@ Run `OpenFIREapp`. From the main window, available devices will be periodically 
 
 When a board(s) is connected, select the port corresponding to your microcontroller to dock it to the app (undocking any currently docked board, if any). Devices that fail to communicate correctly with the App can be rebooted to their bootloader so they can be updated to the latest available firmware version.
 
-![inline](OFA-screens.png)
+![inline](OFA_screens.png)
 
 ### For Linux:
 ##### Requirements: Anything that supports Qt 5.15.X at minimum.
