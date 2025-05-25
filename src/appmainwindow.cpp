@@ -2286,7 +2286,7 @@ void guiWindow::on_actionAbout_UI_triggered()
 
 void guiWindow::on_actionOpenFIRE_Documentation_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/blob/OpenFIRE-dev/SamcoEnhanced/README.md"));
+    QDesktopServices::openUrl(QUrl("https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/blob/OpenFIRE-dev/OpenFIREmain/README.md"));
 }
 
 
