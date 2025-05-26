@@ -265,9 +265,9 @@ private:
     AppSerial serial;
 
     /// @brief      Current pointers to device/layout maps for synced device
-    std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap;
-    std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap;
-    std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapabilityMap;
+    std::unordered_map<std::string_view, std::vector<int>>::const_iterator presetMap;
+    std::unordered_map<std::string_view, std::vector<unsigned int>>::const_iterator layoutMap;
+    std::unordered_map<std::string_view, std::vector<int>>::const_iterator pinCapabilityMap;
 
     // result of async serial operations
     QFuture<bool> serialSearchFuture;

@@ -70,7 +70,7 @@ public:
     ///             Map from OF_Const::OFPresets to reference for string names and respective indices
     /// @param      size_t
     ///             Size of data blocks that void* points to, for correct seeks through array elements by address
-    bool BatchStoreSettings(void*, const std::unordered_map<std::string, int>&, const size_t&);
+    bool BatchStoreSettings(void*, const std::unordered_map<std::string_view, int>&, const size_t&);
 
     /// @brief      Macro for processing name of data type
     /// @returns    Name received from serial
@@ -95,7 +95,7 @@ public:
     ///             Map from OF_Const::OFPresets to reference for string names and respective indices
     /// @param      size_t
     ///             Size of data blocks that void* points to, for correct seeks through array elements by address
-    bool BatchSendSettings(void*, const std::unordered_map<std::string, int>&, const size_t&, const size_t& = 0);
+    bool BatchSendSettings(void*, const std::unordered_map<std::string_view, int>&, const size_t&, const size_t& = 0);
 
     /// @brief      Disconnects current serial device and clears port name
     void Disconnect();

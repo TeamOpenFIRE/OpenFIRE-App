@@ -132,11 +132,11 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
 
             // get maps for current board
             // (in this case, safe to assume it's always a valid entry, otherwise it wouldn't show in the first place)
-            std::unordered_map<std::string, std::vector<int>>::const_iterator presetMap = App_Common::OFPresets.boardsPresetsMap.find(board.first);
-            std::unordered_map<std::string, std::vector<unsigned int>>::const_iterator layoutMap = App_Common::OFPresets.boardsBoxPositions.find(board.first);
+            std::unordered_map<std::string_view, std::vector<int>>::const_iterator presetMap = App_Common::OFPresets.boardsPresetsMap.find(board.first);
+            std::unordered_map<std::string_view, std::vector<unsigned int>>::const_iterator layoutMap = App_Common::OFPresets.boardsBoxPositions.find(board.first);
 
             // check if board has pin capability overrides, else fallback to architecture capabilities
-            std::unordered_map<std::string, std::vector<int>>::const_iterator pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(board.first);
+            std::unordered_map<std::string_view, std::vector<int>>::const_iterator pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(board.first);
             if(pinCapableMap == App_Common::OFPresets.mcuCapableMaps.cend())
                 pinCapableMap = App_Common::OFPresets.mcuCapableMaps.find(App_Common::OFPresets.boardArchs[boardType]);
 
@@ -213,7 +213,7 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
             }
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h
-            QFile resource((QString)":/boardPics/" + board.first.c_str());
+            QFile resource((QString)":/boardPics/" + board.first.data());
             resource.open(QIODevice::ReadOnly);
             origBoardPicFile = resource.readAll();
 

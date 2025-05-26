@@ -2357,7 +2357,7 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
 
             for(auto &pair : App_Common::OFPresets.boardInputs_Strings) {
                 if(pair.second > OF_Const::btnUnmapped && App_Common::inputsMap.value(pair.second) > OF_Const::btnUnmapped) {
-                    fileOut.write(pair.first.c_str(), pair.first.length()+1);
+                    fileOut.write(pair.first.data(), pair.first.length()+1);
                     fileOut.putChar(App_Common::inputsMap.value(pair.second));
                 }
             }

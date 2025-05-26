@@ -239,7 +239,7 @@ bool AppSerial::GetSettings(const QString &portName)
     } else return false;
 }
 
-bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::string, int> &dataMap, const size_t &dataSize)
+bool AppSerial::BatchStoreSettings(void *dataPtr, const std::unordered_map<std::string_view, int> &dataMap, const size_t &dataSize)
 {
     QByteArray buf;
     uint8_t sizeRead = 0;
@@ -434,7 +434,7 @@ bool AppSerial::CommitSettings()
     } else return false;
 }
 
-bool AppSerial::BatchSendSettings(void *dataPtr, const std::unordered_map<std::string, int> &dataMap, const size_t &dataSize, const size_t &profNum)
+bool AppSerial::BatchSendSettings(void *dataPtr, const std::unordered_map<std::string_view, int> &dataMap, const size_t &dataSize, const size_t &profNum)
 {
     size_t txLen = 0;
     bool profCurrentMarked = false;
@@ -453,7 +453,7 @@ bool AppSerial::BatchSendSettings(void *dataPtr, const std::unordered_map<std::s
     for(auto &pair : dataMap) {
         if(pair.second >= 0) {
             txLen = 1;
-            strcpy(&TXbuf[txLen], pair.first.c_str());
+            strcpy(&TXbuf[txLen], pair.first.data());
             // std::string length doesn't account for terminator
             txLen += pair.first.length()+1;
 
