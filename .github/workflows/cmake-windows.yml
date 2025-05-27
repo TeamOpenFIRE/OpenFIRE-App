@@ -1,4 +1,4 @@
-name: CMake - Windows & Linux
+name: CMake - Windows 10+
 
 on:
   push:
