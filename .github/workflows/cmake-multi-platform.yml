@@ -112,7 +112,7 @@ jobs:
     - name: Cleanup Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
-        cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/${{ matrix.file }}
+        cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/${{ matrix.file }} --strip
         ${{ github.workspace }}\Qt\${{ matrix.qt_version }}\${{ matrix.qt_path }}\bin\windeployqt.exe ${{ github.workspace }}/${{ matrix.file }}/bin --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
         mv "${{ github.workspace }}/${{ matrix.file }}/bin" "${{ github.workspace }}/${{ matrix.file }}/OpenFIRE App"
 
