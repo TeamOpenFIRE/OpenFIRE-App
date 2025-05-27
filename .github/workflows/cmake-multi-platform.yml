@@ -24,9 +24,15 @@ jobs:
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
             qt_tools: tools_mingw1310
-            qt_path: mingw_64
             install_prefix: '-G "MinGW Makefiles"'
-            pretty: "Windows Artifact"
+            pretty: "Windows Artifact (MinGW)"
+          - os: windows-latest
+            file: build/out
+            qt_host: windows
+            qt_arch: win64_msvc2022_64
+            qt_version: 6.8.3
+            qt6_modules: "qtserialport"
+            pretty: "Windows Artifact (MSVC)"
           - os: ubuntu-22.04
             file: OpenFIRE_App-x86_64.AppImage
             qt_host: linux
