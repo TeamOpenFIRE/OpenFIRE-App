@@ -1,4 +1,4 @@
-name: CMake - Windows & Linux
+name: CMake - Linux AppImages
 
 on:
   push:
@@ -13,58 +13,29 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-latest]
+        os: [ubuntu-22.04, ubuntu-22.04-arm]
         qt_version: [5.15.2, 6.7.3, 6.8.3]
         build_type: [Debug, Release]
         include:
-          - os: windows-latest
-            file: build/out
-            qt_host: windows
-            qt_arch: win64_mingw
-            qt_version: 6.8.3
-            qt6_modules: "qtserialport"
-            qt_tools: tools_mingw1310
-            install_prefix: '-G "MinGW Makefiles"'
-            pretty: "Windows Artifact (MinGW)"
-          - os: windows-latest
-            file: build/out
-            qt_host: windows
-            qt_arch: win64_msvc2022_64
-            qt_version: 6.8.3
-            qt6_modules: "qtserialport"
-            pretty: "Windows Artifact (MSVC)"
           - os: ubuntu-22.04
-            file: OpenFIRE_App-x86_64.AppImage
             qt_host: linux
             qt_arch: gcc_64
             qt_version: 5.15.2
-            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
-            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04
-            file: OpenFIRE_App-x86_64.AppImage
             qt_host: linux
             qt_arch: linux_gcc_64
             qt_version: 6.8.3
-            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
-            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04-arm
-            file: OpenFIRE_App-aarch64.AppImage
             qt_host: linux_arm64
             qt_arch: linux_gcc_arm64
             qt_version: 6.7.3
-            qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: aarch64
-            install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux ARM AppImage"
         exclude:
-          - os: windows-latest
-            qt_version: 5.15.2
-          - os: windows-latest
-            qt_version: 6.7.3
           - os: ubuntu-22.04
             qt_version: 6.7.3
           - os: ubuntu-22.04-arm
@@ -96,8 +67,7 @@ jobs:
         version: '${{ matrix.qt_version }}'
         host: '${{ matrix.qt_host }}'
         arch: '${{ matrix.qt_arch }}'
-        modules: '${{ matrix.qt6_modules }}'
-        tools: '${{ matrix.qt_tools }}'
+        modules: 'qtserialport qtwaylandcompositor'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
         cache: true
 
@@ -108,28 +78,19 @@ jobs:
         cmake -B ${{ github.workspace }}/build
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DOFAPP_GITHASH=${{steps.get-short-sha.outputs.id}}
-        ${{ matrix.install_prefix }}
+        -DCMAKE_INSTALL_PREFIX=/usr
         -S ${{ github.workspace }}
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
 
-    - name: Cleanup Windows
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/${{ matrix.file }} --strip
-        windeployqt ${{ github.workspace }}/${{ matrix.file }}/bin/OpenFIREapp.exe --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
-        mv "${{ github.workspace }}/${{ matrix.file }}/bin" "${{ github.workspace }}/${{ matrix.file }}/OpenFIRE App"
-
     - name: Install linuxdeploy
-      if: ${{ matrix.os != 'windows-latest' }}
       uses: pcolby/install-linuxdeploy@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os != 'windows-latest' }}
       env:
         EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so
         EXTRA_QT_MODULES: waylandcompositor
@@ -137,7 +98,6 @@ jobs:
         make install DESTDIR=AppDir
         install -Dm755 "${{ github.workspace }}/img/ico/openfire.svg" "AppDir/usr/share/icons/hicolor/scalable/apps/org.TeamOpenFIRE.OpenFIREapp.svg"
         "${{ runner.temp }}/linuxdeploy/linuxdeploy-${{ matrix.sys_arch }}.AppImage" --plugin=qt --output appimage --appdir AppDir --desktop-file "${{ github.workspace }}/org.TeamOpenFIRE.OpenFIREapp.desktop"
-        cp ${{ matrix.file }} ${{ github.workspace }}
       working-directory: ${{ github.workspace }}/build
 
     - name: Upload Artifact
@@ -146,7 +106,7 @@ jobs:
         # Artifact name
         name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }}-${{ matrix.build_type }} # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{ matrix.file }}
+        path: OpenFIRE_App-${{matrix.sys_arch}}.AppImage
 
     - name: Download a Build Artifact
       uses: actions/download-artifact@v4
