@@ -115,13 +115,13 @@ jobs:
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
 
     - name: Install linuxdeploy
-      if: ${{ matrix.os != 'windows-2019' }}
+      if: ${{ matrix.os != 'windows-latest' }}
       uses: pcolby/install-linuxdeploy@v1
       with:
         plugins: qt appimage
 
     - name: Setup AppImage
-      if: ${{ matrix.os != 'windows-2019' }}
+      if: ${{ matrix.os != 'windows-latest' }}
       env:
         EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so
         EXTRA_QT_MODULES: waylandcompositor
