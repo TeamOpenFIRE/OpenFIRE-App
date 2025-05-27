@@ -1,0 +1,78 @@
+name: CMake - Windows 10+ Packages
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        build_type: [Debug, Release]
+        win_arch: [win64_msvc2022_64, win64_mingw]
+        include:
+          - win_arch: win64_mingw
+            qt_tools: tools_mingw1310
+            cmake_gen: "MinGW Makefiles"
+            pretty: "Windows Artifact (MinGW)"
+          - win_arch: win64_msvc2022_64
+            cmake_gen: "Visual Studio 17 2022"
+            pretty: "Windows Artifact (MSVC)"
+        # MSVC insists on being weird with its Debug path, and can't be assed to fix it
+        exclude:
+          - win_arch: win64_msvc2022_64
+            build_type: Debug
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Get short SHA
+      id: get-short-sha
+      run: echo "id=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+
+    # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
+    - name: Install Qt6
+      uses: jdpurcell/install-qt-action@v5
+      with:
+        version: '6.8.3'
+        arch: '${{ matrix.win_arch }}'
+        modules: 'qtserialport'
+        tools: '${{ matrix.qt_tools }}'
+        archives: 'qtbase qttranslations qttools qtsvg icu'
+        cache: true
+
+    - name: Configure CMake
+      run: >
+        cmake -B "${{ github.workspace }}/build"
+        -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}"
+        -DOFAPP_GITHASH="${{steps.get-short-sha.outputs.id}}"
+        -G "${{ matrix.cmake_gen }}"
+        -S "${{ github.workspace }}"
+
+    - name: Build
+      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
+
+    - name: Deploy Windows App & Libraries
+      run: |
+        cmake --install "${{ github.workspace }}/build" --prefix "${{ github.workspace }}/build/out" --strip
+        windeployqt "${{ github.workspace }}/build/out/bin/OpenFIREapp.exe" --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
+        mv "${{ github.workspace }}/build/out/bin" "${{ github.workspace }}/build/out/OpenFIRE App"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        # Artifact name
+        name: OpenFIREapp-${{ matrix.pretty }}-Qt6-${{ matrix.build_type }} # optional, default is artifact
+        # A file, directory or wildcard pattern that describes what to upload
+        path: build/out
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v4
