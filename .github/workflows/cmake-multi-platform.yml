@@ -18,10 +18,11 @@ jobs:
         build_type: [Debug, Release]
         include:
           - os: windows-2019
-            c_compiler: cl
-            cpp_compiler: cl
+            c_compiler: cc
+            cpp_compiler: c++
             file: build
-            qt_arch: windows
+            qt_host: windows
+            qt_arch: win64_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
             pretty: "Windows Artifact"
@@ -29,7 +30,8 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
-            qt_arch: linux
+            qt_host: linux
+            qt_arch: gcc_64
             qt_version: 5.15.2
             qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
@@ -39,7 +41,8 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
-            qt_arch: linux
+            qt_host: linux
+            qt_arch: linux_gcc_64
             qt_version: 6.8.3
             qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: x86_64
@@ -49,7 +52,8 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
             file: OpenFIRE_App-aarch64.AppImage
-            qt_arch: linux_arm64
+            qt_host: linux_arm64
+            qt_arch: linux_gcc_arm64
             qt_version: 6.7.3
             qt6_modules: "qtserialport qtwaylandcompositor"
             sys_arch: aarch64
@@ -76,6 +80,10 @@ jobs:
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+    - name: Install MinGW
+      if: ${{ matrix.os == 'windows' }}
+      uses: egor-tensin/setup-mingw@v2
+
     # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
       if: ${{ matrix.qt_version == '5.15.2' }}
@@ -88,7 +96,8 @@ jobs:
       uses: jdpurcell/install-qt-action@v5
       with:
         version: '${{ matrix.qt_version }}'
-        host: '${{ matrix.qt_arch }}'
+        host: '${{ matrix.qt_host }}'
+        arch: '${{ matrix.qt_arch }}'
         modules: '${{ matrix.qt6_modules }}'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
 
