@@ -20,10 +20,9 @@ jobs:
           - os: windows-latest
             file: build
             qt_host: windows
-            qt_arch: win64_llvm_mingw
+            qt_arch: win64_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
-            qt_extra_archives: llvm
             qt_tools: tools_mingw1310
             install_prefix: '-G "MinGW Makefiles"'
             pretty: "Windows Artifact"
@@ -92,7 +91,7 @@ jobs:
         arch: '${{ matrix.qt_arch }}'
         modules: '${{ matrix.qt6_modules }}'
         tools: '${{ matrix.qt_tools }}'
-        archives: 'qtbase qtwayland qttranslations qttools qtsvg icu ${{ matrix.qt_extra_archives }}'
+        archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
         cache: true
 
     - name: Configure CMake
