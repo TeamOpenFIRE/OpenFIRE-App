@@ -113,7 +113,7 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
         cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/${{ matrix.file }} --strip
-        Qt\${{ matrix.qt_version }}\${{ matrix.qt_path }}\bin\windeployqt.exe ${{ github.workspace }}/${{ matrix.file }}/bin/OpenFIREapp.exe --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend --release --compiler-runtime
+        windeployqt ${{ github.workspace }}/${{ matrix.file }}/bin/OpenFIREapp.exe --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
         mv "${{ github.workspace }}/${{ matrix.file }}/bin" "${{ github.workspace }}/${{ matrix.file }}/OpenFIRE App"
 
     - name: Install linuxdeploy
