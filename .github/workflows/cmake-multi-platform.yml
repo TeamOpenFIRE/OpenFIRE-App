@@ -22,10 +22,10 @@ jobs:
             cpp_compiler: c++
             file: build
             qt_host: windows
-            qt_arch: win64_mingw
+            qt_arch: win64_llvm_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
-            qt_extra_archives: MinGW
+            qt_extra_archives: llvm
             install_prefix: '-G "MinGW Makefiles"'
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
