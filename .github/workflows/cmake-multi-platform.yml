@@ -23,6 +23,7 @@ jobs:
             qt_arch: win64_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
+            qt6_extra_archives: "MinGW"
             qt_tools: tools_mingw1310
             qt_path: mingw_64
             install_prefix: '-G "MinGW Makefiles"'
@@ -92,7 +93,7 @@ jobs:
         arch: '${{ matrix.qt_arch }}'
         modules: '${{ matrix.qt6_modules }}'
         tools: '${{ matrix.qt_tools }}'
-        archives: 'qtbase qtwayland qttranslations qttools qtsvg icu'
+        archives: 'qtbase qtwayland qttranslations qttools qtsvg icu ${{ matrix.qt6_extra_archives }}'
         cache: true
 
     - name: Configure CMake
