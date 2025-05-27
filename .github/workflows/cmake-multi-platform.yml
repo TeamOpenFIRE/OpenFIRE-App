@@ -18,12 +18,13 @@ jobs:
         build_type: [Debug, Release]
         include:
           - os: windows-latest
-            file: build
+            file: build/out
             qt_host: windows
             qt_arch: win64_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
             qt_tools: tools_mingw1310
+            qt_path: mingw_64
             install_prefix: '-G "MinGW Makefiles"'
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
@@ -107,6 +108,13 @@ jobs:
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
+
+    - name: Cleanup Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/${{ matrix.file }}
+        ${{ github.workspace }}\Qt\${{ matrix.qt_version }}\${{ matrix.qt_path }}\bin\windeployqt.exe ${{ github.workspace }}/${{ matrix.file }}/bin --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
+        mv "${{ github.workspace }}/${{ matrix.file }}/bin" "${{ github.workspace }}/${{ matrix.file }}/OpenFIRE App"
 
     - name: Install linuxdeploy
       if: ${{ matrix.os != 'windows-latest' }}
