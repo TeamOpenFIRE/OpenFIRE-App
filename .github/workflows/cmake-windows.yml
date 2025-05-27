@@ -48,11 +48,11 @@ jobs:
 
     - name: Configure CMake
       run: >
-        cmake -B ${{ github.workspace }}/build
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DOFAPP_GITHASH=${{steps.get-short-sha.outputs.id}}
-        -G ${{ matrix.cmake_gen }}
-        -S ${{ github.workspace }}
+        cmake -B "${{ github.workspace }}/build"
+        -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}"
+        -DOFAPP_GITHASH="${{steps.get-short-sha.outputs.id}}"
+        -G "${{ matrix.cmake_gen }}"
+        -S "${{ github.workspace }}"
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
@@ -60,8 +60,8 @@ jobs:
 
     - name: Deploy Windows App & Libraries
       run: |
-        cmake --install ${{ github.workspace }}/build --prefix ${{ github.workspace }}/build/out --strip
-        windeployqt ${{ github.workspace }}/build/out/bin/OpenFIREapp.exe --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
+        cmake --install "${{ github.workspace }}/build" --prefix "${{ github.workspace }}/build/out" --strip
+        windeployqt "${{ github.workspace }}/build/out/bin/OpenFIREapp.exe" --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
         mv "${{ github.workspace }}/build/out/bin" "${{ github.workspace }}/build/out/OpenFIRE App"
 
     - name: Upload Artifact
