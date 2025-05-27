@@ -81,7 +81,7 @@ jobs:
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
     - name: Install MinGW
-      if: ${{ matrix.os == 'windows' }}
+      if: ${{ matrix.os == 'windows-2019' }}
       uses: egor-tensin/setup-mingw@v2
 
     # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
