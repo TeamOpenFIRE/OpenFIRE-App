@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2019]
+        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-latest]
         qt_version: [5.15.2, 6.7.3, 6.8.3]
         build_type: [Debug, Release]
         include:
@@ -61,9 +61,9 @@ jobs:
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux ARM AppImage"
         exclude:
-          - os: windows-2019
+          - os: windows-latest
             qt_version: 5.15.2
-          - os: windows-2019
+          - os: windows-latest
             qt_version: 6.7.3
           - os: ubuntu-22.04
             qt_version: 6.7.3
