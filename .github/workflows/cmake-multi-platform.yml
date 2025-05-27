@@ -18,19 +18,16 @@ jobs:
         build_type: [Debug, Release]
         include:
           - os: windows-latest
-            c_compiler: cc
-            cpp_compiler: c++
             file: build
             qt_host: windows
             qt_arch: win64_llvm_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
             qt_extra_archives: llvm
+            qt_tools: tools_mingw1310
             install_prefix: '-G "MinGW Makefiles"'
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
-            c_compiler: clang
-            cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
             qt_host: linux
             qt_arch: gcc_64
@@ -40,8 +37,6 @@ jobs:
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04
-            c_compiler: clang
-            cpp_compiler: clang++
             file: OpenFIRE_App-x86_64.AppImage
             qt_host: linux
             qt_arch: linux_gcc_64
@@ -51,8 +46,6 @@ jobs:
             install_prefix: -DCMAKE_INSTALL_PREFIX=/usr
             pretty: "Linux x86 AppImage"
           - os: ubuntu-22.04-arm
-            c_compiler: clang
-            cpp_compiler: clang++
             file: OpenFIRE_App-aarch64.AppImage
             qt_host: linux_arm64
             qt_arch: linux_gcc_arm64
@@ -98,6 +91,7 @@ jobs:
         host: '${{ matrix.qt_host }}'
         arch: '${{ matrix.qt_arch }}'
         modules: '${{ matrix.qt6_modules }}'
+        tools: '${{ matrix.qt_tools }}'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg icu ${{ matrix.qt_extra_archives }}'
         cache: true
 
@@ -106,8 +100,6 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
         cmake -B ${{ github.workspace }}/build
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DOFAPP_GITHASH=${{steps.get-short-sha.outputs.id}}
         ${{ matrix.install_prefix }}
