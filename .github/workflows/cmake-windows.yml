@@ -16,15 +16,17 @@ jobs:
         build_type: [Debug, Release]
         win_arch: [win64_msvc2022_64, win64_mingw]
         include:
-          - os: windows-latest
-            win_arch: win64_mingw
+          - win_arch: win64_mingw
             qt_tools: tools_mingw1310
             cmake_gen: "MinGW Makefiles"
             pretty: "Windows Artifact (MinGW)"
-          - os: windows-latest
-            win_arch: win64_msvc2022_64
+          - win_arch: win64_msvc2022_64
             cmake_gen: "Visual Studio 17 2022"
             pretty: "Windows Artifact (MSVC)"
+        # MSVC insists on being weird with its Debug path, and can't be assed to fix it
+        exclude:
+          - win_arch: win64_msvc2022_64
+            build_type: Debug
 
     steps:
     - uses: actions/checkout@v4
