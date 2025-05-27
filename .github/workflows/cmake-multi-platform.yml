@@ -17,7 +17,7 @@ jobs:
         qt_version: [5.15.2, 6.7.3, 6.8.3]
         build_type: [Debug, Release]
         include:
-          - os: windows-2019
+          - os: windows-latest
             c_compiler: cc
             cpp_compiler: c++
             file: build
@@ -25,6 +25,7 @@ jobs:
             qt_arch: win64_mingw
             qt_version: 6.8.3
             qt6_modules: "qtserialport"
+            install_prefix: '-G "MinGW Makefiles"'
             pretty: "Windows Artifact"
           - os: ubuntu-22.04
             c_compiler: clang
@@ -79,10 +80,6 @@ jobs:
     - name: Get short SHA
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-    - name: Install MinGW
-      if: ${{ matrix.os == 'windows-2019' }}
-      uses: egor-tensin/setup-mingw@v2
 
     # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
