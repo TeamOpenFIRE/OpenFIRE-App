@@ -2168,37 +2168,40 @@ void guiWindow::CaliWindowExiting(const int &mode,
     switch(mode) {
     case AppCaliWindow::modeCalibrate:
     {
-        if(topOffsetNew >= 0 &&
-            bottomOffsetNew >= 0 &&
-            leftOffsetNew >= 0 &&
-            rightOffsetNew >= 0 &&
-            topLeftLedNew >= 0 && topLeftLedNew < 32768 &&
-            topRightLedNew >= 0 && topRightLedNew < 32768) {
-            uint8_t selection = caliWindow->property("profile").toInt();
+        uint8_t selection = caliWindow->property("profile").toInt();
 
-            App_Common::profilesTable[selection].topOffset = topOffsetNew;
-            topOffset[selection]->setText(QString::number(topOffsetNew));
+        if(!(topOffsetNew  == -1 && bottomOffsetNew == -1 &&
+             leftOffsetNew == -1 && rightOffsetNew  == -1 &&
+             topLeftLedNew == -1 && topRightLedNew  == -1)) {
+                App_Common::profilesTable[selection].topOffset = topOffsetNew;
+                topOffset[selection]->setText(QString::number(topOffsetNew));
 
-            App_Common::profilesTable[selection].bottomOffset = bottomOffsetNew;
-            bottomOffset[selection]->setText(QString::number(bottomOffsetNew));
+                App_Common::profilesTable[selection].bottomOffset = bottomOffsetNew;
+                bottomOffset[selection]->setText(QString::number(bottomOffsetNew));
 
-            App_Common::profilesTable[selection].leftOffset = leftOffsetNew;
-            leftOffset[selection]->setText(QString::number(leftOffsetNew));
+                App_Common::profilesTable[selection].leftOffset = leftOffsetNew;
+                leftOffset[selection]->setText(QString::number(leftOffsetNew));
 
-            App_Common::profilesTable[selection].rightOffset = rightOffsetNew;
-            rightOffset[selection]->setText(QString::number(rightOffsetNew));
+                App_Common::profilesTable[selection].rightOffset = rightOffsetNew;
+                rightOffset[selection]->setText(QString::number(rightOffsetNew));
 
-            App_Common::profilesTable[selection].TLled = topLeftLedNew;
-            TLled[selection]->setText(QString::number(topLeftLedNew));
+                App_Common::profilesTable[selection].TLled = topLeftLedNew;
+                TLled[selection]->setText(QString::number(topLeftLedNew));
 
-            App_Common::profilesTable[selection].TRled = topRightLedNew;
-            TRled[selection]->setText(QString::number(topRightLedNew));
+                App_Common::profilesTable[selection].TRled = topRightLedNew;
+                TRled[selection]->setText(QString::number(topRightLedNew));
 
-            DiffUpdate();
-            ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " successful", 5000);
-        } else {
-            ui->statusBar->showMessage("Calibration failed: invalid results, reverting to original values.", 10000);
-        }
+                if(topOffsetNew    >= -32768 && topOffsetNew    <= 32768 &&
+                   bottomOffsetNew >= -32768 && bottomOffsetNew <= 32768 &&
+                   leftOffsetNew   >= -32768 && leftOffsetNew   <= 32768 &&
+                   rightOffsetNew  >= -32768 && rightOffsetNew  <= 32768 &&
+                   topLeftLedNew   >= -32768 && topLeftLedNew   <= 32768 &&
+                   topRightLedNew  >= -32768 && topRightLedNew  <= 32768)
+                    ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " successful", 5000);
+                else ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " returned with malformed values.", 10000);
+
+                DiffUpdate();
+        } else ui->statusBar->showMessage("Cancelled Calibration for Profile " + QString::number(selection+1), 10000);
         break;
     }
     case AppCaliWindow::modeIRTest:

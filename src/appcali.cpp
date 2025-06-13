@@ -632,12 +632,12 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
         mouseCanBeTracked = true;
 
         if(bitmapText) {
-            if( topOffset    >= -1000 && topOffset    <= 1000 &&
-                bottomOffset >= -1000 && bottomOffset <= 1000 &&
-                leftOffset   >= -1000 && leftOffset   <= 1000 &&
-                rightOffset  >= -1000 && rightOffset  <= 1000 &&
-                topLeftLed   >= 0     && topLeftLed   <= 8000 &&
-                topRightLed  <= 8000) {
+            if(topOffset    >= -32768  &&  topOffset    <= 32768    &&
+               bottomOffset >= -32768  &&  bottomOffset <= 32768    &&
+               leftOffset   >= -32768  &&  leftOffset   <= 32768    &&
+               rightOffset  >= -32768  &&  rightOffset  <= 32768    &&
+               topLeftLed   >= -32768  &&  topLeftLed   <= 32768    &&
+               topRightLed  >= -32768  &&  topRightLed  <= 32768) {
 
                 caliStageBitmap->setPixmap( GenerateText({"Verify New Calibration:"}));
                 caliStageBitmap->setPos(scene.sceneRect().center().x()      - (caliStageBitmap->boundingRect().center().x() * caliStageBitmap->scale()),
@@ -675,8 +675,11 @@ void AppCaliWindow::CaliModeSet(const int &caliStage)
                 headerBitmap->setPos(scene.sceneRect().center().x() - (headerBitmap->boundingRect().center().x() * headerBitmap->scale()),
                                      caliStageBitmap->pos().y()     + (caliStageBitmap->boundingRect().height()  * caliStageBitmap->scale()));
 
-                tutorialBitmap->setPixmap(GenerateText({"Press Button A or Button B to restart calibration,",
-                                                        "  or pull trigger to exit without saving changes. "},
+                tutorialBitmap->setPixmap(GenerateText({"  Press Button A or Button B to restart calibration, ",
+                                                        "   or pull trigger to continue with these settings.  ",
+                                                        "",
+                                                        "[You can also exit calibration without saving changes",
+                                                        "        by pressing Button C (if available).]        "},
                                                        QColor(225,25,25)));
                 tutorialBitmap->setPos(scene.sceneRect().center().x()       - (tutorialBitmap->boundingRect().center().x() * tutorialBitmap->scale()),
                                        (scene.sceneRect().bottom() * 0.8)   - (tutorialBitmap->boundingRect().center().y() * tutorialBitmap->scale()));
