@@ -970,6 +970,18 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
             ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
+
+            // Carga el estado del checkbox "Habilitar Contador"
+            ui->checkCounterEnable->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::counterEnable]);
+
+            // Carga la selección del ComboBox "Modo del Contador"
+            ui->comboCounterMode->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::counterType]);
+
+            // Habilita o deshabilita el ComboBox según el estado del CheckBox
+            ui->comboCounterMode->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::counterEnable]);
+
+            updateCounterGroupState();
+
             switch(App_Common::tinyUSBtable.tinyUSBid) {
             case 1:
                 ui->tUSB_p1->setChecked(true);
@@ -1182,6 +1194,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
     for(int i = 0; i < BUTTON_COUNT-1; ++i)
         btnFuncGBoxes.at(i)->setEnabled(App_Common::inputsMap.value(i) >= 0);
 
+    updateCounterGroupState();
     DiffUpdate();
 }
 
@@ -2379,3 +2392,32 @@ void guiWindow::on_actionDebug_Window_triggered()
     debugWindow.show();
     #endif
 }
+
+void guiWindow::on_checkCounterEnable_stateChanged(int arg1)
+{
+    App_Common::boolSettings[App_Common::dataCurrent][OF_Const::counterEnable] = arg1;
+    ui->comboCounterMode->setEnabled(arg1);
+    DiffUpdate();
+}
+
+void guiWindow::on_comboCounterMode_currentIndexChanged(int index)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::counterType] = index;
+    DiffUpdate();
+}
+
+void guiWindow::updateCounterGroupState()
+{
+    // Comprueba si los tres pines del contador tienen una asignación válida
+    if (App_Common::inputsMap.value(OF_Const::counterSdiPin) > OF_Const::btnUnmapped &&
+        App_Common::inputsMap.value(OF_Const::counterSclkPin) > OF_Const::btnUnmapped &&
+        App_Common::inputsMap.value(OF_Const::counterLoadPin) > OF_Const::btnUnmapped)
+    {
+        ui->CounterGroup->setEnabled(true);
+    }
+    else
+    {
+        ui->CounterGroup->setEnabled(false);
+    }
+}
+

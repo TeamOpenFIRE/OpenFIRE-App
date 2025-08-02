@@ -147,6 +147,11 @@ private slots:
 
     void on_productNameInput_textEdited(const QString &arg1);
 
+    void on_checkCounterEnable_stateChanged(int arg1);
+
+    void on_comboCounterMode_currentIndexChanged(int index);
+
+
     /// cali profiles
     void renameBoxes_clicked();
 
@@ -332,5 +337,7 @@ private:
     QVector<QPushButton*> caliBtn;
 
     QProgressBar *statusProgressBar = nullptr;
+
+    void updateCounterGroupState();
 };
 #endif // GUIWINDOW_H
