@@ -970,6 +970,12 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
             ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
+            ui->comboNeoPixelBarMode->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelBarMode]);
+            ui->btnLifeFullColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelLifeFull], 6, 16, QLatin1Char('0')));
+            ui->btnLifeEmptyColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelLifeEmpty], 6, 16, QLatin1Char('0')));
+            ui->btnAmmoFullColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelAmmoFull], 6, 16, QLatin1Char('0')));
+            ui->btnAmmoEmptyColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelAmmoEmpty], 6, 16, QLatin1Char('0')));
+
 
             // Carga el estado del checkbox "Habilitar Contador"
             ui->checkCounterEnable->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::counterEnable]);
@@ -2418,6 +2424,64 @@ void guiWindow::updateCounterGroupState()
     else
     {
         ui->CounterGroup->setEnabled(false);
+    }
+}
+
+void guiWindow::on_comboNeoPixelBarMode_currentIndexChanged(int index)
+{
+    // Guarda el modo seleccionado (0=Off, 1=Vida, 2=Munición) en la tabla de ajustes
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelBarMode] = index;
+    // Llama a DiffUpdate() para activar el botón de guardar
+    DiffUpdate();
+}
+
+void guiWindow::on_btnLifeFullColor_clicked()
+{
+    // Abre el diálogo de selección de color, mostrando el color actual
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelLifeFull], this, "Select color for empty Life");
+
+    // Si el usuario selecciona un color válido
+    if(colorPick.isValid()) {
+        // Empaqueta los componentes R, G, B en un solo entero de 32 bits
+        uint32_t packedColor = (colorPick.red() << 16) | (colorPick.green() << 8) | colorPick.blue();
+        // Guarda el nuevo color en la tabla de ajustes
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelLifeFull] = packedColor;
+        // Actualiza el color de fondo del botón para mostrar el color seleccionado
+        ui->btnLifeFullColor->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+void guiWindow::on_btnLifeEmptyColor_clicked()
+{
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelLifeEmpty], this, "Select color for empty Life");
+    if(colorPick.isValid()) {
+        uint32_t packedColor = (colorPick.red() << 16) | (colorPick.green() << 8) | colorPick.blue();
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelLifeEmpty] = packedColor;
+        ui->btnLifeEmptyColor->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+void guiWindow::on_btnAmmoFullColor_clicked()
+{
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelAmmoFull], this, "Select color for full Ammo");
+    if(colorPick.isValid()) {
+        uint32_t packedColor = (colorPick.red() << 16) | (colorPick.green() << 8) | colorPick.blue();
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelAmmoFull] = packedColor;
+        ui->btnAmmoFullColor->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
+    }
+}
+
+void guiWindow::on_btnAmmoEmptyColor_clicked()
+{
+    QColor colorPick = QColorDialog::getColor(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelAmmoEmpty], this, "Select color for empty Ammo");
+    if(colorPick.isValid()) {
+        uint32_t packedColor = (colorPick.red() << 16) | (colorPick.green() << 8) | colorPick.blue();
+        App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelAmmoEmpty] = packedColor;
+        ui->btnAmmoEmptyColor->setStyleSheet(QString("background-color: #%1").arg(packedColor, 6, 16, QLatin1Char('0')));
+        DiffUpdate();
     }
 }
 

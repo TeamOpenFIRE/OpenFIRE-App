@@ -151,6 +151,11 @@ private slots:
 
     void on_comboCounterMode_currentIndexChanged(int index);
 
+    void on_comboNeoPixelBarMode_currentIndexChanged(int index);
+    void on_btnLifeFullColor_clicked();
+    void on_btnLifeEmptyColor_clicked();
+    void on_btnAmmoFullColor_clicked();
+    void on_btnAmmoEmptyColor_clicked();
 
     /// cali profiles
     void renameBoxes_clicked();
