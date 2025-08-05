@@ -75,6 +75,8 @@ guiWindow::guiWindow(QWidget *parent)
 
     connect(&aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
 
+
+
     // Start initial serial search
     aliveTimer.start(ALIVE_TIMER);
     aliveTimer_timeout();
@@ -257,6 +259,82 @@ guiWindow::guiWindow(QWidget *parent)
         ui->btnFuncDescBox->setStyleSheet("QGroupBox::title { color: #909000 }");
         ui->btnFuncDescText->setStyleSheet("color: doubledarkgray");
     }
+
+    connect(ui->spinHealthStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinHealthLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinAmmoStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinAmmoLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinEffectsStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinEffectsLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    ui->spinHealthStartLed->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinHealthStartLed->setAccessibleName("Health Bar Start LED");
+    ui->spinHealthStartLed->setWhatsThis("Sets the first LED to be used for the health bar sector. This must be equal to or greater than the end of the static LEDs sector.");
+    ui->spinHealthStartLed->installEventFilter(this); // Activa la vigilancia de eventos
+
+    ui->spinHealthLedCount->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinHealthLedCount->setAccessibleName("Health Bar LED Count");
+    ui->spinHealthLedCount->setWhatsThis("Sets the total number of LEDs to be used for the health bar sector.");
+    ui->spinHealthLedCount->installEventFilter(this); // Activa la vigilancia de eventos
+
+    // Barra de Munición
+    ui->spinAmmoStartLed->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinAmmoStartLed->setAccessibleName("Ammo Bar Start LED");
+    ui->spinAmmoStartLed->setWhatsThis("Sets the first LED to be used for the ammo bar sector. This must be equal to or greater than the end of the health bar sector.");
+    ui->spinAmmoStartLed->installEventFilter(this); // Activa la vigilancia de eventos
+
+    ui->spinAmmoLedCount->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinAmmoLedCount->setAccessibleName("Ammo Bar LED Count");
+    ui->spinAmmoLedCount->setWhatsThis("Sets the total number of LEDs to be used for the ammo bar sector.");
+    ui->spinAmmoLedCount->installEventFilter(this); // Activa la vigilancia de eventos
+
+    // Sector de Efectos
+    ui->spinEffectsStartLed->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinEffectsStartLed->setAccessibleName("Effects Sector Start LED");
+    ui->spinEffectsStartLed->setWhatsThis("Sets the first LED to be used for the effects sector. This must be equal to or greater than the end of the ammo bar sector.");
+    ui->spinEffectsStartLed->installEventFilter(this); // Activa la vigilancia de eventos
+
+    ui->spinEffectsLedCount->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinEffectsLedCount->setAccessibleName("Effects Sector LED Count");
+    ui->spinEffectsLedCount->setWhatsThis("Sets the total number of LEDs to be used for the effects sector.");
+    ui->spinEffectsLedCount->installEventFilter(this); // Activa la vigilancia de eventos
+
+    // Colores de la Barra de Vida
+    ui->btnLifeFullColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->btnLifeFullColor->setAccessibleName("Health Bar Full Color");
+    ui->btnLifeFullColor->setWhatsThis("Sets the color for the 'full' end of the health bar gradient (e.g., green).");
+    ui->btnLifeFullColor->installEventFilter(this);
+
+    ui->btnLifeEmptyColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->btnLifeEmptyColor->setAccessibleName("Health Bar Empty Color");
+    ui->btnLifeEmptyColor->setWhatsThis("Sets the color for the 'empty' end of the health bar gradient (e.g., red).");
+    ui->btnLifeEmptyColor->installEventFilter(this);
+
+    // Colores de la Barra de Munición
+    ui->btnAmmoFullColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->btnAmmoFullColor->setAccessibleName("Ammo Bar Full Color");
+    ui->btnAmmoFullColor->setWhatsThis("Sets the color for the 'full' end of the ammo bar gradient.");
+    ui->btnAmmoFullColor->installEventFilter(this);
+
+    ui->btnAmmoEmptyColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->btnAmmoEmptyColor->setAccessibleName("Ammo Bar Empty Color");
+    ui->btnAmmoEmptyColor->setWhatsThis("Sets the color for the 'empty' end of the ammo bar gradient.");
+    ui->btnAmmoEmptyColor->installEventFilter(this);
+
+    // Opciones del Contador
+    ui->checkCounterEnable->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->checkCounterEnable->setAccessibleName("Enable 7-Segment Counter");
+    ui->checkCounterEnable->setWhatsThis("Enables or disables the 7-segment counter display.");
+    ui->checkCounterEnable->installEventFilter(this);
+
+    ui->comboCounterMode->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboCounterMode->setAccessibleName("Counter Display Mode");
+    ui->comboCounterMode->setWhatsThis("Selects what the 7-segment counter should display: Life or Ammo.");
+    ui->comboCounterMode->installEventFilter(this);
+
+    ui->lineCounterStartupMsg->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->lineCounterStartupMsg->setAccessibleName("Counter Startup Message");
+    ui->lineCounterStartupMsg->setWhatsThis("Sets the two-character message displayed on the 7-segment counter when the device powers on.");
+    ui->lineCounterStartupMsg->installEventFilter(this);
 }
 
 guiWindow::~guiWindow()
@@ -970,7 +1048,6 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customLEDstaticBtn2->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor2], 6, 16, QLatin1Char('0')));
             ui->customLEDstaticBtn3->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcolor3], 6, 16, QLatin1Char('0')));
 
-            ui->comboNeoPixelBarMode->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelBarMode]);
             ui->btnLifeFullColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelLifeFull], 6, 16, QLatin1Char('0')));
             ui->btnLifeEmptyColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelLifeEmpty], 6, 16, QLatin1Char('0')));
             ui->btnAmmoFullColor->setStyleSheet(QString("background-color: #%1").arg(App_Common::settingsTable[App_Common::dataOrig][OF_Const::neoPixelAmmoFull], 6, 16, QLatin1Char('0')));
@@ -985,6 +1062,29 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
             // Habilita o deshabilita el ComboBox según el estado del CheckBox
             ui->comboCounterMode->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::counterEnable]);
+
+            ui->spinHealthStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::healthBarStartLed]);
+            ui->spinHealthLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::healthBarLedCount]);
+            ui->spinAmmoStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::ammoBarStartLed]);
+            ui->spinAmmoLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::ammoBarLedCount]);
+            ui->spinEffectsStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsStartLed]);
+            ui->spinEffectsLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsLedCount]);
+
+            // Llama a la validación una vez cargados los datos
+            validateLedSectors();
+
+            uint16_t packedMsg = App_Common::settingsTable[App_Common::dataOrig][OF_Const::counterStartupMessage];
+            if (packedMsg != 0) {
+                char c1 = (packedMsg >> 8) & 0xFF;
+                char c2 = packedMsg & 0xFF;
+                // Asegúrate de que los caracteres son imprimibles
+                QString text = "";
+                if (c1 != 0) text += QChar(c1);
+                if (c2 != 0) text += QChar(c2);
+                ui->lineCounterStartupMsg->setText(text);
+            } else {
+                ui->lineCounterStartupMsg->setText("OF"); // Muestra el valor por defecto
+            }
 
             updateCounterGroupState();
 
@@ -2427,13 +2527,6 @@ void guiWindow::updateCounterGroupState()
     }
 }
 
-void guiWindow::on_comboNeoPixelBarMode_currentIndexChanged(int index)
-{
-    // Guarda el modo seleccionado (0=Off, 1=Vida, 2=Munición) en la tabla de ajustes
-    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::neoPixelBarMode] = index;
-    // Llama a DiffUpdate() para activar el botón de guardar
-    DiffUpdate();
-}
 
 void guiWindow::on_btnLifeFullColor_clicked()
 {
@@ -2485,3 +2578,109 @@ void guiWindow::on_btnAmmoEmptyColor_clicked()
     }
 }
 
+void guiWindow::validateLedSectors()
+{
+    // Obtener todos los valores actuales de la GUI
+    int totalLeds = ui->neopixelStrandLengthBox->value();
+    int staticLeds = ui->customLEDstaticSpinbox->value();
+    int healthStart = ui->spinHealthStartLed->value();
+    int healthCount = ui->spinHealthLedCount->value();
+    int ammoStart = ui->spinAmmoStartLed->value();
+    int ammoCount = ui->spinAmmoLedCount->value();
+    int effectsStart = ui->spinEffectsStartLed->value();
+    int effectsCount = ui->spinEffectsLedCount->value();
+
+    bool isValid = true;
+    QString errorMessage = "";
+
+    // --- LÓGICA DE VALIDACIÓN ROBUSTA ---
+    QList<QPair<QString, QRect>> sectors;
+
+    // Añadir los sectores activos a una lista para compararlos
+    // Un QRect se usa para representar el sector: x() es el inicio, width() es la longitud
+    if (staticLeds > 0) {
+        sectors.append({"Static LEDs", QRect(0, 0, staticLeds, 1)});
+    }
+    if (healthCount > 0) {
+        sectors.append({"Health Bar", QRect(healthStart, 0, healthCount, 1)});
+    }
+    if (ammoCount > 0) {
+        sectors.append({"Ammo Bar", QRect(ammoStart, 0, ammoCount, 1)});
+    }
+    if (effectsCount > 0) {
+        sectors.append({"Effects Sector", QRect(effectsStart, 0, effectsCount, 1)});
+    }
+
+    // Comprobar cada sector contra todos los demás
+    for (int i = 0; i < sectors.size(); ++i) {
+        // Comprobar que el sector no excede el total de LEDs
+        // .right() es x + width - 1, por lo que el final del sector es .right() + 1
+        if (sectors[i].second.x() + sectors[i].second.width() > totalLeds) {
+            isValid = false;
+            errorMessage = QString("Error: The %1 exceeds the total number of LEDs.").arg(sectors[i].first);
+            break;
+        }
+
+        // Comprobar solapamiento con los otros sectores
+        for (int j = i + 1; j < sectors.size(); ++j) {
+            if (sectors[i].second.intersects(sectors[j].second)) {
+                isValid = false;
+                errorMessage = QString("Error: The %1 overlaps with the %2.").arg(sectors[i].first).arg(sectors[j].first);
+                break;
+            }
+        }
+        if (!isValid) break;
+    }
+
+    // --- ACTUALIZAR LA GUI ---
+    ui->confirmButton->setEnabled(isValid); // Habilita o deshabilita el botón de guardar
+    ui->lblLedError->setText(errorMessage); // Muestra el mensaje de error si lo hay
+}
+
+
+
+void guiWindow::on_spinHealthStartLed_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::healthBarStartLed] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinHealthLedCount_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::healthBarLedCount] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinAmmoStartLed_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::ammoBarStartLed] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinAmmoLedCount_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::ammoBarLedCount] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinEffectsStartLed_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::effectsStartLed] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinEffectsLedCount_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::effectsLedCount] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_lineCounterStartupMsg_textChanged(const QString &text) {
+    if (text.length() > 2) return; // Seguridad extra
+
+    uint16_t packedMsg = 0;
+    // Empaqueta los dos caracteres en un solo entero de 16 bits
+    if (text.length() > 0) {
+        packedMsg |= (uint16_t)text.at(0).toLatin1() << 8;
+    }
+    if (text.length() > 1) {
+        packedMsg |= (uint16_t)text.at(1).toLatin1();
+    }
+
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::counterStartupMessage] = packedMsg;
+    DiffUpdate();
+}

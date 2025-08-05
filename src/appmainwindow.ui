@@ -27,8 +27,8 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_11">
+    <item row="0" column="0">
      <layout class="QHBoxLayout" name="comPortLayout" stretch="1,0,0">
       <item>
        <spacer name="horizontalSpacer">
@@ -65,7 +65,7 @@
       </item>
      </layout>
     </item>
-    <item>
+    <item row="1" column="0">
      <widget class="QLabel" name="boardLabel">
       <property name="font">
        <font>
@@ -80,14 +80,14 @@
       </property>
      </widget>
     </item>
-    <item>
+    <item row="2" column="0">
      <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item>
+    <item row="3" column="0">
      <widget class="QLabel" name="versionLabel">
       <property name="font">
        <font>
@@ -110,7 +110,7 @@
       </property>
      </widget>
     </item>
-    <item>
+    <item row="4" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
        <enum>QTabWidget::TabPosition::South</enum>
@@ -617,9 +617,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-392</y>
+             <y>-709</y>
              <width>939</width>
-             <height>1245</height>
+             <height>1300</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,0,1,0">
@@ -1086,133 +1086,6 @@
                   <string>NeoPixels</string>
                  </property>
                  <layout class="QGridLayout" name="gridLayout_9">
-                  <item row="2" column="1" colspan="8">
-                   <widget class="QLabel" name="pixelChangeNotice">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <italic>true</italic>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Changes to NeoPixel settings may require a power cycle to update properly!</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="2">
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Static NeoPixels: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="6">
-                   <widget class="QComboBox" name="comboNeoPixelBarMode">
-                    <item>
-                     <property name="text">
-                      <string>Disabled</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>Life Bar</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>Ammo Bar</string>
-                     </property>
-                    </item>
-                   </widget>
-                  </item>
-                  <item row="1" column="7">
-                   <widget class="QCheckBox" name="invertStaticPixelsBox">
-                    <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabling this setting will have statically illuminated pixels set to the &lt;span style=&quot; font-style:italic;&quot;&gt;last&lt;/span&gt; X Pixel(s), rather than the default &lt;span style=&quot; font-style:italic;&quot;&gt;first&lt;/span&gt; X Pixel(s).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="accessibleName">
-                     <string>Set Static Pixels to First/Last Pixels Toggle</string>
-                    </property>
-                    <property name="text">
-                     <string>Invert Static Colors</string>
-                    </property>
-                    <property name="trackable" stdset="0">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="3">
-                   <widget class="QLabel" name="label_20">
-                    <property name="text">
-                     <string>NeoPixel Life/Ammo Bar</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="2" colspan="2">
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>NeoPixel Strand Length: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="6">
-                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
-                    <property name="toolTip">
-                     <string/>
-                    </property>
-                    <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="accessibleName">
-                     <string>NeoPixel Strand Length</string>
-                    </property>
-                    <property name="buttonSymbols">
-                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                    </property>
-                    <property name="correctionMode">
-                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                    </property>
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string/>
-                    </property>
-                    <property name="minimum">
-                     <number>1</number>
-                    </property>
-                    <property name="maximum">
-                     <number>100</number>
-                    </property>
-                    <property name="trackable" stdset="0">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1" rowspan="2">
-                   <spacer name="horizontalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
                   <item row="1" column="6">
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
@@ -1285,6 +1158,130 @@
                     </item>
                    </layout>
                   </item>
+                  <item row="0" column="2" colspan="2">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>NeoPixel Strand Length: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="2">
+                   <widget class="QLabel" name="AmmoBarLabel">
+                    <property name="text">
+                     <string>NeoPixel Ammo Bar:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="8">
+                   <widget class="QPushButton" name="btnLifeEmptyColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Empty Life</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="7">
+                   <widget class="QPushButton" name="btnLifeFullColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Full Life</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1" rowspan="2">
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="6" column="6">
+                   <widget class="QSpinBox" name="spinEffectsLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="3">
+                   <widget class="QSpinBox" name="spinHealthStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="6">
+                   <widget class="QSpinBox" name="spinHealthLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="6">
+                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
+                    <property name="toolTip">
+                     <string/>
+                    </property>
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>NeoPixel Strand Length</string>
+                    </property>
+                    <property name="buttonSymbols">
+                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                    </property>
+                    <property name="correctionMode">
+                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                    </property>
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="0" column="8" rowspan="2">
                    <spacer name="horizontalSpacer_4">
                     <property name="orientation">
@@ -1297,6 +1294,124 @@
                      </size>
                     </property>
                    </spacer>
+                  </item>
+                  <item row="5" column="3">
+                   <widget class="QSpinBox" name="spinAmmoStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>142</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="7">
+                   <widget class="QPushButton" name="btnAmmoFullColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Full Ammo</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="7">
+                   <widget class="QCheckBox" name="invertStaticPixelsBox">
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabling this setting will have statically illuminated pixels set to the &lt;span style=&quot; font-style:italic;&quot;&gt;last&lt;/span&gt; X Pixel(s), rather than the default &lt;span style=&quot; font-style:italic;&quot;&gt;first&lt;/span&gt; X Pixel(s).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>Set Static Pixels to First/Last Pixels Toggle</string>
+                    </property>
+                    <property name="text">
+                     <string>Invert Static Colors</string>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="6">
+                   <widget class="QLabel" name="pixelChangeNotice">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <italic>true</italic>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Changes to NeoPixel settings may require a power cycle to update properly!</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="6">
+                   <widget class="QSpinBox" name="spinAmmoLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="8">
+                   <widget class="QPushButton" name="btnAmmoEmptyColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Empty Ammo</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="EffectsLabel">
+                    <property name="text">
+                     <string>NeoPixel Effects:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Static NeoPixels: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="3">
+                   <widget class="QSpinBox" name="spinEffectsStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="LifeBarLabel">
+                    <property name="text">
+                     <string>NeoPixel Life Bar:</string>
+                    </property>
+                   </widget>
                   </item>
                   <item row="1" column="3">
                    <widget class="QSpinBox" name="customLEDstaticSpinbox">
@@ -1323,31 +1438,22 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="7">
-                   <widget class="QPushButton" name="btnLifeFullColor">
-                    <property name="text">
-                     <string>Color Full Life</string>
+                  <item row="8" column="6">
+                   <widget class="QLabel" name="lblLedError">
+                    <property name="font">
+                     <font>
+                      <pointsize>12</pointsize>
+                      <bold>true</bold>
+                     </font>
                     </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="8">
-                   <widget class="QPushButton" name="btnLifeEmptyColor">
-                    <property name="text">
-                     <string>Color Empty Life</string>
+                    <property name="styleSheet">
+                     <string notr="true">color: rgb(255, 0, 0);</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="7">
-                   <widget class="QPushButton" name="btnAmmoFullColor">
-                    <property name="text">
-                     <string>Color Full Ammo</string>
+                    <property name="frameShape">
+                     <enum>QFrame::Shape::NoFrame</enum>
                     </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="8">
-                   <widget class="QPushButton" name="btnAmmoEmptyColor">
                     <property name="text">
-                     <string>Color Empty Ammo</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -1391,6 +1497,38 @@
                <string>UI and UX</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_6">
+               <item row="1" column="0">
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="1" column="1">
+                <widget class="QCheckBox" name="holdToPauseToggle">
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how to trigger Pause Mode.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode can be activated by holding &lt;span style=&quot; font-style:italic;&quot;&gt;Trigger&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Button A &lt;/span&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;while no IR points are visible.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Mode can be activated by pressing the Pause Mode hotkey (Button C + Select).&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons.&lt;/span&gt; Note that regardless of setting, Pause Mode can always be accessed by pressing the Home Button (if set).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="accessibleName">
+                  <string>Pause Mode Hold-to-Activate Toggle</string>
+                 </property>
+                 <property name="text">
+                  <string>Hold to Pause Enabled</string>
+                 </property>
+                 <property name="trackable" stdset="0">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
                <item row="1" column="4">
                 <spacer name="horizontalSpacer_2">
                  <property name="orientation">
@@ -1420,57 +1558,6 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="1" colspan="3" alignment="Qt::AlignmentFlag::AlignHCenter">
-                <widget class="QCheckBox" name="simplePauseToggle">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="accessibleName">
-                  <string>Simple Pause Menu Toggle</string>
-                 </property>
-                 <property name="text">
-                  <string>Simple Pause Menu</string>
-                 </property>
-                 <property name="trackable" stdset="0">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QCheckBox" name="holdToPauseToggle">
-                 <property name="toolTip">
-                  <string/>
-                 </property>
-                 <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how to trigger Pause Mode.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode can be activated by holding &lt;span style=&quot; font-style:italic;&quot;&gt;Trigger&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Button A &lt;/span&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;while no IR points are visible.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Mode can be activated by pressing the Pause Mode hotkey (Button C + Select).&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons.&lt;/span&gt; Note that regardless of setting, Pause Mode can always be accessed by pressing the Home Button (if set).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="accessibleName">
-                  <string>Pause Mode Hold-to-Activate Toggle</string>
-                 </property>
-                 <property name="text">
-                  <string>Hold to Pause Enabled</string>
-                 </property>
-                 <property name="trackable" stdset="0">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
                <item row="1" column="3">
                 <widget class="QSpinBox" name="holdToPauseLengthBox">
                  <property name="toolTip">
@@ -1493,6 +1580,25 @@
                  </property>
                  <property name="maximum">
                   <number>9999</number>
+                 </property>
+                 <property name="trackable" stdset="0">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" colspan="3" alignment="Qt::AlignmentFlag::AlignHCenter">
+                <widget class="QCheckBox" name="simplePauseToggle">
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="whatsThis">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="accessibleName">
+                  <string>Simple Pause Menu Toggle</string>
+                 </property>
+                 <property name="text">
+                  <string>Simple Pause Menu</string>
                  </property>
                  <property name="trackable" stdset="0">
                   <number>1</number>
@@ -1575,15 +1681,15 @@
               <property name="title">
                <string>7-Seg Counter</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_17">
-               <item alignment="Qt::AlignmentFlag::AlignHCenter">
+              <layout class="QGridLayout" name="gridLayout_13">
+               <item row="0" column="1">
                 <widget class="QCheckBox" name="checkCounterEnable">
                  <property name="text">
                   <string>Enable 7-Seg Counter</string>
                  </property>
                 </widget>
                </item>
-               <item alignment="Qt::AlignmentFlag::AlignHCenter">
+               <item row="1" column="1">
                 <widget class="QComboBox" name="comboCounterMode">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1598,9 +1704,32 @@
                  </item>
                  <item>
                   <property name="text">
-                   <string>AMNO Counter</string>
+                   <string>AMMO Counter</string>
                   </property>
                  </item>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QLineEdit" name="lineCounterStartupMsg">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QLabel" name="label_20">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Custom Startup Message (2 Digits)</string>
+                 </property>
                 </widget>
                </item>
               </layout>
@@ -2623,7 +2752,7 @@
       </widget>
      </widget>
     </item>
-    <item>
+    <item row="5" column="0">
      <widget class="QPushButton" name="confirmButton">
       <property name="enabled">
        <bool>false</bool>
