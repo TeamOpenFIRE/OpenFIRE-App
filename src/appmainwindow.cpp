@@ -266,6 +266,68 @@ guiWindow::guiWindow(QWidget *parent)
     connect(ui->spinAmmoLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
     connect(ui->spinEffectsStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
     connect(ui->spinEffectsLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+
+    // Efectos
+    auto populateEffectComboBox = [](QComboBox* box) {
+        if (!box) return;
+        box->addItem("None", 0);
+        box->addItem("Fire", 1);
+        box->addItem("Ice", 2);
+        box->addItem("Plasma", 3);
+        box->addItem("Beam", 4);
+        box->addItem("Knight Rider", 5);
+    };
+
+    // Colores
+    auto populateColorComboBox = [](QComboBox* box) {
+        if (!box) return;
+        box->addItem("Red", 'R');
+        box->addItem("Green", 'G');
+        box->addItem("Blue", 'B');
+        box->addItem("Orange", 'O');
+        box->addItem("Purple", 'P');
+        box->addItem("Yellow", 'Y');
+        box->addItem("Cyan", 'C');
+        box->addItem("Magenta", 'M');
+        box->addItem("White", 'W');
+        box->addItem("Lime", 'L');
+    };
+
+    // Lista de botones y combos
+    QVector<QPair<QComboBox*, QComboBox*>> onScreenCombos = {
+        {ui->comboTriggerOnEffect, ui->comboTriggerOnColor},
+        {ui->comboGunAOnEffect, ui->comboGunAOnColor},
+        {ui->comboGunBOnEffect, ui->comboGunBOnColor},
+        {ui->comboGunCOnEffect, ui->comboGunCOnColor},
+        {ui->comboStartOnEffect, ui->comboStartOnColor},
+        {ui->comboSelectOnEffect, ui->comboSelectOnColor},
+        {ui->comboPumpOnEffect, ui->comboPumpOnColor},
+        {ui->comboPedalOnEffect, ui->comboPedalOnColor},
+        {ui->comboPedal2OnEffect, ui->comboPedal2OnColor}
+    };
+
+    QVector<QPair<QComboBox*, QComboBox*>> offScreenCombos = {
+        {ui->comboTriggerOffEffect, ui->comboTriggerOffColor},
+        {ui->comboGunAOffEffect, ui->comboGunAOffColor},
+        {ui->comboGunBOffEffect, ui->comboGunBOffColor},
+        {ui->comboGunCOffEffect, ui->comboGunCOffColor},
+        {ui->comboStartOffEffect, ui->comboStartOffColor},
+        {ui->comboSelectOffEffect, ui->comboSelectOffColor},
+        {ui->comboPumpOffEffect, ui->comboPumpOffColor},
+        {ui->comboPedalOffEffect, ui->comboPedalOffColor},
+        {ui->comboPedal2OffEffect, ui->comboPedal2OffColor}
+    };
+
+    // Poblamos todos los combos
+    for (auto &pair : onScreenCombos) {
+        populateEffectComboBox(pair.first);
+        populateColorComboBox(pair.second);
+    }
+    for (auto &pair : offScreenCombos) {
+        populateEffectComboBox(pair.first);
+        populateColorComboBox(pair.second);
+    }
+
     ui->spinHealthStartLed->setProperty("trackable", App_Common::trackSettingsItem);
     ui->spinHealthStartLed->setAccessibleName("Health Bar Start LED");
     ui->spinHealthStartLed->setWhatsThis("Sets the first LED to be used for the health bar sector. This must be equal to or greater than the end of the static LEDs sector.");
@@ -335,6 +397,195 @@ guiWindow::guiWindow(QWidget *parent)
     ui->lineCounterStartupMsg->setAccessibleName("Counter Startup Message");
     ui->lineCounterStartupMsg->setWhatsThis("Sets the two-character message displayed on the 7-segment counter when the device powers on.");
     ui->lineCounterStartupMsg->installEventFilter(this);
+
+    // Trigger effect help
+    ui->comboTriggerOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboTriggerOnEffect->setAccessibleName("Trigger On Screen effect");
+    ui->comboTriggerOnEffect->setWhatsThis("Sets the effect when pressing the Trigger button aiming on screen");
+    ui->comboTriggerOnEffect->installEventFilter(this);
+
+    ui->comboTriggerOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboTriggerOnColor->setAccessibleName("Trigger On Screen effect color");
+    ui->comboTriggerOnColor->setWhatsThis("Sets the color for the effect selected when pressing the Trigger button aiming on screen");
+    ui->comboTriggerOnColor->installEventFilter(this);
+
+    ui->comboTriggerOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboTriggerOffEffect->setAccessibleName("Trigger Off Screen effect");
+    ui->comboTriggerOffEffect->setWhatsThis("Sets the effect when pressing the Trigger button aiming off screen");
+    ui->comboTriggerOffEffect->installEventFilter(this);
+
+    ui->comboTriggerOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboTriggerOffColor->setAccessibleName("Trigger Off Screen effect color");
+    ui->comboTriggerOffColor->setWhatsThis("Sets the color for the effect selected when pressing the Trigger button aiming off screen");
+    ui->comboTriggerOffColor->installEventFilter(this);
+
+    // Gun A effect help
+    ui->comboGunAOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunAOnEffect->setAccessibleName("A Button On Screen effect");
+    ui->comboGunAOnEffect->setWhatsThis("Sets the effect when pressing the A button aiming on screen");
+    ui->comboGunAOnEffect->installEventFilter(this);
+
+    ui->comboGunAOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunAOnColor->setAccessibleName("A Button On Screen effect color");
+    ui->comboGunAOnColor->setWhatsThis("Sets the color for the effect selected when pressing the A button aiming on screen");
+    ui->comboGunAOnColor->installEventFilter(this);
+
+    ui->comboGunAOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunAOffEffect->setAccessibleName("A Button Off Screen effect");
+    ui->comboGunAOffEffect->setWhatsThis("Sets the effect when pressing the A button aiming off screen");
+    ui->comboGunAOffEffect->installEventFilter(this);
+
+    ui->comboGunAOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunAOffColor->setAccessibleName("A Button Off Screen effect color");
+    ui->comboGunAOffColor->setWhatsThis("Sets the color for the effect selected when pressing the A button aiming off screen");
+    ui->comboGunAOffColor->installEventFilter(this);
+
+    // Gun B effect help
+    ui->comboGunBOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunBOnEffect->setAccessibleName("B Button On Screen effect");
+    ui->comboGunBOnEffect->setWhatsThis("Sets the effect when pressing the B button aiming on screen");
+    ui->comboGunBOnEffect->installEventFilter(this);
+
+    ui->comboGunBOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunBOnColor->setAccessibleName("B Button On Screen effect color");
+    ui->comboGunBOnColor->setWhatsThis("Sets the color for the effect selected when pressing the B button aiming on screen");
+    ui->comboGunBOnColor->installEventFilter(this);
+
+    ui->comboGunBOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunBOffEffect->setAccessibleName("B Button Off Screen effect");
+    ui->comboGunBOffEffect->setWhatsThis("Sets the effect when pressing the B button aiming off screen");
+    ui->comboGunBOffEffect->installEventFilter(this);
+
+    ui->comboGunBOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunBOffColor->setAccessibleName("B Button Off Screen effect color");
+    ui->comboGunBOffColor->setWhatsThis("Sets the color for the effect selected when pressing the B button aiming off screen");
+    ui->comboGunBOffColor->installEventFilter(this);
+
+    // Gun C effect help
+    ui->comboGunCOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunCOnEffect->setAccessibleName("C Button On Screen effect");
+    ui->comboGunCOnEffect->setWhatsThis("Sets the effect when pressing the C button aiming on screen");
+    ui->comboGunCOnEffect->installEventFilter(this);
+
+    ui->comboGunCOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunCOnColor->setAccessibleName("C Button On Screen effect color");
+    ui->comboGunCOnColor->setWhatsThis("Sets the color for the effect selected when pressing the C button aiming on screen");
+    ui->comboGunCOnColor->installEventFilter(this);
+
+    ui->comboGunCOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunCOffEffect->setAccessibleName("C Button Off Screen effect");
+    ui->comboGunCOffEffect->setWhatsThis("Sets the effect when pressing the C button aiming off screen");
+    ui->comboGunCOffEffect->installEventFilter(this);
+
+    ui->comboGunCOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboGunCOffColor->setAccessibleName("C Button Off Screen effect color");
+    ui->comboGunCOffColor->setWhatsThis("Sets the color for the effect selected when pressing the C button aiming off screen");
+    ui->comboGunCOffColor->installEventFilter(this);
+
+    // Pedal effect help
+    ui->comboPedalOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedalOnEffect->setAccessibleName("Pedal Button On Screen effect");
+    ui->comboPedalOnEffect->setWhatsThis("Sets the effect when pressing the Pedal button aiming on screen");
+    ui->comboPedalOnEffect->installEventFilter(this);
+
+    ui->comboPedalOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedalOnColor->setAccessibleName("Pedal Button On Screen effect color");
+    ui->comboPedalOnColor->setWhatsThis("Sets the color for the effect selected when pressing the Pedal button aiming on screen");
+    ui->comboPedalOnColor->installEventFilter(this);
+
+    ui->comboPedalOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedalOffEffect->setAccessibleName("Pedal Button Off Screen effect");
+    ui->comboPedalOffEffect->setWhatsThis("Sets the effect when pressing the Pedal button aiming off screen");
+    ui->comboPedalOffEffect->installEventFilter(this);
+
+    ui->comboPedalOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedalOffColor->setAccessibleName("Pedal Button Off Screen effect color");
+    ui->comboPedalOffColor->setWhatsThis("Sets the color for the effect selected when pressing the Pedal button aiming off screen");
+    ui->comboPedalOffColor->installEventFilter(this);
+
+    // Pedal 2 effect help
+    ui->comboPedal2OnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedal2OnEffect->setAccessibleName("Alt Pedal Button On Screen effect");
+    ui->comboPedal2OnEffect->setWhatsThis("Sets the effect when pressing the Alt Pedal button aiming on screen");
+    ui->comboPedal2OnEffect->installEventFilter(this);
+
+    ui->comboPedal2OnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedal2OnColor->setAccessibleName("Alt Pedal Button On Screen effect color");
+    ui->comboPedal2OnColor->setWhatsThis("Sets the color for the effect selected when pressing the Alt Pedal button aiming on screen");
+    ui->comboPedal2OnColor->installEventFilter(this);
+
+    ui->comboPedal2OffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedal2OffEffect->setAccessibleName("Alt Pedal Button Off Screen effect");
+    ui->comboPedal2OffEffect->setWhatsThis("Sets the effect when pressing the Alt Pedal button aiming off screen");
+    ui->comboPedal2OffEffect->installEventFilter(this);
+
+    ui->comboPedal2OffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPedal2OffColor->setAccessibleName("Alt Pedal Button Off Screen effect color");
+    ui->comboPedal2OffColor->setWhatsThis("Sets the color for the effect selected when pressing the Alt Pedal button aiming off screen");
+    ui->comboPedal2OffColor->installEventFilter(this);
+
+    // Pump effect help
+    ui->comboPumpOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPumpOnEffect->setAccessibleName("Pump Action Button On Screen effect");
+    ui->comboPumpOnEffect->setWhatsThis("Sets the effect when pressing the Pump Action button aiming on screen");
+    ui->comboPumpOnEffect->installEventFilter(this);
+
+    ui->comboPumpOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPumpOnColor->setAccessibleName("Pump Action Button On Screen effect color");
+    ui->comboPumpOnColor->setWhatsThis("Sets the color for the effect selected when pressing the Pump Action button aiming on screen");
+    ui->comboPumpOnColor->installEventFilter(this);
+
+    ui->comboPumpOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPumpOffEffect->setAccessibleName("Pump Action Button Off Screen effect");
+    ui->comboPumpOffEffect->setWhatsThis("Sets the effect when pressing the Pump Action button aiming off screen");
+    ui->comboPumpOffEffect->installEventFilter(this);
+
+    ui->comboPumpOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboPumpOffColor->setAccessibleName("Pump Action Button Off Screen effect color");
+    ui->comboPumpOffColor->setWhatsThis("Sets the color for the effect selected when pressing the Pump Action button aiming off screen");
+    ui->comboPumpOffColor->installEventFilter(this);
+
+    // Start effect help
+    ui->comboStartOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboStartOnEffect->setAccessibleName("Start Button On Screen effect");
+    ui->comboStartOnEffect->setWhatsThis("Sets the effect when pressing the Start button aiming on screen");
+    ui->comboStartOnEffect->installEventFilter(this);
+
+    ui->comboStartOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboStartOnColor->setAccessibleName("Start Button On Screen effect color");
+    ui->comboStartOnColor->setWhatsThis("Sets the color for the effect selected when pressing the Start button aiming on screen");
+    ui->comboStartOnColor->installEventFilter(this);
+
+    ui->comboStartOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboStartOffEffect->setAccessibleName("Start Button Off Screen effect");
+    ui->comboStartOffEffect->setWhatsThis("Sets the effect when pressing the Start button aiming off screen");
+    ui->comboStartOffEffect->installEventFilter(this);
+
+    ui->comboStartOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboStartOffColor->setAccessibleName("Start Button Off Screen effect color");
+    ui->comboStartOffColor->setWhatsThis("Sets the color for the effect selected when pressing the Start button aiming off screen");
+    ui->comboStartOffColor->installEventFilter(this);
+
+    // Select effect help
+    ui->comboSelectOnEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboSelectOnEffect->setAccessibleName("Select Button On Screen effect");
+    ui->comboSelectOnEffect->setWhatsThis("Sets the effect when pressing the Select button aiming on screen");
+    ui->comboSelectOnEffect->installEventFilter(this);
+
+    ui->comboSelectOnColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboSelectOnColor->setAccessibleName("Select Button On Screen effect color");
+    ui->comboSelectOnColor->setWhatsThis("Sets the color for the effect selected when pressing the Select button aiming on screen");
+    ui->comboSelectOnColor->installEventFilter(this);
+
+    ui->comboSelectOffEffect->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboSelectOffEffect->setAccessibleName("Select Button Off Screen effect");
+    ui->comboSelectOffEffect->setWhatsThis("Sets the effect when pressing the Select button aiming off screen");
+    ui->comboSelectOffEffect->installEventFilter(this);
+
+    ui->comboSelectOffColor->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->comboSelectOffColor->setAccessibleName("Select Button Off Screen effect color");
+    ui->comboSelectOffColor->setWhatsThis("Sets the color for the effect selected when pressing the Select button aiming off screen");
+    ui->comboSelectOffColor->installEventFilter(this);
 }
 
 guiWindow::~guiWindow()
@@ -1069,6 +1320,134 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->spinAmmoLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::ammoBarLedCount]);
             ui->spinEffectsStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsStartLed]);
             ui->spinEffectsLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsLedCount]);
+
+            // ==== Trigger ====
+            ui->comboTriggerOnEffect->setCurrentIndex(
+                ui->comboTriggerOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnTriggerOnEffect])
+                );
+            ui->comboTriggerOnColor->setCurrentIndex(
+                ui->comboTriggerOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnTriggerOnColor])
+                );
+            ui->comboTriggerOffEffect->setCurrentIndex(
+                ui->comboTriggerOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnTriggerOffEffect])
+                );
+            ui->comboTriggerOffColor->setCurrentIndex(
+                ui->comboTriggerOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnTriggerOffColor])
+                );
+
+            // ==== Button A ====
+            ui->comboGunAOnEffect->setCurrentIndex(
+                ui->comboGunAOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunAOnEffect])
+                );
+            ui->comboGunAOnColor->setCurrentIndex(
+                ui->comboGunAOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunAOnColor])
+                );
+            ui->comboGunAOffEffect->setCurrentIndex(
+                ui->comboGunAOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunAOffEffect])
+                );
+            ui->comboGunAOffColor->setCurrentIndex(
+                ui->comboGunAOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunAOffColor])
+                );
+
+            // ==== Button B ====
+            ui->comboGunBOnEffect->setCurrentIndex(
+                ui->comboGunBOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunBOnEffect])
+                );
+            ui->comboGunBOnColor->setCurrentIndex(
+                ui->comboGunBOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunBOnColor])
+                );
+            ui->comboGunBOffEffect->setCurrentIndex(
+                ui->comboGunBOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunBOffEffect])
+                );
+            ui->comboGunBOffColor->setCurrentIndex(
+                ui->comboGunBOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunBOffColor])
+                );
+
+            // ==== Button C ====
+            ui->comboGunCOnEffect->setCurrentIndex(
+                ui->comboGunCOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunCOnEffect])
+                );
+            ui->comboGunCOnColor->setCurrentIndex(
+                ui->comboGunCOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunCOnColor])
+                );
+            ui->comboGunCOffEffect->setCurrentIndex(
+                ui->comboGunCOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunCOffEffect])
+                );
+            ui->comboGunCOffColor->setCurrentIndex(
+                ui->comboGunCOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnGunCOffColor])
+                );
+
+            // ==== Start ====
+            ui->comboStartOnEffect->setCurrentIndex(
+                ui->comboStartOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnStartOnEffect])
+                );
+            ui->comboStartOnColor->setCurrentIndex(
+                ui->comboStartOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnStartOnColor])
+                );
+            ui->comboStartOffEffect->setCurrentIndex(
+                ui->comboStartOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnStartOffEffect])
+                );
+            ui->comboStartOffColor->setCurrentIndex(
+                ui->comboStartOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnStartOffColor])
+                );
+
+            // ==== Select ====
+            ui->comboSelectOnEffect->setCurrentIndex(
+                ui->comboSelectOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnSelectOnEffect])
+                );
+            ui->comboSelectOnColor->setCurrentIndex(
+                ui->comboSelectOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnSelectOnColor])
+                );
+            ui->comboSelectOffEffect->setCurrentIndex(
+                ui->comboSelectOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnSelectOffEffect])
+                );
+            ui->comboSelectOffColor->setCurrentIndex(
+                ui->comboSelectOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnSelectOffColor])
+                );
+
+            // ==== Pump Action ====
+            ui->comboPumpOnEffect->setCurrentIndex(
+                ui->comboPumpOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPumpOnEffect])
+                );
+            ui->comboPumpOnColor->setCurrentIndex(
+                ui->comboPumpOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPumpOnColor])
+                );
+            ui->comboPumpOffEffect->setCurrentIndex(
+                ui->comboPumpOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPumpOffEffect])
+                );
+            ui->comboPumpOffColor->setCurrentIndex(
+                ui->comboPumpOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPumpOffColor])
+                );
+
+            // ==== Pedal ====
+            ui->comboPedalOnEffect->setCurrentIndex(
+                ui->comboPedalOnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedalOnEffect])
+                );
+            ui->comboPedalOnColor->setCurrentIndex(
+                ui->comboPedalOnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedalOnColor])
+                );
+            ui->comboPedalOffEffect->setCurrentIndex(
+                ui->comboPedalOffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedalOffEffect])
+                );
+            ui->comboPedalOffColor->setCurrentIndex(
+                ui->comboPedalOffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedalOffColor])
+                );
+
+            // ==== Alt Pedal ====
+            ui->comboPedal2OnEffect->setCurrentIndex(
+                ui->comboPedal2OnEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedal2OnEffect])
+                );
+            ui->comboPedal2OnColor->setCurrentIndex(
+                ui->comboPedal2OnColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedal2OnColor])
+                );
+            ui->comboPedal2OffEffect->setCurrentIndex(
+                ui->comboPedal2OffEffect->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedal2OffEffect])
+                );
+            ui->comboPedal2OffColor->setCurrentIndex(
+                ui->comboPedal2OffColor->findData(App_Common::settingsTable[App_Common::dataOrig][OF_Const::btnPedal2OffColor])
+                );
+
+
 
             // Llama a la validación una vez cargados los datos
             validateLedSectors();
@@ -2684,3 +3063,190 @@ void guiWindow::on_lineCounterStartupMsg_textChanged(const QString &text) {
     App_Common::settingsTable[App_Common::dataCurrent][OF_Const::counterStartupMessage] = packedMsg;
     DiffUpdate();
 }
+
+// Trigger
+void guiWindow::on_comboTriggerOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnTriggerOnEffect] = ui->comboTriggerOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboTriggerOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnTriggerOnColor]= ui->comboTriggerOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboTriggerOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnTriggerOffEffect] = ui->comboTriggerOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboTriggerOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnTriggerOffColor]= ui->comboTriggerOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Pump
+void guiWindow::on_comboPumpOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPumpOnEffect] = ui->comboPumpOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPumpOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPumpOnColor] = ui->comboPumpOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPumpOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPumpOffEffect] = ui->comboPumpOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPumpOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPumpOffColor] = ui->comboPumpOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Pedal
+void guiWindow::on_comboPedalOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedalOnEffect] = ui->comboPedalOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedalOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedalOnColor] = ui->comboPedalOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedalOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedalOffEffect] = ui->comboPedalOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedalOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedalOffColor] = ui->comboPedalOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Pedal2
+void guiWindow::on_comboPedal2OnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedal2OnEffect] = ui->comboPedalOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedal2OnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedal2OnColor] = ui->comboPedalOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedal2OffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedal2OffEffect] = ui->comboPedalOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboPedal2OffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnPedal2OffColor] = ui->comboPedalOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Gun A
+void guiWindow::on_comboGunAOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunAOnEffect] = ui->comboGunAOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunAOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunAOnColor] = ui->comboGunAOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunAOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunAOffEffect] = ui->comboGunAOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunAOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunAOffColor] = ui->comboGunAOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Gun B
+void guiWindow::on_comboGunBOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunBOnEffect] = ui->comboGunBOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunBOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunBOnColor] = ui->comboGunBOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunBOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunBOffEffect] = ui->comboGunBOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunBOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunBOffColor] = ui->comboGunBOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Gun C
+void guiWindow::on_comboGunCOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunCOnEffect] = ui->comboGunCOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunCOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunCOnColor] = ui->comboGunCOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunCOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunCOffEffect] = ui->comboGunCOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboGunCOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnGunCOffColor] = ui->comboGunCOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Start
+void guiWindow::on_comboStartOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnStartOnEffect] = ui->comboStartOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboStartOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnStartOnColor] = ui->comboStartOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboStartOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnStartOffEffect] = ui->comboStartOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboStartOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnStartOffColor] = ui->comboStartOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+// Select
+void guiWindow::on_comboSelectOnEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnSelectOnEffect] = ui->comboSelectOnEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboSelectOnColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnSelectOnColor] = ui->comboSelectOnColor->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboSelectOffEffect_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnSelectOffEffect] = ui->comboSelectOffEffect->itemData(index).toInt();
+    DiffUpdate();
+}
+void guiWindow::on_comboSelectOffColor_currentIndexChanged(int index) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::btnSelectOffColor] = ui->comboSelectOffColor->itemData(index).toInt();
+    DiffUpdate();
+}
+
+void guiWindow::populateEffectComboBox(QComboBox* box) {
+    if (!box) return;
+    box->addItem("None", 0);
+    box->addItem("Fire", 1);
+    box->addItem("Ice", 2);
+    box->addItem("Plasma", 3);
+    box->addItem("Beam", 4);
+    box->addItem("Knight Rider", 5);
+};
+
+// Colores
+void guiWindow::populateColorComboBox(QComboBox* box) {
+    if (!box) return;
+    box->addItem("Red", 'R');
+    box->addItem("Green", 'G');
+    box->addItem("Blue", 'B');
+    box->addItem("Orange", 'O');
+    box->addItem("Purple", 'P');
+    box->addItem("Yellow", 'Y');
+    box->addItem("Cyan", 'C');
+    box->addItem("Magenta", 'M');
+    box->addItem("White", 'W');
+    box->addItem("Lime", 'L');
+};

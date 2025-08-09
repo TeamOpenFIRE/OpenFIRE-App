@@ -617,9 +617,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-709</y>
-             <width>939</width>
-             <height>1300</height>
+             <y>-566</y>
+             <width>950</width>
+             <height>1601</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,0,1,0">
@@ -1086,6 +1086,130 @@
                   <string>NeoPixels</string>
                  </property>
                  <layout class="QGridLayout" name="gridLayout_9">
+                  <item row="6" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="EffectsLabel">
+                    <property name="text">
+                     <string>NeoPixel Effects:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="6">
+                   <widget class="QSpinBox" name="spinAmmoLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1" rowspan="2">
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="5" column="7">
+                   <widget class="QPushButton" name="btnAmmoFullColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Full Ammo</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="3">
+                   <widget class="QSpinBox" name="spinHealthStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="6">
+                   <widget class="QSpinBox" name="spinEffectsLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="3">
+                   <widget class="QSpinBox" name="spinEffectsStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="7">
+                   <widget class="QPushButton" name="btnLifeFullColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Full Life</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="6">
+                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
+                    <property name="toolTip">
+                     <string/>
+                    </property>
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>NeoPixel Strand Length</string>
+                    </property>
+                    <property name="buttonSymbols">
+                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                    </property>
+                    <property name="correctionMode">
+                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                    </property>
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="1" column="6">
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
@@ -1158,165 +1282,15 @@
                     </item>
                    </layout>
                   </item>
-                  <item row="0" column="2" colspan="2">
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>NeoPixel Strand Length: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="2">
-                   <widget class="QLabel" name="AmmoBarLabel">
-                    <property name="text">
-                     <string>NeoPixel Ammo Bar:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="8">
-                   <widget class="QPushButton" name="btnLifeEmptyColor">
+                  <item row="5" column="8">
+                   <widget class="QPushButton" name="btnAmmoEmptyColor">
                     <property name="font">
                      <font>
                       <bold>true</bold>
                      </font>
                     </property>
                     <property name="text">
-                     <string>Color Empty Life</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="7">
-                   <widget class="QPushButton" name="btnLifeFullColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Color Full Life</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1" rowspan="2">
-                   <spacer name="horizontalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="6" column="6">
-                   <widget class="QSpinBox" name="spinEffectsLedCount">
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string>Total </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="3">
-                   <widget class="QSpinBox" name="spinHealthStartLed">
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="6">
-                   <widget class="QSpinBox" name="spinHealthLedCount">
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string>Total </string>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="6">
-                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
-                    <property name="toolTip">
-                     <string/>
-                    </property>
-                    <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="accessibleName">
-                     <string>NeoPixel Strand Length</string>
-                    </property>
-                    <property name="buttonSymbols">
-                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                    </property>
-                    <property name="correctionMode">
-                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                    </property>
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string/>
-                    </property>
-                    <property name="minimum">
-                     <number>1</number>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                    <property name="trackable" stdset="0">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="8" rowspan="2">
-                   <spacer name="horizontalSpacer_4">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="5" column="3">
-                   <widget class="QSpinBox" name="spinAmmoStartLed">
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                    <property name="maximum">
-                     <number>142</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="7">
-                   <widget class="QPushButton" name="btnAmmoFullColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Color Full Ammo</string>
+                     <string>Color Empty Ammo</string>
                     </property>
                    </widget>
                   </item>
@@ -1336,6 +1310,18 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="4" column="8">
+                   <widget class="QPushButton" name="btnLifeEmptyColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Empty Life</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="7" column="6">
                    <widget class="QLabel" name="pixelChangeNotice">
                     <property name="enabled">
@@ -1351,65 +1337,6 @@
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="6">
-                   <widget class="QSpinBox" name="spinAmmoLedCount">
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string>Total </string>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="8">
-                   <widget class="QPushButton" name="btnAmmoEmptyColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Color Empty Ammo</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="2" alignment="Qt::AlignmentFlag::AlignRight">
-                   <widget class="QLabel" name="EffectsLabel">
-                    <property name="text">
-                     <string>NeoPixel Effects:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="2" alignment="Qt::AlignmentFlag::AlignRight">
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Static NeoPixels: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="3">
-                   <widget class="QSpinBox" name="spinEffectsStartLed">
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="2" alignment="Qt::AlignmentFlag::AlignRight">
-                   <widget class="QLabel" name="LifeBarLabel">
-                    <property name="text">
-                     <string>NeoPixel Life Bar:</string>
                     </property>
                    </widget>
                   </item>
@@ -1438,6 +1365,79 @@
                     </property>
                    </widget>
                   </item>
+                  <item row="5" column="3">
+                   <widget class="QSpinBox" name="spinAmmoStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>142</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2" colspan="2">
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>NeoPixel Strand Length: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="2">
+                   <widget class="QLabel" name="AmmoBarLabel">
+                    <property name="text">
+                     <string>NeoPixel Ammo Bar:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="8" rowspan="2">
+                   <spacer name="horizontalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="4" column="6">
+                   <widget class="QSpinBox" name="spinHealthLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Static NeoPixels: </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="LifeBarLabel">
+                    <property name="text">
+                     <string>NeoPixel Life Bar:</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="8" column="6">
                    <widget class="QLabel" name="lblLedError">
                     <property name="font">
@@ -1455,6 +1455,266 @@
                     <property name="text">
                      <string/>
                     </property>
+                   </widget>
+                  </item>
+                  <item row="9" column="1" colspan="8">
+                   <widget class="QGroupBox" name="effectButtonsGroups">
+                    <property name="title">
+                     <string>Assign effects to buttons</string>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_15">
+                     <item row="7" column="0">
+                      <widget class="QLabel" name="Pedal2EffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Alt Pedal</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="4" column="0">
+                      <widget class="QLabel" name="GunCEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Button C</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="GunAEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Button A</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="5" column="0">
+                      <widget class="QLabel" name="PumpEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Pump Action</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QComboBox" name="comboTriggerOnColor"/>
+                     </item>
+                     <item row="8" column="0">
+                      <widget class="QLabel" name="StartEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Start</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QComboBox" name="comboTriggerOnEffect"/>
+                     </item>
+                     <item row="1" column="4">
+                      <widget class="QComboBox" name="comboTriggerOffColor"/>
+                     </item>
+                     <item row="9" column="0">
+                      <widget class="QLabel" name="SelectEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Select</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="6" column="0">
+                      <widget class="QLabel" name="PedalEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Pedal</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="3">
+                      <widget class="QComboBox" name="comboTriggerOffEffect"/>
+                     </item>
+                     <item row="3" column="0">
+                      <widget class="QLabel" name="GunBEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Button B</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_29">
+                       <property name="text">
+                        <string>Button</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLabel" name="label_30">
+                       <property name="text">
+                        <string>On-Screen Effect</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <widget class="QLabel" name="label_31">
+                       <property name="text">
+                        <string>Effect Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="3">
+                      <widget class="QLabel" name="label_32">
+                       <property name="text">
+                        <string>Off-Screen Effect</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="4">
+                      <widget class="QLabel" name="label_33">
+                       <property name="text">
+                        <string>Effect Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QComboBox" name="comboGunAOnEffect"/>
+                     </item>
+                     <item row="2" column="2">
+                      <widget class="QComboBox" name="comboGunAOnColor"/>
+                     </item>
+                     <item row="2" column="3">
+                      <widget class="QComboBox" name="comboGunAOffEffect"/>
+                     </item>
+                     <item row="2" column="4">
+                      <widget class="QComboBox" name="comboGunAOffColor"/>
+                     </item>
+                     <item row="3" column="1">
+                      <widget class="QComboBox" name="comboGunBOnEffect"/>
+                     </item>
+                     <item row="4" column="1">
+                      <widget class="QComboBox" name="comboGunCOnEffect"/>
+                     </item>
+                     <item row="5" column="1">
+                      <widget class="QComboBox" name="comboPumpOnEffect"/>
+                     </item>
+                     <item row="6" column="1">
+                      <widget class="QComboBox" name="comboPedalOnEffect"/>
+                     </item>
+                     <item row="7" column="1">
+                      <widget class="QComboBox" name="comboPedal2OnEffect"/>
+                     </item>
+                     <item row="8" column="1">
+                      <widget class="QComboBox" name="comboStartOnEffect"/>
+                     </item>
+                     <item row="9" column="1">
+                      <widget class="QComboBox" name="comboSelectOnEffect"/>
+                     </item>
+                     <item row="3" column="2">
+                      <widget class="QComboBox" name="comboGunBOnColor"/>
+                     </item>
+                     <item row="3" column="3">
+                      <widget class="QComboBox" name="comboGunBOffEffect"/>
+                     </item>
+                     <item row="3" column="4">
+                      <widget class="QComboBox" name="comboGunBOffColor"/>
+                     </item>
+                     <item row="4" column="2">
+                      <widget class="QComboBox" name="comboGunCOnColor"/>
+                     </item>
+                     <item row="4" column="3">
+                      <widget class="QComboBox" name="comboGunCOffEffect"/>
+                     </item>
+                     <item row="5" column="2">
+                      <widget class="QComboBox" name="comboPumpOnColor"/>
+                     </item>
+                     <item row="6" column="2">
+                      <widget class="QComboBox" name="comboPedalOnColor"/>
+                     </item>
+                     <item row="7" column="2">
+                      <widget class="QComboBox" name="comboPedal2OnColor"/>
+                     </item>
+                     <item row="8" column="2">
+                      <widget class="QComboBox" name="comboStartOnColor"/>
+                     </item>
+                     <item row="9" column="2">
+                      <widget class="QComboBox" name="comboSelectOnColor"/>
+                     </item>
+                     <item row="5" column="3">
+                      <widget class="QComboBox" name="comboPumpOffEffect"/>
+                     </item>
+                     <item row="4" column="4">
+                      <widget class="QComboBox" name="comboGunCOffColor"/>
+                     </item>
+                     <item row="5" column="4">
+                      <widget class="QComboBox" name="comboPumpOffColor"/>
+                     </item>
+                     <item row="6" column="3">
+                      <widget class="QComboBox" name="comboPedalOffEffect"/>
+                     </item>
+                     <item row="7" column="3">
+                      <widget class="QComboBox" name="comboPedal2OffEffect"/>
+                     </item>
+                     <item row="8" column="3">
+                      <widget class="QComboBox" name="comboStartOffEffect"/>
+                     </item>
+                     <item row="6" column="4">
+                      <widget class="QComboBox" name="comboPedalOffColor"/>
+                     </item>
+                     <item row="7" column="4">
+                      <widget class="QComboBox" name="comboPedal2OffColor"/>
+                     </item>
+                     <item row="8" column="4">
+                      <widget class="QComboBox" name="comboStartOffColor"/>
+                     </item>
+                     <item row="9" column="3">
+                      <widget class="QComboBox" name="comboSelectOffEffect"/>
+                     </item>
+                     <item row="9" column="4">
+                      <widget class="QComboBox" name="comboSelectOffColor"/>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="TriggerEffectLabel">
+                       <property name="font">
+                        <font>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Trigger</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                  </layout>

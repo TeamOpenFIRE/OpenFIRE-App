@@ -22,6 +22,8 @@
 #include "../boards/OpenFIREshared.h"
 #include <QMessageBox>
 #include <qtconcurrentrun.h>
+#include <QDebug>
+
 
 bool AppSerial::SearchPorts()
 {
@@ -107,7 +109,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                     memcpy(&App_Common::tinyUSBtable, buffer.takeFirst().constData(), sizeof(App_Common::tinyUSBtable_s));
                     memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
-                    
+
                     if(buffer.size()) if(buffer.takeFirst().at(0) == (char)OF_Const::sError)
                         ShowError("Device Error: Camera not available!",
                                   "<p>Data received from the board indicates that the camera is in a bad state.<br>"

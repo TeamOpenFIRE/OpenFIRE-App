@@ -236,6 +236,56 @@ private slots:
 
     void on_actionAbout_UI_triggered();
 
+    // button effects
+
+    void on_comboTriggerOnEffect_currentIndexChanged(int index);
+    void on_comboTriggerOnColor_currentIndexChanged(int index);
+    void on_comboTriggerOffEffect_currentIndexChanged(int index);
+    void on_comboTriggerOffColor_currentIndexChanged(int index);
+
+    void on_comboPumpOnEffect_currentIndexChanged(int index);
+    void on_comboPumpOnColor_currentIndexChanged(int index);
+    void on_comboPumpOffEffect_currentIndexChanged(int index);
+    void on_comboPumpOffColor_currentIndexChanged(int index);
+
+    void on_comboPedalOnEffect_currentIndexChanged(int index);
+    void on_comboPedalOnColor_currentIndexChanged(int index);
+    void on_comboPedalOffEffect_currentIndexChanged(int index);
+    void on_comboPedalOffColor_currentIndexChanged(int index);
+
+    void on_comboPedal2OnEffect_currentIndexChanged(int index);
+    void on_comboPedal2OnColor_currentIndexChanged(int index);
+    void on_comboPedal2OffEffect_currentIndexChanged(int index);
+    void on_comboPedal2OffColor_currentIndexChanged(int index);
+
+    void on_comboGunAOnEffect_currentIndexChanged(int index);
+    void on_comboGunAOnColor_currentIndexChanged(int index);
+    void on_comboGunAOffEffect_currentIndexChanged(int index);
+    void on_comboGunAOffColor_currentIndexChanged(int index);
+
+    void on_comboGunBOnEffect_currentIndexChanged(int index);
+    void on_comboGunBOnColor_currentIndexChanged(int index);
+    void on_comboGunBOffEffect_currentIndexChanged(int index);
+    void on_comboGunBOffColor_currentIndexChanged(int index);
+
+    void on_comboGunCOnEffect_currentIndexChanged(int index);
+    void on_comboGunCOnColor_currentIndexChanged(int index);
+    void on_comboGunCOffEffect_currentIndexChanged(int index);
+    void on_comboGunCOffColor_currentIndexChanged(int index);
+
+    void on_comboStartOnEffect_currentIndexChanged(int index);
+    void on_comboStartOnColor_currentIndexChanged(int index);
+    void on_comboStartOffEffect_currentIndexChanged(int index);
+    void on_comboStartOffColor_currentIndexChanged(int index);
+
+    void on_comboSelectOnEffect_currentIndexChanged(int index);
+    void on_comboSelectOnColor_currentIndexChanged(int index);
+    void on_comboSelectOffEffect_currentIndexChanged(int index);
+    void on_comboSelectOffColor_currentIndexChanged(int index);
+
+    void populateEffectComboBox(QComboBox* box);
+    void populateColorComboBox(QComboBox* box);
+
 private:
     Ui::guiWindow *ui;
 
