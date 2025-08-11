@@ -266,6 +266,8 @@ guiWindow::guiWindow(QWidget *parent)
     connect(ui->spinAmmoLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
     connect(ui->spinEffectsStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
     connect(ui->spinEffectsLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinStatusStartLed, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
+    connect(ui->spinStatusLedCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &guiWindow::validateLedSectors);
 
     // Efectos
     auto populateEffectComboBox = [](QComboBox* box) {
@@ -359,6 +361,16 @@ guiWindow::guiWindow(QWidget *parent)
     ui->spinEffectsLedCount->setAccessibleName("Effects Sector LED Count");
     ui->spinEffectsLedCount->setWhatsThis("Sets the total number of LEDs to be used for the effects sector.");
     ui->spinEffectsLedCount->installEventFilter(this); // Activa la vigilancia de eventos
+
+    ui->spinStatusStartLed->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinStatusStartLed->setAccessibleName("Status Sector Start LED");
+    ui->spinStatusStartLed->setWhatsThis("Sets the first LED to be used for the status indicator sector. This sector displays general state colors (pause menu, docked, etc.).");
+    ui->spinStatusStartLed->installEventFilter(this);
+
+    ui->spinStatusLedCount->setProperty("trackable", App_Common::trackSettingsItem);
+    ui->spinStatusLedCount->setAccessibleName("Status Sector LED Count");
+    ui->spinStatusLedCount->setWhatsThis("Sets the total number of LEDs to be used for the status indicator sector.");
+    ui->spinStatusLedCount->installEventFilter(this);
 
     // Colores de la Barra de Vida
     ui->btnLifeFullColor->setProperty("trackable", App_Common::trackSettingsItem);
@@ -1320,6 +1332,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->spinAmmoLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::ammoBarLedCount]);
             ui->spinEffectsStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsStartLed]);
             ui->spinEffectsLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::effectsLedCount]);
+            ui->spinStatusStartLed->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::statusStartLed]);
+            ui->spinStatusLedCount->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::statusLedCount]);
 
             // ==== Trigger ====
             ui->comboTriggerOnEffect->setCurrentIndex(
@@ -2968,52 +2982,66 @@ void guiWindow::validateLedSectors()
     int ammoCount = ui->spinAmmoLedCount->value();
     int effectsStart = ui->spinEffectsStartLed->value();
     int effectsCount = ui->spinEffectsLedCount->value();
+    int statusStart = ui->spinStatusStartLed->value(); // --> AÑADIDO
+    int statusCount = ui->spinStatusLedCount->value(); // --> AÑADIDO
 
     bool isValid = true;
     QString errorMessage = "";
 
-    // --- LÓGICA DE VALIDACIÓN ROBUSTA ---
-    QList<QPair<QString, QRect>> sectors;
-
-    // Añadir los sectores activos a una lista para compararlos
-    // Un QRect se usa para representar el sector: x() es el inicio, width() es la longitud
-    if (staticLeds > 0) {
-        sectors.append({"Static LEDs", QRect(0, 0, staticLeds, 1)});
-    }
-    if (healthCount > 0) {
-        sectors.append({"Health Bar", QRect(healthStart, 0, healthCount, 1)});
-    }
-    if (ammoCount > 0) {
-        sectors.append({"Ammo Bar", QRect(ammoStart, 0, ammoCount, 1)});
-    }
-    if (effectsCount > 0) {
-        sectors.append({"Effects Sector", QRect(effectsStart, 0, effectsCount, 1)});
+    // 1. Validar que los sectores dinámicos NO empiecen dentro del bloque estático.
+    if (healthCount > 0 && healthStart < staticLeds) {
+        isValid = false;
+        errorMessage = "Error: La barra de vida empieza antes de que termine el sector estático.";
+    } else if (ammoCount > 0 && ammoStart < staticLeds) {
+        isValid = false;
+        errorMessage = "Error: La barra de munición empieza antes de que termine el sector estático.";
+    } else if (effectsCount > 0 && effectsStart < staticLeds) {
+        isValid = false;
+        errorMessage = "Error: El sector de efectos empieza antes de que termine el sector estático.";
+    } else if (statusCount > 0 && statusStart < staticLeds) { // --> AÑADIDO
+        isValid = false;
+        errorMessage = "Error: El sector de estado empieza antes de que termine el sector estático.";
     }
 
-    // Comprobar cada sector contra todos los demás
-    for (int i = 0; i < sectors.size(); ++i) {
-        // Comprobar que el sector no excede el total de LEDs
-        // .right() es x + width - 1, por lo que el final del sector es .right() + 1
-        if (sectors[i].second.x() + sectors[i].second.width() > totalLeds) {
-            isValid = false;
-            errorMessage = QString("Error: The %1 exceeds the total number of LEDs.").arg(sectors[i].first);
-            break;
+    // Si la validación inicial ya ha fallado, no continuamos.
+    if(isValid) {
+        QList<QPair<QString, QRect>> sectors;
+
+        if (healthCount > 0) {
+            sectors.append({"Health Bar", QRect(healthStart, 0, healthCount, 1)});
+        }
+        if (ammoCount > 0) {
+            sectors.append({"Ammo Bar", QRect(ammoStart, 0, ammoCount, 1)});
+        }
+        if (effectsCount > 0) {
+            sectors.append({"Effects Sector", QRect(effectsStart, 0, effectsCount, 1)});
+        }
+        if (statusCount > 0) { // --> AÑADIDO
+            sectors.append({"Status Sector", QRect(statusStart, 0, statusCount, 1)});
         }
 
-        // Comprobar solapamiento con los otros sectores
-        for (int j = i + 1; j < sectors.size(); ++j) {
-            if (sectors[i].second.intersects(sectors[j].second)) {
+        // 2. Comprobar cada sector contra todos los demás para solapamientos y límites.
+        for (int i = 0; i < sectors.size(); ++i) {
+            if (sectors[i].second.x() + sectors[i].second.width() > totalLeds) {
                 isValid = false;
-                errorMessage = QString("Error: The %1 overlaps with the %2.").arg(sectors[i].first).arg(sectors[j].first);
+                errorMessage = QString("Error: El sector '%1' excede el total de LEDs.").arg(sectors[i].first);
                 break;
             }
+
+            for (int j = i + 1; j < sectors.size(); ++j) {
+                if (sectors[i].second.intersects(sectors[j].second)) {
+                    isValid = false;
+                    errorMessage = QString("Error: El sector '%1' se solapa con el sector '%2'.").arg(sectors[i].first).arg(sectors[j].first);
+                    break;
+                }
+            }
+            if (!isValid) break;
         }
-        if (!isValid) break;
     }
 
-    // --- ACTUALIZAR LA GUI ---
-    ui->confirmButton->setEnabled(isValid); // Habilita o deshabilita el botón de guardar
-    ui->lblLedError->setText(errorMessage); // Muestra el mensaje de error si lo hay
+    // Actualizar la GUI
+    ui->confirmButton->setEnabled(isValid);
+    ui->lblLedError->setText(errorMessage);
 }
 
 
@@ -3045,6 +3073,16 @@ void guiWindow::on_spinEffectsStartLed_valueChanged(int value) {
 
 void guiWindow::on_spinEffectsLedCount_valueChanged(int value) {
     App_Common::settingsTable[App_Common::dataCurrent][OF_Const::effectsLedCount] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinStatusStartLed_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::statusStartLed] = value;
+    DiffUpdate();
+}
+
+void guiWindow::on_spinStatusLedCount_valueChanged(int value) {
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::statusLedCount] = value;
     DiffUpdate();
 }
 
@@ -3250,3 +3288,4 @@ void guiWindow::populateColorComboBox(QComboBox* box) {
     box->addItem("White", 'W');
     box->addItem("Lime", 'L');
 };
+
