@@ -148,30 +148,21 @@ private slots:
     void on_productNameInput_textEdited(const QString &arg1);
 
     void on_checkCounterEnable_stateChanged(int arg1);
-
     void on_comboCounterMode_currentIndexChanged(int index);
-
     void on_btnLifeFullColor_clicked();
-
     void on_btnLifeEmptyColor_clicked();
-
     void on_btnAmmoFullColor_clicked();
-
     void on_btnAmmoEmptyColor_clicked();
 
     void validateLedSectors();
-
     void on_spinHealthStartLed_valueChanged(int value);
-
     void on_spinHealthLedCount_valueChanged(int value);
-
     void on_spinAmmoStartLed_valueChanged(int value);
-
     void on_spinAmmoLedCount_valueChanged(int value);
-
     void on_spinEffectsStartLed_valueChanged(int value);
-
     void on_spinEffectsLedCount_valueChanged(int value);
+    void on_spinStatusStartLed_valueChanged(int value);
+    void on_spinStatusLedCount_valueChanged(int value);
 
     void on_lineCounterStartupMsg_textChanged(const QString &text);
 
@@ -414,3 +405,4 @@ private:
     void updateCounterGroupState();
 };
 #endif // GUIWINDOW_H
+
