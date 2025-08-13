@@ -3274,7 +3274,7 @@ void guiWindow::populateEffectComboBox(QComboBox* box) {
     box->addItem("Knight Rider", 5);
 };
 
-// Colores
+// Effect Colors
 void guiWindow::populateColorComboBox(QComboBox* box) {
     if (!box) return;
     box->addItem("Red", 'R');
@@ -3288,4 +3288,3 @@ void guiWindow::populateColorComboBox(QComboBox* box) {
     box->addItem("White", 'W');
     box->addItem("Lime", 'L');
 };
-
