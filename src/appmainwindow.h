@@ -405,4 +405,3 @@ private:
     void updateCounterGroupState();
 };
 #endif // GUIWINDOW_H
-
