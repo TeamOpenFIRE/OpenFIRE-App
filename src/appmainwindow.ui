@@ -116,7 +116,7 @@
        <enum>QTabWidget::TabPosition::South</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -617,9 +617,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-566</y>
+             <y>-960</y>
              <width>950</width>
-             <height>1601</height>
+             <height>1629</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,0,1,0">
@@ -1086,28 +1086,8 @@
                   <string>NeoPixels</string>
                  </property>
                  <layout class="QGridLayout" name="gridLayout_9">
-                  <item row="6" column="2" alignment="Qt::AlignmentFlag::AlignRight">
-                   <widget class="QLabel" name="EffectsLabel">
-                    <property name="text">
-                     <string>NeoPixel Effects:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="6">
-                   <widget class="QSpinBox" name="spinAmmoLedCount">
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string>Total </string>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1" rowspan="2">
-                   <spacer name="horizontalSpacer_3">
+                  <item row="0" column="8" rowspan="2">
+                   <spacer name="horizontalSpacer_4">
                     <property name="orientation">
                      <enum>Qt::Orientation::Horizontal</enum>
                     </property>
@@ -1131,82 +1111,16 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="3">
-                   <widget class="QSpinBox" name="spinHealthStartLed">
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                    <property name="maximum">
-                     <number>144</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="6">
-                   <widget class="QSpinBox" name="spinEffectsLedCount">
+                  <item row="5" column="6">
+                   <widget class="QSpinBox" name="spinAmmoLedCount">
                     <property name="suffix">
                      <string> Pixel(s)</string>
                     </property>
                     <property name="prefix">
                      <string>Total </string>
                     </property>
-                   </widget>
-                  </item>
-                  <item row="6" column="3">
-                   <widget class="QSpinBox" name="spinEffectsStartLed">
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="7">
-                   <widget class="QPushButton" name="btnLifeFullColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Color Full Life</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="6">
-                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
-                    <property name="toolTip">
-                     <string/>
-                    </property>
-                    <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="accessibleName">
-                     <string>NeoPixel Strand Length</string>
-                    </property>
-                    <property name="buttonSymbols">
-                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
-                    </property>
-                    <property name="correctionMode">
-                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-                    </property>
-                    <property name="suffix">
-                     <string> Pixel(s)</string>
-                    </property>
-                    <property name="prefix">
-                     <string/>
-                    </property>
-                    <property name="minimum">
-                     <number>1</number>
-                    </property>
                     <property name="maximum">
                      <number>144</number>
-                    </property>
-                    <property name="trackable" stdset="0">
-                     <number>1</number>
                     </property>
                    </widget>
                   </item>
@@ -1282,61 +1196,89 @@
                     </item>
                    </layout>
                   </item>
-                  <item row="5" column="8">
-                   <widget class="QPushButton" name="btnAmmoEmptyColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
+                  <item row="0" column="6">
+                   <widget class="QSpinBox" name="neopixelStrandLengthBox">
+                    <property name="toolTip">
+                     <string/>
                     </property>
-                    <property name="text">
-                     <string>Color Empty Ammo</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="7">
-                   <widget class="QCheckBox" name="invertStaticPixelsBox">
                     <property name="whatsThis">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabling this setting will have statically illuminated pixels set to the &lt;span style=&quot; font-style:italic;&quot;&gt;last&lt;/span&gt; X Pixel(s), rather than the default &lt;span style=&quot; font-style:italic;&quot;&gt;first&lt;/span&gt; X Pixel(s).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how many LEDs are in the NeoPixel chain. More than one NeoPixel can be daisychained together, starting from the Pixel that's directly connected to &lt;span style=&quot; font-style:italic;&quot;&gt;NeoPixel Pin.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;Default:&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="accessibleName">
-                     <string>Set Static Pixels to First/Last Pixels Toggle</string>
+                     <string>NeoPixel Strand Length</string>
                     </property>
-                    <property name="text">
-                     <string>Invert Static Colors</string>
+                    <property name="buttonSymbols">
+                     <enum>QAbstractSpinBox::ButtonSymbols::PlusMinus</enum>
+                    </property>
+                    <property name="correctionMode">
+                     <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+                    </property>
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
                     </property>
                     <property name="trackable" stdset="0">
                      <number>1</number>
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="8">
-                   <widget class="QPushButton" name="btnLifeEmptyColor">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
+                  <item row="6" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="EffectsLabel">
                     <property name="text">
-                     <string>Color Empty Life</string>
+                     <string>NeoPixel Effects:</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="7" column="6">
-                   <widget class="QLabel" name="pixelChangeNotice">
-                    <property name="enabled">
-                     <bool>false</bool>
+                  <item row="4" column="3">
+                   <widget class="QSpinBox" name="spinHealthStartLed">
+                    <property name="suffix">
+                     <string/>
                     </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="9" column="6">
+                   <widget class="QLabel" name="lblLedError">
                     <property name="font">
                      <font>
-                      <italic>true</italic>
+                      <pointsize>12</pointsize>
+                      <bold>true</bold>
                      </font>
                     </property>
-                    <property name="text">
-                     <string>Changes to NeoPixel settings may require a power cycle to update properly!</string>
+                    <property name="styleSheet">
+                     <string notr="true">color: rgb(255, 0, 0);</string>
                     </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    <property name="frameShape">
+                     <enum>QFrame::Shape::NoFrame</enum>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="3">
+                   <widget class="QSpinBox" name="spinAmmoStartLed">
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>142</number>
                     </property>
                    </widget>
                   </item>
@@ -1365,18 +1307,28 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="5" column="3">
-                   <widget class="QSpinBox" name="spinAmmoStartLed">
-                    <property name="suffix">
-                     <string/>
+                  <item row="1" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Static NeoPixels: </string>
                     </property>
-                    <property name="prefix">
-                     <string>Pixel position: </string>
-                    </property>
-                    <property name="maximum">
-                     <number>142</number>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                     </property>
                    </widget>
+                  </item>
+                  <item row="0" column="1" rowspan="2">
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                   <item row="0" column="2" colspan="2">
                    <widget class="QLabel" name="label">
@@ -1395,18 +1347,27 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="8" rowspan="2">
-                   <spacer name="horizontalSpacer_4">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
+                  <item row="6" column="3">
+                   <widget class="QSpinBox" name="spinEffectsStartLed">
+                    <property name="suffix">
+                     <string/>
                     </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
+                    <property name="prefix">
+                     <string>Pixel position: </string>
                     </property>
-                   </spacer>
+                   </widget>
+                  </item>
+                  <item row="4" column="7">
+                   <widget class="QPushButton" name="btnLifeFullColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Full Life</string>
+                    </property>
+                   </widget>
                   </item>
                   <item row="4" column="6">
                    <widget class="QSpinBox" name="spinHealthLedCount">
@@ -1421,16 +1382,6 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="2" alignment="Qt::AlignmentFlag::AlignRight">
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Static NeoPixels: </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="4" column="2" alignment="Qt::AlignmentFlag::AlignRight">
                    <widget class="QLabel" name="LifeBarLabel">
                     <property name="text">
@@ -1439,25 +1390,74 @@
                    </widget>
                   </item>
                   <item row="8" column="6">
-                   <widget class="QLabel" name="lblLedError">
+                   <widget class="QLabel" name="pixelChangeNotice">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="font">
                      <font>
-                      <pointsize>12</pointsize>
-                      <bold>true</bold>
+                      <italic>true</italic>
                      </font>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">color: rgb(255, 0, 0);</string>
-                    </property>
-                    <property name="frameShape">
-                     <enum>QFrame::Shape::NoFrame</enum>
-                    </property>
                     <property name="text">
-                     <string/>
+                     <string>Changes to NeoPixel settings may require a power cycle to update properly!</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
                     </property>
                    </widget>
                   </item>
-                  <item row="9" column="1" colspan="8">
+                  <item row="5" column="8">
+                   <widget class="QPushButton" name="btnAmmoEmptyColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Empty Ammo</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="7">
+                   <widget class="QCheckBox" name="invertStaticPixelsBox">
+                    <property name="whatsThis">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enabling this setting will have statically illuminated pixels set to the &lt;span style=&quot; font-style:italic;&quot;&gt;last&lt;/span&gt; X Pixel(s), rather than the default &lt;span style=&quot; font-style:italic;&quot;&gt;first&lt;/span&gt; X Pixel(s).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="accessibleName">
+                     <string>Set Static Pixels to First/Last Pixels Toggle</string>
+                    </property>
+                    <property name="text">
+                     <string>Invert Static Colors</string>
+                    </property>
+                    <property name="trackable" stdset="0">
+                     <number>1</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="6">
+                   <widget class="QSpinBox" name="spinEffectsLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="8">
+                   <widget class="QPushButton" name="btnLifeEmptyColor">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Color Empty Life</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="10" column="1" colspan="8">
                    <widget class="QGroupBox" name="effectButtonsGroups">
                     <property name="title">
                      <string>Assign effects to buttons</string>
@@ -1717,6 +1717,36 @@
                     </layout>
                    </widget>
                   </item>
+                  <item row="7" column="2" alignment="Qt::AlignmentFlag::AlignRight">
+                   <widget class="QLabel" name="label_21">
+                    <property name="text">
+                     <string>Status Neopixel</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="3">
+                   <widget class="QSpinBox" name="spinStatusStartLed">
+                    <property name="prefix">
+                     <string>Pixel position: </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="7" column="6">
+                   <widget class="QSpinBox" name="spinStatusLedCount">
+                    <property name="suffix">
+                     <string> Pixel(s)</string>
+                    </property>
+                    <property name="prefix">
+                     <string>Total </string>
+                    </property>
+                    <property name="maximum">
+                     <number>144</number>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -1939,13 +1969,13 @@
                </sizepolicy>
               </property>
               <property name="title">
-               <string>7-Seg Counter</string>
+               <string>7-Segments Counter</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_13">
                <item row="0" column="1">
                 <widget class="QCheckBox" name="checkCounterEnable">
                  <property name="text">
-                  <string>Enable 7-Seg Counter</string>
+                  <string>Enable 7-Segments Counter</string>
                  </property>
                 </widget>
                </item>
