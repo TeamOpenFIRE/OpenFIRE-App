@@ -1185,6 +1185,22 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 if(App_Common::board.arch != App_Common::OFPresets.boardArchs[OF_Const::boardRP])
                     SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::wiiClockGen+1, false);
 
+                // Disable 7-Segment Counter options for non-capable SPI0 pins
+                int pinCaps = pinCapabilityMap->second.at(i);
+                // Create a mask to isolate only the relevant SPI0 function bits (SCK and TX)
+                int spi0FuncMask = OF_Const::pinSPI0SCK | OF_Const::pinSPI0TX;
+
+                // To be a valid SCLK pin, its SPI function bits must match EXACTLY pinSPI0SCK
+                if ((pinCaps & spi0FuncMask) != OF_Const::pinSPI0SCK) {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::counterSclkPin + 1, false);
+                }
+
+                // To be a valid SDI (TX) pin, its SPI function bits must match EXACTLY pinSPI0TX
+                if ((pinCaps & spi0FuncMask) != OF_Const::pinSPI0TX) {
+                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::counterSdiPin + 1, false);
+                }
+
+
                 // connect up combobox signal
                 connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
@@ -2991,16 +3007,16 @@ void guiWindow::validateLedSectors()
     // 1. Validar que los sectores dinámicos NO empiecen dentro del bloque estático.
     if (healthCount > 0 && healthStart < staticLeds) {
         isValid = false;
-        errorMessage = "Error: La barra de vida empieza antes de que termine el sector estático.";
+        errorMessage = "Error: The life bar starts before the static segment ends.";
     } else if (ammoCount > 0 && ammoStart < staticLeds) {
         isValid = false;
-        errorMessage = "Error: La barra de munición empieza antes de que termine el sector estático.";
+        errorMessage = "Error: The ammo bar starts before the static segment ends.";
     } else if (effectsCount > 0 && effectsStart < staticLeds) {
         isValid = false;
-        errorMessage = "Error: El sector de efectos empieza antes de que termine el sector estático.";
+        errorMessage = "Error: The effects segment begins before the static segment ends.";
     } else if (statusCount > 0 && statusStart < staticLeds) { // --> AÑADIDO
         isValid = false;
-        errorMessage = "Error: El sector de estado empieza antes de que termine el sector estático.";
+        errorMessage = "Error: The status segment begins before the static segment ends.";
     }
 
     // Si la validación inicial ya ha fallado, no continuamos.
@@ -3024,14 +3040,14 @@ void guiWindow::validateLedSectors()
         for (int i = 0; i < sectors.size(); ++i) {
             if (sectors[i].second.x() + sectors[i].second.width() > totalLeds) {
                 isValid = false;
-                errorMessage = QString("Error: El sector '%1' excede el total de LEDs.").arg(sectors[i].first);
+                errorMessage = QString("Error: Segment '%1' exceeds the total number of LEDs").arg(sectors[i].first);
                 break;
             }
 
             for (int j = i + 1; j < sectors.size(); ++j) {
                 if (sectors[i].second.intersects(sectors[j].second)) {
                     isValid = false;
-                    errorMessage = QString("Error: El sector '%1' se solapa con el sector '%2'.").arg(sectors[i].first).arg(sectors[j].first);
+                    errorMessage = QString("Error: Segment '%1' overlaps segment '%2'.").arg(sectors[i].first).arg(sectors[j].first);
                     break;
                 }
             }
@@ -3274,7 +3290,7 @@ void guiWindow::populateEffectComboBox(QComboBox* box) {
     box->addItem("Knight Rider", 5);
 };
 
-// Effect Colors
+// Colores
 void guiWindow::populateColorComboBox(QComboBox* box) {
     if (!box) return;
     box->addItem("Red", 'R');
@@ -3288,3 +3304,4 @@ void guiWindow::populateColorComboBox(QComboBox* box) {
     box->addItem("White", 'W');
     box->addItem("Lime", 'L');
 };
+
