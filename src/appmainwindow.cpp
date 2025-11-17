@@ -840,10 +840,6 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                     }
                 } else pinLabel << new QLabel(QString("<font color=#BE00B0>«GPIO%1»</font>").arg(i));
 
-                // NOTE: only change/remove this if non-RP boards properly implements on-board clock pulse generation.
-                if(App_Common::board.arch != App_Common::OFPresets.boardArchs[OF_Const::boardRP])
-                    SetComboBoxItemEnabled(pinBoxes.at(i), OF_Const::wiiClockGen+1, false);
-
                 // connect up combobox signal
                 connect(pinBoxes.at(i), SIGNAL(currentIndexChanged(int)), this, SLOT(pinBoxes_currentIndexChanged(int)));
 
