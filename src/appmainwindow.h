@@ -131,6 +131,8 @@ private slots:
 
     void on_i2cOLEDtoggle_stateChanged(int arg1);
 
+    void on_i2cOLEDtypeBox_currentIndexChanged(int index);
+
     void on_oledAltAddrsToggle_stateChanged(int arg1);
 
     void on_tinyUSBLayoutToggle_stateChanged(int arg1);

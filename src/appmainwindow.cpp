@@ -1600,10 +1600,18 @@ void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
     ui->oledGroup->setEnabled(arg1);
+    if(arg1)
+        ui->i2cGroup->setVisible(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::displayOLEDType] == OF_Const::displaySSD1306_I2C
+                                                                                                                ? true : false);
 
     DiffUpdate();
 }
 
+void guiWindow::on_i2cOLEDtypeBox_currentIndexChanged(int index)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::displayOLEDType] = index+1;
+    ui->i2cGroup->setVisible(index == OF_Const::displaySSD1306_I2C-1 ? true : false);
+}
 
 void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 {
