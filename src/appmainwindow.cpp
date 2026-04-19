@@ -1974,6 +1974,13 @@ void guiWindow::serialPort_readyRead()
             {
                 unsigned int temp = serial.port.read(1).at(0);
 
+                if (temp == OF_Const::TEMPERATURE_SENSOR_ERROR_VALUE) {
+                    // Sensor error.
+                    ui->tmp36Label->setText("Temperature: FAULT");
+                    ui->tmp36Label->setStyleSheet("color: white; background-color: #FF0000; font: bold");
+                    break;
+                }
+
                 ui->tmp36Label->setText(QString("Temperature: %1°C").arg(temp));
 
                 if(     temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown])
