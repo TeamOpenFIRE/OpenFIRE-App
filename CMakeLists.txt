@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 cmake_policy(VERSION 3.5)
 
 project(OpenFIREapp
-        VERSION 3.0.2
+        VERSION 3.0.3
         DESCRIPTION "OpenFIRE Configuration Desktop App"
         LANGUAGES CXX)
 set(OFAPP_CODENAME "Tokinomiya")
