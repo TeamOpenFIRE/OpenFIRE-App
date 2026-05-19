@@ -51,14 +51,14 @@ guiWindow::guiWindow(QWidget *parent)
         externalProg->start("/usr/bin/groups", args);
         externalProg->waitForFinished();
         if(!externalProg->readAllStandardOutput().contains("dialout")) {
-            QMessageBox::critical(this, "ERROR: User doesn't have serial permissions!",
-                                        "Currently, your user is not allowed to have access to serial devices.\n\n"
+            QMessageBox::critical(this, tr("ERROR: User doesn't have serial permissions!"),
+                                        tr("Currently, your user is not allowed to have access to serial devices.\n\n"
                                         "To add yourself to the right group, run this command in a terminal and then re-login to your session:\n\n"
-                                        "sudo usermod -aG dialout " + qEnvironmentVariable("USER"));
+                                        "sudo usermod -aG dialout ") + qEnvironmentVariable("USER"));
             exit(0);
         }
     } else {
-        QMessageBox::critical(this, "ERROR: Running as root is not allowed!", "Please run the OpenFIRE app as a normal user.");
+        QMessageBox::critical(this, tr("ERROR: Running as root is not allowed!"), tr("Please run the OpenFIRE app as a normal user."));
         exit(2);
     }
 #endif
@@ -158,44 +158,44 @@ guiWindow::guiWindow(QWidget *parent)
             btnFuncBox[slot][1][i].installEventFilter(this);
             switch(slot) {
             case 0:
-                btnFuncBox[slot][0][i].setAccessibleName(QString("Onscreen Button Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][0][i].setWhatsThis(QString("<p>Select the type of button that <i>%1</i> will function as <b>when the gun is pointing at the screen.</b></p>"
-                                                            "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
-                                                            "three available device outputs that the gun presents to the connected device.</p>")
-                                                            .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setAccessibleName(QString("Onscreen Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setWhatsThis(QString("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is pointing at the screen.</b></p>"
-                                                            "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
-                                                            "three available device outputs that the gun presents to the connected device.</p>")
-                                                            .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setAccessibleName(tr("Onscreen Button Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setWhatsThis(tr("<p>Select the type of button that <i>%1</i> will function as <b>when the gun is pointing at the screen.</b></p>"
+                                                       "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
+                                                       "three available device outputs that the gun presents to the connected device.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setAccessibleName(tr("Onscreen Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setWhatsThis(tr("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is pointing at the screen.</b></p>"
+                                                       "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
+                                                       "three available device outputs that the gun presents to the connected device.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
                 break;
             case 1:
-                btnFuncBox[slot][0][i].setAccessibleName(QString("Offscreen Button Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][0][i].setWhatsThis(QString("<p>Select the type of button that <i>%1</i> will function as <b>when the gun is pointing outside of the screen.</b></p>"
-                                                            "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
-                                                            "three available device outputs that the gun presents to the connected device.</p>")
-                                                        .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setAccessibleName(QString("Offscreen Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setWhatsThis(QString("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is pointing outside of the screen.</b></p>"
-                                                            "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
-                                                            "three available device outputs that the gun presents to the connected device.</p>")
-                                                        .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setAccessibleName(tr("Offscreen Button Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setWhatsThis(tr("<p>Select the type of button that <i>%1</i> will function as <b>when the gun is pointing outside of the screen.</b></p>"
+                                                       "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
+                                                       "three available device outputs that the gun presents to the connected device.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setAccessibleName(tr("Offscreen Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setWhatsThis(tr("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is pointing outside of the screen.</b></p>"
+                                                       "<p>Each available input defined in the current <i>Board Layout</i> can be defined as a button press for one of the "
+                                                       "three available device outputs that the gun presents to the connected device.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
                 break;
             case 2:
-                btnFuncBox[slot][0][i].setAccessibleName(QString("Gamepad Mode Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][0][i].setWhatsThis(QString("<p>Select the type of button that <i>%1</i> will function as <b>when the gun set to Gamepad Output Mode.</b></p>"
-                                                            "<p>Only Gamepad-type outputs are available for Gamepad Output Mode, which can be set via "
-                                                            "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
-                                                            "<tt>M0x1</tt>.</p>")
-                                                        .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setAccessibleName(QString("Gamepad Mode Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
-                btnFuncBox[slot][1][i].setWhatsThis(QString("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is set to Gamepad Output Mode.</b></p>"
-                                                            "<p>Only Gamepad buttons are available to be mapped for Gamepad Output Mode, which can be set via "
-                                                            "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
-                                                            "<tt>M0x1</tt>.</p>"
-                                                            "<p><b>NOTE:</b> When connected to the MiSTer FPGA device, these mappings will NOT be reflected, "
-                                                            "as OpenFIRE has a hard-coded button layout specifically optimized for the MiSTer ecosystem.</p>")
-                                                        .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setAccessibleName(tr("Gamepad Mode Output Type for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][0][i].setWhatsThis(tr("<p>Select the type of button that <i>%1</i> will function as <b>when the gun set to Gamepad Output Mode.</b></p>"
+                                                       "<p>Only Gamepad-type outputs are available for Gamepad Output Mode, which can be set via "
+                                                       "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
+                                                       "<tt>M0x1</tt>.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setAccessibleName(tr("Gamepad Mode Button Mapping for %1").arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
+                btnFuncBox[slot][1][i].setWhatsThis(tr("<p>Select the output that <i>%1</i> will send to the connected device <b>when the gun is set to Gamepad Output Mode.</b></p>"
+                                                       "<p>Only Gamepad buttons are available to be mapped for Gamepad Output Mode, which can be set via "
+                                                       "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
+                                                       "<tt>M0x1</tt>.</p>"
+                                                       "<p><b>NOTE:</b> When connected to the MiSTer FPGA device, these mappings will NOT be reflected, "
+                                                       "as OpenFIRE has a hard-coded button layout specifically optimized for the MiSTer ecosystem.</p>")
+                                                    .arg(App_Common::OFPresets.boardInputs_sortedStr[i+1]));
                 break;
             }
 
@@ -239,7 +239,7 @@ guiWindow::guiWindow(QWidget *parent)
     ui->presetsBox->setVisible(false);
     ui->solenoidTempBox->setVisible(false);
 
-    statusBar()->showMessage("Welcome to the OpenFIRE app!", 3000);
+    statusBar()->showMessage(tr("Welcome to the OpenFIRE app!"), 3000);
 
     statusProgressBar = new QProgressBar();
     statusProgressBar->setVisible(false);
@@ -411,11 +411,11 @@ void guiWindow::DiffUpdate()
             ++settingsDiff;
 
     if(settingsDiff) {
-        ui->confirmButton->setText("Save and Send Settings");
+        ui->confirmButton->setText(tr("Save and Send Settings"));
         ui->confirmButton->setEnabled(true);
         ui->confirmButton->setIcon(QIcon::fromTheme("document-save"));
     } else {
-        ui->confirmButton->setText("[Nothing To Save]");
+        ui->confirmButton->setText(tr("[Nothing To Save]"));
         ui->confirmButton->setEnabled(false);
         ui->confirmButton->setIcon(QIcon());
     }
@@ -439,10 +439,10 @@ void guiWindow::LabelsUpdate()
 
     ui->tmp36Label->setStyleSheet("");
     if(App_Common::inputsMap.value(OF_Const::tempPin) >= 0) {
-        ui->tmp36Label->setText("Temperature Read...");
+        ui->tmp36Label->setText(tr("Temperature Read..."));
         ui->tmp36Label->setEnabled(true);
     } else {
-        ui->tmp36Label->setText("Temperature Sensor (N/C)");
+        ui->tmp36Label->setText(tr("Temperature Sensor (N/C)"));
         ui->tmp36Label->setEnabled(false);
     }
 
@@ -451,7 +451,7 @@ void guiWindow::LabelsUpdate()
     if(App_Common::inputsMap.value(OF_Const::ledB) >= 0) ui->blueLedTestBtn->setEnabled(true);  else ui->blueLedTestBtn->setEnabled(false);
     if(App_Common::inputsMap.value(OF_Const::analogX) >= 0 && App_Common::inputsMap.value(OF_Const::analogY) >= 0)
         ui->analogGroup->setEnabled(true),  ui->aPosLabel->clear();
-    else ui->analogGroup->setEnabled(false), ui->aPosLabel->setText("Not Connected");
+    else ui->analogGroup->setEnabled(false), ui->aPosLabel->setText(tr("Not Connected"));
 
     ui->boardLabel->setText(PrettifyName(App_Common::tinyUSBtable.tinyUSBname));
 }
@@ -498,7 +498,7 @@ void guiWindow::NewCaliWindow(const int &type) {
     case AppCaliWindow::modeIRTest:
         ui->buttonsTestArea->setEnabled(false);
         ui->confirmButton->setEnabled(false);
-        ui->confirmButton->setText("[Disabled while in Test Mode]");
+        ui->confirmButton->setText(tr("[Disabled while in Test Mode]"));
         ui->confirmButton->setIcon(QIcon());
         ui->pinsTab->setEnabled(false);
         ui->settingsTab->setEnabled(false);
@@ -517,8 +517,8 @@ void guiWindow::NewCaliWindow(const int &type) {
 
 void guiWindow::on_confirmButton_clicked()
 {
-    QMessageBox messageBox(QMessageBox::Information, "Commit Confirmation", "Are these settings okay?", QMessageBox::Yes | QMessageBox::No);
-    messageBox.setInformativeText("These settings will be committed to your lightgun. Is that okay?");
+    QMessageBox messageBox(QMessageBox::Information, tr("Commit Confirmation"), tr("Are these settings okay?"), QMessageBox::Yes | QMessageBox::No);
+    messageBox.setInformativeText(tr("These settings will be committed to your lightgun. Is that okay?"));
 
     if(messageBox.exec() == QMessageBox::Yes) {
         serialActive = true;
@@ -527,7 +527,7 @@ void guiWindow::on_confirmButton_clicked()
         ui->comPortSelector->setEnabled(false);
 
         if(serial.CommitSettings()) {
-            statusBar()->showMessage("Sent settings successfully!", 5000);
+            statusBar()->showMessage(tr("Sent settings successfully!"), 5000);
             ui->confirmButton->setEnabled(false);
             ui->confirmButton->setIcon(QIcon());
 
@@ -568,7 +568,7 @@ void guiWindow::on_confirmButton_clicked()
         ui->tabWidget->setEnabled(true);
         ui->comPortSelector->setEnabled(true);
         serialActive = false;
-    } else { statusBar()->showMessage("Save operation canceled.", 3000); }
+    } else { statusBar()->showMessage(tr("Save operation canceled."), 3000); }
 }
 
 
@@ -630,10 +630,10 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 renameBtn.at(i)->installEventFilter(this);
                 renameBtn.at(i)->setProperty("slot", i);
                 renameBtn.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                renameBtn.at(i)->setAccessibleName(QString("Rename Profile %1").arg(i+1));
-                renameBtn.at(i)->setWhatsThis("<p>Click to rename this Calibration Profile.</p>"
-                                              "<p>Aside from differentiating between different profiles for different displays, "
-                                              "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>");
+                renameBtn.at(i)->setAccessibleName(tr("Rename Profile %1").arg(i+1));
+                renameBtn.at(i)->setWhatsThis(tr("<p>Click to rename this Calibration Profile.</p>"
+                                                 "<p>Aside from differentiating between different profiles for different displays, "
+                                                 "Cali Profile names are displayed in Pause Mode when using a compatible <i>I2C Display.</i></p>"));
                 connect(renameBtn.at(i), &QPushButton::clicked, this, &guiWindow::renameBoxes_clicked);
 
                 selectedProfile << new QRadioButton(QString("%1. %2").arg(i+1).arg(App_Common::profilesTable.at(i).profName));
@@ -656,13 +656,13 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 irSens.at(i)->setProperty("slot", i);
                 irSens.at(i)->setProperty("type", App_Common::pBoxIRsens);
                 irSens.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                irSens.at(i)->setAccessibleName(QString("Camera Sensitivity for Profile %1").arg(i+1));
-                irSens.at(i)->setWhatsThis("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
-                                           "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
-                                           "adjusting this setting higher might fix issues with tracking.<br>"
-                                           "Conversely, setting sensitivity too high may cause indirect IR sources "
-                                           "(such as sunlight or IR bouncing off of reflective surfaces) "
-                                           "to be picked up instead, causing the cursor to jitter or erratically jump across the screen.</p>");
+                irSens.at(i)->setAccessibleName(tr("Camera Sensitivity for Profile %1").arg(i+1));
+                irSens.at(i)->setWhatsThis(tr("<p>This setting determines the sensitivity of the IR Camera for this Calibration Profile.</p>"
+                                              "<p>If the camera seems to have trouble picking up IR emitters (and is causing coarse cursor movement), "
+                                              "adjusting this setting higher might fix issues with tracking.<br>"
+                                              "Conversely, setting sensitivity too high may cause indirect IR sources "
+                                              "(such as sunlight or IR bouncing off of reflective surfaces) "
+                                              "to be picked up instead, causing the cursor to jitter or erratically jump across the screen.</p>"));
                 connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 runMode << new QComboBox();
@@ -672,12 +672,12 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 runMode.at(i)->setProperty("slot", i);
                 runMode.at(i)->setProperty("type", App_Common::pBoxRunMode);
                 runMode.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                runMode.at(i)->setAccessibleName(QString("Camera Position Averaging Mode for Profile %1").arg(i+1));
-                runMode.at(i)->setWhatsThis("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
-                                            "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
-                                            "at the cost of a small increase in latency; conversely, disabling this position averaging can "
-                                            "reduce latency, at the cost of some added jitter in mouse movement.</p>"
-                                            "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>");
+                runMode.at(i)->setAccessibleName(tr("Camera Position Averaging Mode for Profile %1").arg(i+1));
+                runMode.at(i)->setWhatsThis(tr("<p>This setting determines the cursor Averaging Mode for this Calibration Profile.</p>"
+                                               "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
+                                               "at the cost of a small increase in latency; conversely, disabling this position averaging can "
+                                               "reduce latency, at the cost of some added jitter in mouse movement.</p>"
+                                               "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>"));
                 connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 layoutMode << new QComboBox();
@@ -687,17 +687,17 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 layoutMode.at(i)->setProperty("slot", i);
                 layoutMode.at(i)->setProperty("type", App_Common::pBoxLayout);
                 layoutMode.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                layoutMode.at(i)->setAccessibleName(QString("IR Emitter Layout for Profile %1").arg(i+1));
-                layoutMode.at(i)->setWhatsThis("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
-                                               "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
-                                               "which uses two pairs of emitters on the top and bottom, and <i>Diamond Layout,</i> "
-                                               "which uses one emitter at the center of each side of the display.</p>"
-                                               "<p><i>Square Layout</i> generally has much higher accuracy at any angle and allows for "
-                                               "playing closer to the screen or using external Fish Eye lenses without viewport distortion, "
-                                               "while <i>Diamond Layout</i> is for screen compatibility with certain legacy lightgun systems "
-                                               "(allowing OpenFIRE guns to play with such other lightgun systems on the same display).</p>"
-                                               "<p>If unsure, use <b>Square Layout</b> "
-                                               "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>");
+                layoutMode.at(i)->setAccessibleName(tr("IR Emitter Layout for Profile %1").arg(i+1));
+                layoutMode.at(i)->setWhatsThis(tr("<p>This setting determines the IR Layout to be used with this Calibration Profile.</p>"
+                                                  "<p>Each Cali Profile can be set to use either the <i>Square Layout,</i> "
+                                                  "which uses two pairs of emitters on the top and bottom, and <i>Diamond Layout,</i> "
+                                                  "which uses one emitter at the center of each side of the display.</p>"
+                                                  "<p><i>Square Layout</i> generally has much higher accuracy at any angle and allows for "
+                                                  "playing closer to the screen or using external Fish Eye lenses without viewport distortion, "
+                                                  "while <i>Diamond Layout</i> is for screen compatibility with certain legacy lightgun systems "
+                                                  "(allowing OpenFIRE guns to play with such other lightgun systems on the same display).</p>"
+                                                  "<p>If unsure, use <b>Square Layout</b> "
+                                                  "(unless you also use a different brand of lightgun that needs a diamond IR layout to function).</p>"));
                 connect(layoutMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 aspectRatio << new QComboBox();
@@ -707,16 +707,16 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 aspectRatio.at(i)->setProperty("slot", i);
                 aspectRatio.at(i)->setProperty("type", App_Common::pBoxAR);
                 aspectRatio.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                aspectRatio.at(i)->setAccessibleName(QString("Aspect Ratio Correction for Profile %1").arg(i+1));
-                aspectRatio.at(i)->setWhatsThis("<p>This setting determines the type of Aspect Ratio Correction used for this Profile when <i>4:3 Mode</i> is set.</p>"
-                                                "<p>When <a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
-                                                "<tt>M3x1</tt> is received, the firmware stretches the effective range for fullscreen applications in Windows "
-                                                "that runs in resolutions <b>narrower</b> than the full display width/height; "
-                                                "this setting determines the stretch factor that will be used for these 4:3 applications.</p>"
-                                                "<p>Do note that this restriction exclusively applies to the <b>Windows Operating System ONLY "
-                                                "for legacy applications that DON'T support the monitor's full resolution;</b> <i>Linux-based systems</i> and games run via <i>Wine/Proton</i> "
-                                                "<b>do not need this workaround,</b> except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
-                                                "<p>If unsure, set to <b>the aspect ratio of your display.</b> Setting to <i>4:3</i> effectively disables range stretching when toggled.</p>");
+                aspectRatio.at(i)->setAccessibleName(tr("Aspect Ratio Correction for Profile %1").arg(i+1));
+                aspectRatio.at(i)->setWhatsThis(tr("<p>This setting determines the type of Aspect Ratio Correction used for this Profile when <i>4:3 Mode</i> is set.</p>"
+                                                   "<p>When <a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/wiki/MAMEHOOKER-Documentation#m---mode-commands'><span style=' text-decoration: underline; color:#8ab4f8;'>Serial command</span></a> "
+                                                   "<tt>M3x1</tt> is received, the firmware stretches the effective range for fullscreen applications in Windows "
+                                                   "that runs in resolutions <b>narrower</b> than the full display width/height; "
+                                                   "this setting determines the stretch factor that will be used for these 4:3 applications.</p>"
+                                                   "<p>Do note that this restriction exclusively applies to the <b>Windows Operating System ONLY "
+                                                   "for legacy applications that DON'T support the monitor's full resolution;</b> <i>Linux-based systems</i> and games run via <i>Wine/Proton</i> "
+                                                   "<b>do not need this workaround,</b> except for certain applications like <i>CXBX-Reloaded</i> that don't scale down the effective range correctly for 4:3 content.</p>"
+                                                   "<p>If unsure, set to <b>the aspect ratio of your display.</b> Setting to <i>4:3</i> effectively disables range stretching when toggled.</p>"));
                 connect(aspectRatio.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 color << new QPushButton();
@@ -725,18 +725,18 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 color.at(i)->installEventFilter(this);
                 color.at(i)->setProperty("slot", i);
                 color.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                color.at(i)->setAccessibleName(QString("Profile Menu Color for Cali Profile %1").arg(i+1));
-                color.at(i)->setWhatsThis("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
-                                          "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
-                                          "which is emitted by a 4-pin RGB LED and/or an active NeoPixel strand.</p>");
+                color.at(i)->setAccessibleName(tr("Profile Menu Color for Cali Profile %1").arg(i+1));
+                color.at(i)->setWhatsThis(tr("<p>Open a window to select the color used to represent this profile in <i>Pause Mode.</i></p>"
+                                             "<p>Each profile can be assigned a color used to identify them when switching profiles on the lightgun itself, "
+                                             "which is emitted by a 4-pin RGB LED and/or an active NeoPixel strand.</p>"));
                 connect(color.at(i), &QPushButton::clicked, this, &guiWindow::colorBoxes_clicked);
 
-                caliBtn << new QPushButton(QString("Calibrate Profile %1").arg(i+1));
+                caliBtn << new QPushButton(tr("Calibrate Profile %1").arg(i+1));
                 caliBtn.at(i)->installEventFilter(this);
                 caliBtn.at(i)->setProperty("slot", i);
                 caliBtn.at(i)->setProperty("trackable", App_Common::trackProfileItem);
-                caliBtn.at(i)->setAccessibleName(QString("Open Calibration Window for Cali Profile %1").arg(i+1));
-                caliBtn.at(i)->setWhatsThis("Click to start the calibration process for this profile.");
+                caliBtn.at(i)->setAccessibleName(tr("Open Calibration Window for Cali Profile %1").arg(i+1));
+                caliBtn.at(i)->setWhatsThis(tr("Click to start the calibration process for this profile."));
                 connect(caliBtn.at(i), &QPushButton::clicked, this, &guiWindow::caliBtns_clicked);
 
                 topOffset.at(i)     ->setAlignment(Qt::AlignCenter);
@@ -845,11 +845,11 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
 
                 pinLabel.at(i)->setEnabled(false);
                 pinLabel.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-                pinLabel.at(i)->setToolTip(QString("GPIO Pin No. %1.\n\n"
-                                                   "Blue pin numbers are members of I2C0.\n"
-                                                   "Orange are members of I2C1.\n"
-                                                   "Purple pin numbers can automatically select any I2C channel in software.\n"
-                                                   "Gray cannot use I2C devices.").arg(i));
+                pinLabel.at(i)->setToolTip(tr("GPIO Pin No. %1.\n\n"
+                                              "Blue pin numbers are members of I2C0.\n"
+                                              "Orange are members of I2C1.\n"
+                                              "Purple pin numbers can automatically select any I2C channel in software.\n"
+                                              "Gray cannot use I2C devices.").arg(i));
             }
 
             if(App_Common::board.version.indexOf('-') > -1) {
@@ -1006,7 +1006,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
             ui->tabWidget->setCurrentIndex(0);
-            ui->comPortSelector->setItemText(0, "[Disconnect Current Device]");
+            ui->comPortSelector->setItemText(0, tr("[Disconnect Current Device]"));
 
         } else ui->comPortSelector->setCurrentIndex(0);
 
@@ -1027,7 +1027,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         ui->tabWidget->setEnabled(false);
 
         if(ui->comPortSelector->count() > 0)
-            ui->comPortSelector->setItemText(0, "[Select a Device to Configure]");
+            ui->comPortSelector->setItemText(0, tr("[Select a Device to Configure]"));
 
         if(serial.port.isOpen())
             serial.Disconnect();
@@ -1035,7 +1035,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         // reset temp label stylesheet to neutral
         ui->tmp36Label->setStyleSheet("");
         ui->confirmButton->setEnabled(false);
-        ui->confirmButton->setText("[Currently Not Connected]");
+        ui->confirmButton->setText(tr("[Currently Not Connected]"));
         ui->confirmButton->setIcon(QIcon());
     }
     serialActive = false;
@@ -1089,10 +1089,10 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                     // channels mismatched, unmap the other pin
                     if(btnRequest == OF_Const::camSDA) {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
+                        ui->statusBar->showMessage(tr("Camera pins are not on the same I2C channel! Please check camera pins' mappings."), 10000);
                     } else {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
+                        ui->statusBar->showMessage(tr("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings."), 10000);
                     }
                 }
                 // check that opposite I2C type SDA isn't mapped to this I2C channel
@@ -1102,7 +1102,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                        (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::periphSDA)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SDA.", 10000);
+                        ui->statusBar->showMessage(tr("Camera and Peripheral Data pins clashed! Please remap Peripheral SDA."), 10000);
                     }
                     break;
                 case OF_Const::periphSDA:
@@ -1110,7 +1110,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                        (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::camSDA)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SDA.", 10000);
+                        ui->statusBar->showMessage(tr("Camera and Peripheral Data pins clashed! Please remap Camera SDA."), 10000);
                     }
                     break;
                 }
@@ -1121,10 +1121,10 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                     // channels mismatched, unmap the other pin
                     if(btnRequest == OF_Const::camSCL) {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera pins are not on the same I2C channel! Please check camera pins' mappings.", 10000);
+                        ui->statusBar->showMessage(tr("Camera pins are not on the same I2C channel! Please check camera pins' mappings."), 10000);
                     } else {
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSDA))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings.", 10000);
+                        ui->statusBar->showMessage(tr("Peripheral pins are not on the same I2C channel! Please check peripheral pins' mappings."), 10000);
                     }
                 }
                 // check that opposite I2C type SCL isn't mapped to this I2C channel
@@ -1134,7 +1134,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                        (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::periphSCL)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::periphSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Peripheral SCL.", 10000);
+                        ui->statusBar->showMessage(tr("Camera and Peripheral Data pins clashed! Please remap Peripheral SCL."), 10000);
                     }
                     break;
                 case OF_Const::periphSCL:
@@ -1142,7 +1142,7 @@ void guiWindow::pinBoxes_currentIndexChanged(int index)
                        (pinCapabilityMap->second.at(sender()->property("slot").toInt()) & OF_Const::pinIsI2C1) == (pinCapabilityMap->second.at(App_Common::inputsMap.value(OF_Const::camSCL)) & OF_Const::pinIsI2C1)) {
                         // channels matched, unmap peripheral data
                         pinBoxes.at(App_Common::inputsMap.value(OF_Const::camSCL))->setCurrentIndex(OF_Const::btnUnmapped+1);
-                        ui->statusBar->showMessage("Camera and Peripheral Data pins clashed! Please remap Camera SCL.", 10000);
+                        ui->statusBar->showMessage(tr("Camera and Peripheral Data pins clashed! Please remap Camera SCL."), 10000);
                     }
                     break;
                 }
@@ -1589,8 +1589,8 @@ void guiWindow::on_invertStaticPixelsBox_stateChanged(int arg1)
 {
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::invertStaticPixels] = arg1;
 
-    if(arg1) ui->customLEDstaticSpinbox->setPrefix("Last ");
-    else     ui->customLEDstaticSpinbox->setPrefix("First ");
+    if(arg1) ui->customLEDstaticSpinbox->setPrefix(tr("Last "));
+    else     ui->customLEDstaticSpinbox->setPrefix(tr("First "));
 
     DiffUpdate();
 }
@@ -1763,8 +1763,8 @@ void guiWindow::renameBoxes_clicked()
 {
     // TODO: limit character length in the text dialog - for now, just use up to 15 characters.
     QString newLabel = QInputDialog::getText(this,
-                                             "Input Name",
-                                             QString("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
+                                             tr("Input Name"),
+                                             tr("Set name for Calibration Profile %1").arg(sender()->property("slot").toInt()+1));
 
     if(!newLabel.isEmpty()) {
         selectedProfile[sender()->property("slot").toInt()]->setText(QString("%1. %2").arg(sender()->property("slot").toInt()+1).arg(newLabel.left(15)));
@@ -1826,7 +1826,7 @@ void guiWindow::on_rumbleTestBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sTestRumble, true };
     if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Sent a rumble test pulse.", 2500);
+        ui->statusBar->showMessage(tr("Sent a rumble test pulse."), 2500);
 }
 
 
@@ -1834,7 +1834,7 @@ void guiWindow::on_solenoidTestBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sTestSolenoid, true };
     if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Sent a solenoid test pulse.", 2500);
+        ui->statusBar->showMessage(tr("Sent a solenoid test pulse."), 2500);
 }
 
 
@@ -1842,7 +1842,7 @@ void guiWindow::on_redLedTestBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sTestLEDR, true };
     if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Red.", 2500);
+        ui->statusBar->showMessage(tr("Set LED to Red."), 2500);
 }
 
 
@@ -1850,7 +1850,7 @@ void guiWindow::on_greenLedTestBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sTestLEDG, true };
     if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Green.", 2500);
+        ui->statusBar->showMessage(tr("Set LED to Green."), 2500);
 }
 
 
@@ -1858,7 +1858,7 @@ void guiWindow::on_blueLedTestBtn_clicked()
 {
     char buf[2] = { (char)OF_Const::sTestLEDB, true };
     if(serial.OneShotSend(buf, sizeof(buf)))
-        ui->statusBar->showMessage("Set LED to Blue.", 2500);
+        ui->statusBar->showMessage(tr("Set LED to Blue."), 2500);
 }
 
 
@@ -1866,11 +1866,11 @@ void guiWindow::on_testBtn_clicked()
 {
     if(App_Common::profilesTable.at(App_Common::board.selectedProfile).layoutType != App_Common::profilesTable_orig.at(App_Common::board.selectedProfile).layoutType) {
         if(QMessageBox::information(this,
-                                    "Warning: Unsaved Changes",
-                                    "Your current calibration profile has an unsaved IR Layout type change.\n"
-                                    "Test Mode relies on the profile's settings since the last save, and may not work as expected.\n"
-                                    "It is recommended that you save your changes before continuing.\n\n"
-                                    "Continue to Test Mode?",
+                                    tr("Warning: Unsaved Changes"),
+                                    tr("Your current calibration profile has an unsaved IR Layout type change.\n"
+                                       "Test Mode relies on the profile's settings since the last save, and may not work as expected.\n"
+                                       "It is recommended that you save your changes before continuing.\n\n"
+                                       "Continue to Test Mode?"),
                                     QMessageBox::Yes | QMessageBox::No)
             == QMessageBox::Yes) {
             char buf[2] = { (char)OF_Const::sIRTest, true };
@@ -1889,23 +1889,23 @@ void guiWindow::on_clearEepromBtn_clicked()
 {
     // Do we really need all this msgbox setup?
     QMessageBox messageBox;
-    messageBox.setText("Really delete saved data?");
-    messageBox.setInformativeText("This operation will delete all saved data, including:\n\n"
-                                  " - Calibration Profiles\n"
-                                  " - Toggles\n - Settings\n"
-                                  " - Custom Identifiers\n\n"
-                                  "Are you sure about this?");
-    messageBox.setWindowTitle("Delete Confirmation");
+    messageBox.setText(tr("Really delete saved data?"));
+    messageBox.setInformativeText(tr("This operation will delete all saved data, including:\n\n"
+                                     " - Calibration Profiles\n"
+                                     " - Toggles\n - Settings\n"
+                                     " - Custom Identifiers\n\n"
+                                     "Are you sure about this?"));
+    messageBox.setWindowTitle(tr("Delete Confirmation"));
     messageBox.setIcon(QMessageBox::Warning);
     messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     messageBox.setDefaultButton(QMessageBox::No);
 
     if(messageBox.exec() == QMessageBox::Yes) {
-        ui->statusBar->showMessage("Board reset to initial settings.");
+        ui->statusBar->showMessage(tr("Board reset to initial settings."));
         char buf[2] = { (char)OF_Const::sClearFlash, (char)OF_Const::sClearFlash };
         serial.OneShotSend(buf, sizeof(buf));
         ui->comPortSelector->setCurrentIndex(0);
-    } else ui->statusBar->showMessage("Clear operation canceled.", 3000);
+    } else ui->statusBar->showMessage(tr("Clear operation canceled."), 3000);
 }
 
 
@@ -1931,7 +1931,7 @@ void guiWindow::on_baudResetBtn_clicked()
     // QFile::copy("file", picoPath+"file");
 */
 
-    ui->statusBar->showMessage("Board reset to bootloader.", 5000);
+    ui->statusBar->showMessage(tr("Board reset to bootloader."), 5000);
     ui->comPortSelector->setCurrentIndex(0);
 }
 
@@ -1966,12 +1966,12 @@ void guiWindow::serialPort_readyRead()
 
                 if (temp == OF_Const::TEMPERATURE_SENSOR_ERROR_VALUE) {
                     // Sensor error.
-                    ui->tmp36Label->setText("Temperature: FAULT");
+                    ui->tmp36Label->setText(tr("Temperature: FAULT"));
                     ui->tmp36Label->setStyleSheet("color: white; background-color: #FF0000; font: bold");
                     break;
                 }
 
-                ui->tmp36Label->setText(QString("Temperature: %1°C").arg(temp));
+                ui->tmp36Label->setText(tr("Temperature: %1°C").arg(temp));
 
                 if(     temp > App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown])
                     ui->tmp36Label->setStyleSheet("color: white;      background-color: #FF0000; font: bold");
@@ -2014,27 +2014,27 @@ void guiWindow::serialPort_readyRead()
                 case (char)OF_Const::sErrCam:
                     if(caliWindow != nullptr)
                         caliWindow->Shutdown();
-                    serial.ShowError("Device Error: Camera not available!",
-                                     "<p>Data received from the board indicates that the camera is in a bad state.<br>"
-                                     "This can happen if, for example, the camera wires are crossed<br>"
-                                     "(data wire to clock pin, clock wire to data pin),<br>"
-                                     "or the camera pins are wired to a different component,<br>"
-                                     "such as a button or Force Feedback output.</p>"
-                                     "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
-                                     "if they should be mapped different GPIO;<br>"
-                                     "Otherwise, the camera wires must be resoldered to resolve this error.</p>"
-                                     "<p>IR Testing and Calibration will not be available while in this state.</p>",
+                    serial.ShowError(tr("Device Error: Camera not available!"),
+                                     tr("<p>Data received from the board indicates that the camera is in a bad state.<br>"
+                                        "This can happen if, for example, the camera wires are crossed<br>"
+                                        "(data wire to clock pin, clock wire to data pin),<br>"
+                                        "or the camera pins are wired to a different component,<br>"
+                                        "such as a button or Force Feedback output.</p>"
+                                        "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
+                                        "if they should be mapped different GPIO;<br>"
+                                        "Otherwise, the camera wires must be resoldered to resolve this error.</p>"
+                                        "<p>IR Testing and Calibration will not be available while in this state.</p>"),
                                      QMessageBox::Critical);
                     break;
                 case (char)OF_Const::sErrPeriphGeneric:
-                    serial.ShowError("Peripheral Device Error!",
-                                     "<p>Data received from the board indicates that an I2C peripheral device failed to initialize.<br>"
-                                     "This can happen if, for example, the peripheral's wires are crossed<br>"
-                                     "(data wire to clock pin, clock wire to data pin),<br>"
-                                     "or the pins for the peripheral are set to a different component,<br>"
-                                     "such as a button or Force Feedback output.</p>"
-                                     "<p>Confirm that the wires for the peripheral are connected to the correct <i>Peripheral I2C</i> pins<br>"
-                                     "in the <i>Boards Layout</i> tab.</p>",
+                    serial.ShowError(tr("Peripheral Device Error!"),
+                                     tr("<p>Data received from the board indicates that an I2C peripheral device failed to initialize.<br>"
+                                        "This can happen if, for example, the peripheral's wires are crossed<br>"
+                                        "(data wire to clock pin, clock wire to data pin),<br>"
+                                        "or the pins for the peripheral are set to a different component,<br>"
+                                        "such as a button or Force Feedback output.</p>"
+                                        "<p>Confirm that the wires for the peripheral are connected to the correct <i>Peripheral I2C</i> pins<br>"
+                                        "in the <i>Boards Layout</i> tab.</p>"),
                                      QMessageBox::Critical);
                     break;
                 default: break;
@@ -2063,8 +2063,8 @@ void guiWindow::serialPort_readyRead()
                 break;
             case (char)OF_Const::sClearFlash:
                 ui->comPortSelector->setCurrentIndex(0);
-                QMessageBox::information(this, "Successfully reset board settings",
-                                         "Please unplug the board and reinsert it into the PC.");
+                QMessageBox::information(this, tr("Successfully reset board settings"),
+                                         tr("Please unplug the board and reinsert it into the PC."));
                 break;
             }
         }
@@ -2080,7 +2080,7 @@ void guiWindow::serialPort_SearchFinished()
         // if comPort only has "Nothing", safe to add items
         if(ui->comPortSelector->count() == 0) {
             if(serial.currentPorts.count()) {
-                ui->comPortSelector->addItem("[Select a Device to Configure]");
+                ui->comPortSelector->addItem(tr("[Select a Device to Configure]"));
                 ui->comPortSelector->setCurrentIndex(0);
                 for(auto &port : std::as_const(serial.currentPorts))
                     ui->comPortSelector->addItem(port.portName()+" (" + port.description() + ')');
@@ -2113,7 +2113,7 @@ void guiWindow::serialPort_SearchFinished()
                         if(ui->comPortSelector->currentText() == newPort.portName()+" (" + newPort.description() + ')')
                             inList = true;
                     if(!inList) {
-                        statusBar()->showMessage("Current board has been disconnected.");
+                        statusBar()->showMessage(tr("Current board has been disconnected."));
                         ui->comPortSelector->removeItem(1);
                     }
 
@@ -2126,7 +2126,7 @@ void guiWindow::serialPort_SearchFinished()
             // TODO: for whatever reason, this path specifically doesn't kick in under Windows VM?
             } else {
                 if(ui->comPortSelector->currentIndex() > 0)
-                    statusBar()->showMessage("Current board has been disconnected.");
+                    statusBar()->showMessage(tr("Current board has been disconnected."));
                 ui->comPortSelector->clear();
             }
         }
@@ -2147,7 +2147,7 @@ void guiWindow::serialPort_progressSet(const int &range)
 }
 
 
-void guiWindow::serialPort_progressUpdate(const int &pos, const char *statusText)
+void guiWindow::serialPort_progressUpdate(const int &pos, const QString& statusText)
 {
     if(statusProgressBar->isVisible())
         statusProgressBar->setValue(pos);
@@ -2200,11 +2200,11 @@ void guiWindow::CaliWindowExiting(const int &mode,
                    rightOffsetNew  >= -32768 && rightOffsetNew  <= 32768 &&
                    topLeftLedNew   >= -32768 && topLeftLedNew   <= 32768 &&
                    topRightLedNew  >= -32768 && topRightLedNew  <= 32768)
-                    ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " successful", 5000);
-                else ui->statusBar->showMessage("Calibration for Profile " + QString::number(selection+1) + " returned with malformed values.", 10000);
+                    ui->statusBar->showMessage(tr("Calibration for Profile ") + QString::number(selection+1) + tr(" successful"), 5000);
+                else ui->statusBar->showMessage(tr("Calibration for Profile ") + QString::number(selection+1) + tr(" returned with malformed values."), 10000);
 
                 DiffUpdate();
-        } else ui->statusBar->showMessage("Cancelled Calibration for Profile " + QString::number(selection+1), 10000);
+        } else ui->statusBar->showMessage(tr("Cancelled Calibration for Profile ") + QString::number(selection+1), 10000);
         break;
     }
     case AppCaliWindow::modeIRTest:
@@ -2311,7 +2311,7 @@ void guiWindow::on_actionOpen_IR_Emitter_Alignment_Assistant_triggered()
 void guiWindow::on_actionImport_Custom_Layout_triggered()
 {
     QString path = QFileDialog::getOpenFileName(this,
-                                                "Save New Layout",
+                                                tr("Open New Layout"),
                                                 QDir::homePath(),
                                                 "OpenFIRE Layout Files (*.ofl)");
 
@@ -2340,19 +2340,19 @@ void guiWindow::on_actionImport_Custom_Layout_triggered()
                 if(App_Common::inputsMap.value(OF_Const::rumblePin) >= 0)
                     ui->rumbleToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
 
-                ui->statusBar->showMessage("Successfully imported custom layout!", 5000);
-            } else QMessageBox::warning(this, "Board Doesn't Match",
-                                              "Custom layout file is not compatible with this board.");
-        } else QMessageBox::warning(this, "File Read Error",
-                                          "Custom layout file could not be read.");
-    } else ui->statusBar->showMessage("Canceled custom layout load operation.", 5000);
+                ui->statusBar->showMessage(tr("Successfully imported custom layout!"), 5000);
+            } else QMessageBox::warning(this, tr("Board Doesn't Match"),
+                                              tr("Custom layout file is not compatible with this board."));
+        } else QMessageBox::warning(this, tr("File Read Error"),
+                                          tr("Custom layout file could not be read."));
+    } else ui->statusBar->showMessage(tr("Canceled custom layout load operation."), 5000);
 }
 
 
 void guiWindow::on_actionExport_Custom_Layout_triggered()
 {
     QString path = QFileDialog::getSaveFileName(this,
-                                                "Save New Layout",
+                                                tr("Save New Layout"),
                                                 QDir::homePath(),
                                                 "OpenFIRE Layout Files (*.ofl)");
 
@@ -2369,10 +2369,10 @@ void guiWindow::on_actionExport_Custom_Layout_triggered()
             }
 
             fileOut.close();
-            ui->statusBar->showMessage("Custom layout export successful!", 5000);
-        } else QMessageBox::warning(this, "File Write Error",
-                                          "Custom layout file could not be written.");
-    } else ui->statusBar->showMessage("Canceled custom layout save operation.", 5000);
+            ui->statusBar->showMessage(tr("Custom layout export successful!"), 5000);
+        } else QMessageBox::warning(this, tr("File Write Error"),
+                                          tr("Custom layout file could not be written."));
+    } else ui->statusBar->showMessage(tr("Canceled custom layout save operation."), 5000);
 }
 
 
