@@ -184,7 +184,7 @@ private slots:
 
     void serialPort_progressSet(const int &);
 
-    void serialPort_progressUpdate(const int &, const char* = nullptr);
+    void serialPort_progressUpdate(const int &, const QString& = nullptr);
 
     void on_actionShow_Unsafe_Settings_toggled(bool arg1);
 
