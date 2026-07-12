@@ -40,9 +40,9 @@ When a board(s) is connected, select the port corresponding to your microcontrol
 ### For Linux:
 #### Arch: requires `qtX-base` `qtX-serialport` `qtX-svg` for your desired Qt version.
 #### Debian: requires `build-essential` `cmake` `qttools5-dev` `libqt5serialport5-dev` `libqt5svg5-dev` (either Qt5 or Qt6 libraries)
- - Clone the repo:
+ - Clone the repo (including the contents of [`boards/`](https://github.com/TeamOpenFIRE/OpenFIRE-Boards)):
    ```
-   git clone https://github.com/TeamOpenFIRE/OpenFIRE-App
+   git clone https://github.com/TeamOpenFIRE/OpenFIRE-App --recursive
    ```
  - Setup build directory:
    ```
