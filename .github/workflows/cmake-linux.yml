@@ -44,7 +44,7 @@ jobs:
             qt_version: 6.8.3
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: 'true'
 
@@ -55,14 +55,14 @@ jobs:
     # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt(5)
       if: ${{ matrix.qt_version == '5.15.2' }}
-      uses: jdpurcell/install-qt-action@v5
+      uses: jurplel/install-qt-action@v4
       with:
         version: '${{ matrix.qt_version }}'
         archives: 'qtbase qtwayland qttranslations qttools qtsvg qtserialport icu'
         cache: true
     - name: Install Qt(6)
       if: ${{ matrix.qt_version != '5.15.2' }}
-      uses: jdpurcell/install-qt-action@v5
+      uses: jurplel/install-qt-action@v4
       with:
         version: '${{ matrix.qt_version }}'
         host: '${{ matrix.qt_host }}'
@@ -102,11 +102,11 @@ jobs:
       working-directory: ${{ github.workspace }}/build
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         # Artifact name
         name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }}-${{ matrix.build_type }}
         path: "OpenFIRE_App-${{matrix.sys_arch}}.AppImage"
 
     - name: Download a Build Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
