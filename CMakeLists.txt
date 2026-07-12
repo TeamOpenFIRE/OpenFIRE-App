@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 cmake_policy(VERSION 3.5)
 
 project(OpenFIREapp
-        VERSION 3.0.2
+        VERSION 3.0.3
         DESCRIPTION "OpenFIRE Configuration Desktop App"
         LANGUAGES CXX)
 set(OFAPP_CODENAME "Tokinomiya")
@@ -52,6 +52,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Con
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
+        translation/AppTranslations_it_IT.ts
 )
 
 set(PROJECT_SOURCES
@@ -86,15 +87,16 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
-    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-
+    qt_add_translations(
+        TARGETS OpenFIREapp
+        TS_FILES ${TS_FILES}
+    )
 else()
     add_executable(OpenFIREapp
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-
 endif()
 
 target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort)

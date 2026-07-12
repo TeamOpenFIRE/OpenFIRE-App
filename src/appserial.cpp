@@ -92,7 +92,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                 if(buffer.size() >= 3) {
                     emit Serial_SetProgressRange(6);
-                    emit Serial_ProgressUpdate(1, "Getting Board Info");
+                    emit Serial_ProgressUpdate(1, tr("Getting Board Info"));
 
                     ////* Opening board message bits *////
                     App_Common::board.version = buffer.takeFirst().constData();
@@ -109,15 +109,15 @@ bool AppSerial::GetSettings(const QString &portName)
                     memcpy(&App_Common::tinyUSBtable_orig, &App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
                     
                     if(buffer.size()) if(buffer.takeFirst().at(0) == (char)OF_Const::sError)
-                        ShowError("Device Error: Camera not available!",
-                                  "<p>Data received from the board indicates that the camera is in a bad state.<br>"
+                        ShowError(tr("Device Error: Camera not available!"),
+                                  tr("<p>Data received from the board indicates that the camera is in a bad state.<br>"
                                   "This can happen if, for example, the camera wires are crossed<br>"
                                   "(data wire to clock pin, clock wire to data pin),<br>"
                                   "or the camera pins are wired to a different component,<br>"
                                   "such as a button or Force Feedback output.</p>"
                                   "<p>You are able to change the camera pins in the <i>Boards Layout</i> tab<br>"
                                   "if they should be mapped different GPIO;<br>"
-                                  "Otherwise, the camera wires must be resoldered to resolve this error.</p>",
+                                  "Otherwise, the camera wires must be resoldered to resolve this error.</p>"),
                                   QMessageBox::Warning);
 
                     port.clear();
@@ -134,7 +134,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                App_Common::boolSettings[App_Common::dataCurrent],
                                sizeof(App_Common::boolSettings[App_Common::dataCurrent]));
 
-                        emit Serial_ProgressUpdate(2, "Getting Settings (1)");
+                        emit Serial_ProgressUpdate(2, tr("Getting Settings (1)"));
 
                         ////* pins *////
                         if(App_Common::boolSettings[App_Common::dataCurrent][OF_Const::customPins]) {
@@ -155,7 +155,7 @@ bool AppSerial::GetSettings(const QString &portName)
 
                         App_Common::inputsMap = App_Common::inputsMap_orig;
 
-                        emit Serial_ProgressUpdate(3, "Getting Settings (2)");
+                        emit Serial_ProgressUpdate(3, tr("Getting Settings (2)"));
 
                         ////* settings *////
                         port.clear();
@@ -171,7 +171,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                    App_Common::settingsTable[App_Common::dataCurrent],
                                    sizeof(App_Common::settingsTable[App_Common::dataCurrent]));
 
-                            emit Serial_ProgressUpdate(4, "Getting Button Mappings");
+                            emit Serial_ProgressUpdate(4, tr("Getting Button Mappings"));
 
                             ////* buttons *////
                             port.clear();
@@ -187,7 +187,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                        App_Common::inputFuncTable[App_Common::dataCurrent],
                                        sizeof(App_Common::inputFuncTable[App_Common::dataCurrent]));
 
-                                emit Serial_ProgressUpdate(5, "Getting Profiles Data");
+                                emit Serial_ProgressUpdate(5, tr("Getting Profiles Data"));
 
                                 ////* profiles *////
                                 App_Common::profilesTable.clear(), App_Common::profilesTable_orig.clear();
@@ -197,7 +197,7 @@ bool AppSerial::GetSettings(const QString &portName)
                                     if(BatchStoreSettings(nullptr, App_Common::OFPresets.profSettingTypes_Strings, sizeof(float))) {
                                         App_Common::profilesTable_orig = App_Common::profilesTable;
                                         App_Common::board.previousProfile = App_Common::board.selectedProfile;
-                                        emit Serial_ProgressUpdate(6, "Successfully synced data!");
+                                        emit Serial_ProgressUpdate(6, tr("Successfully synced data!"));
                                         port.clear();
                                         return true;
                                     } else return false;
@@ -223,17 +223,17 @@ bool AppSerial::GetSettings(const QString &portName)
                     return false;
                 }
             } else {
-                QMessageBox::warning(nullptr,   "Data hasn't arrived! (Stale state?)",
-                                                "Device was detected, but initial settings request wasn't received in time!\n"
+                QMessageBox::warning(nullptr,   tr("Data hasn't arrived! (Stale state?)"),
+                                                tr("Device was detected, but initial settings request wasn't received in time!\n"
                                                 "This can happen if the app was unexpectedly closed and the gun is in a stale docked state.\n\n"
-                                                "Try selecting the device again.");
+                                                "Try selecting the device again."));
                 RequestToReboot();
                 return false;
             }
         } else {
-            QMessageBox::warning(nullptr,   "Serial port is already in use!",
-                                            "This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
-                                            "Please close the offending application and try selecting this port again.");
+            QMessageBox::warning(nullptr,   tr("Serial port is already in use!"),
+                                            tr("This usually indicates that the port is being used by something else, e.g. Arduino IDE's serial monitor, or another command line app (stty, screen).\n\n"
+                                            "Please close the offending application and try selecting this port again."));
             return false;
         }
     } else return false;
@@ -362,7 +362,7 @@ bool AppSerial::CommitSettings()
         char message[2] = { (char)OF_Const::sCommitStart, true };
         if(OneShotSend(message, sizeof(message), true)) {
             // in case board sends a stale temp/analog state response.
-            emit Serial_ProgressUpdate(0, "Waiting for board...");
+            emit Serial_ProgressUpdate(0, tr("Waiting for board..."));
             do {
                 if(port.read(1).at(0) == (char)OF_Const::sCommitStart) break;
                 if(!port.bytesAvailable()) if(!port.waitForReadyRead(1000)) break;
@@ -370,14 +370,14 @@ bool AppSerial::CommitSettings()
 
             port.clear();
 
-            emit Serial_ProgressUpdate(1, "Sending Toggles...");
+            emit Serial_ProgressUpdate(1, tr("Sending Toggles..."));
             if(!BatchSendSettings(App_Common::boolSettings[App_Common::dataCurrent],
                                   App_Common::OFPresets.boolTypes_Strings,
                                   sizeof(App_Common::boolSettings[App_Common::dataCurrent]) / OF_Const::boolTypesCount))
                 return false;
 
             if(App_Common::boolSettings[OF_Const::customPins]) {
-                emit Serial_ProgressUpdate(2, "Sending Pins Map...");
+                emit Serial_ProgressUpdate(2, tr("Sending Pins Map..."));
                 // convert pins map to temp buffer
                 int8_t inputMapFW[OF_Const::boardInputsCount];
                 for(size_t i = 0; i < OF_Const::boardInputsCount; ++i)
@@ -389,19 +389,19 @@ bool AppSerial::CommitSettings()
                     return false;
             }
 
-            emit Serial_ProgressUpdate(3, "Sending Settings...");
+            emit Serial_ProgressUpdate(3, tr("Sending Settings..."));
             if(!BatchSendSettings(App_Common::settingsTable[App_Common::dataCurrent],
                                   App_Common::OFPresets.settingsTypes_Strings,
                                   sizeof(App_Common::settingsTable[App_Common::dataCurrent]) / OF_Const::settingsTypesCount))
                 return false;
 
-            emit Serial_ProgressUpdate(4, "Sending Buttons...");
+            emit Serial_ProgressUpdate(4, tr("Sending Buttons..."));
             if(!BatchSendSettings(App_Common::inputFuncTable[App_Common::dataCurrent],
                                   App_Common::OFPresets.boardInputs_Strings,
                                   sizeof(App_Common::inputFuncTable[App_Common::dataCurrent]) / BUTTON_COUNT))
                 return false;
 
-            emit Serial_ProgressUpdate(5, "Sending Profile Data...");
+            emit Serial_ProgressUpdate(5, tr("Sending Profile Data..."));
             for(size_t i = 0; i < App_Common::profilesTable.count(); ++i) {
                 if(!BatchSendSettings(&App_Common::profilesTable[i],
                                       App_Common::OFPresets.profSettingTypes_Strings,
@@ -410,7 +410,7 @@ bool AppSerial::CommitSettings()
                     return false;
             }
 
-            emit Serial_ProgressUpdate(6, "Sending TinyUSB ID Data...");
+            emit Serial_ProgressUpdate(6, tr("Sending TinyUSB ID Data..."));
             TXbuf[0] = (char)OF_Const::sCommitID;
             memcpy(&TXbuf[1], (uint8_t*)&App_Common::tinyUSBtable, sizeof(App_Common::tinyUSBtable_s));
             for(size_t sendAttempt = 1;; ++sendAttempt) {
@@ -422,7 +422,7 @@ bool AppSerial::CommitSettings()
                 } else return false;
             }
 
-            emit Serial_ProgressUpdate(7, "Saving...");
+            emit Serial_ProgressUpdate(7, tr("Saving..."));
             if(OneShotSend((char)OF_Const::sSave, true)) {
                 if(char newBuf[2] = {(char)OF_Const::sSave, (char)true}; memcmp(port.read(2).constData(), newBuf, sizeof(newBuf)) == 0) {
                     emit Serial_ProgressUpdate(8);
@@ -506,11 +506,11 @@ void AppSerial::Disconnect()
 
 void AppSerial::RequestToReboot()
 {
-    if(QMessageBox::critical(nullptr, "Reset Board to Bootloader?",
-                                      "<p>The board you selected did not respond to the app properly.</p>"
+    if(QMessageBox::critical(nullptr, tr("Reset Board to Bootloader?"),
+                                      tr("<p>The board you selected did not respond to the app properly.</p>"
                                       "<p>This can usually be resolved by rebooting the microcontroller to its bootloader, and then updating the board to the latest firmware, which can be found at:</p>"
                                       "<p><a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/releases/latest'><span style=' text-decoration: underline; color:#8ab4f8;'>https://github.com/TeamOpenFIRE/OpenFIRE-Firmware/releases/latest</span></a></p>"
-                                      "<p>Would you like to reboot this board to apply an update?</p>",
+                                      "<p>Would you like to reboot this board to apply an update?</p>"),
                                       QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
         RebootToBootldr();
 }

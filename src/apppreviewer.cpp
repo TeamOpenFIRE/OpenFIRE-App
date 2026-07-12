@@ -117,14 +117,14 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
     for(auto &board : App_Common::OFPresets.boardNames) {
         if(!strcmp(board.second, arg1.toLocal8Bit().constData())) {
             if(board.first.find("esp32") != std::string::npos) {
-                ui->subTextLabel->setText("<p>Compatible with the "
-                                          "<a href='https://github.com/alessandro-satanassi/OpenFIRE-Firmware-ESP32'><span style=' text-decoration: underline; color:#8ab4f8;'>ESP-IDF fork of the OpenFIRE Firmware</span></a> by <i>Alessandro Satanassi.</i><br>"
-                                          "Any issues should be reported <b><a href='https://github.com/alessandro-satanassi/OpenFIRE-Firmware-ESP32/issues'><span style=' text-decoration: underline; color:#8ab4f8;'>here!</span></a></b></p>");
+                ui->subTextLabel->setText(tr("<p>Compatible with the "
+                                             "<a href='https://github.com/alessandro-satanassi/OpenFIRE-Firmware-ESP32'><span style=' text-decoration: underline; color:#8ab4f8;'>ESP-IDF fork of the OpenFIRE Firmware</span></a> by <i>Alessandro Satanassi.</i><br>"
+                                             "Any issues should be reported <b><a href='https://github.com/alessandro-satanassi/OpenFIRE-Firmware-ESP32/issues'><span style=' text-decoration: underline; color:#8ab4f8;'>here!</span></a></b></p>"));
                 // NOTE: if we get any non-S3 boards, will need to determine if S3 or other arch-type ESP board.
                 boardType = OF_Const::boardESP32_S3;
             } else {
-                ui->subTextLabel->setText("<p>Compatible with "
-                                          "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware'><span style=' text-decoration: underline; color:#8ab4f8;'>upstream OpenFIRE Firmware</span></a> by <i>Team OpenFIRE.</i></p>");
+                ui->subTextLabel->setText(tr("<p>Compatible with "
+                                             "<a href='https://github.com/TeamOpenFIRE/OpenFIRE-Firmware'><span style=' text-decoration: underline; color:#8ab4f8;'>upstream OpenFIRE Firmware</span></a> by <i>Team OpenFIRE.</i></p>"));
                 boardType = OF_Const::boardRP;
             }
 
@@ -200,16 +200,16 @@ void AppBoardsPreviewer::on_boardSelector_currentTextChanged(const QString &arg1
                 pinLabel.at(i)->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
                 pinLabel.at(i)->setProperty("slot", i);
                 pinLabel.at(i)->installEventFilter(this);
-                pinLabel.at(i)->setToolTip(QString("GPIO Pin No. %1.\n\n"
-                                                   "Blue pin numbers are members of I2C0.\n"
-                                                   "Orange are members of I2C1.\n"
-                                                   "Purple pin numbers can automatically select any I2C channel in software.\n"
-                                                   "Gray cannot use I2C devices.").arg(i));
+                pinLabel.at(i)->setToolTip(tr("GPIO Pin No. %1.\n\n"
+                                              "Blue pin numbers are members of I2C0.\n"
+                                              "Orange are members of I2C1.\n"
+                                              "Purple pin numbers can automatically select any I2C channel in software.\n"
+                                              "Gray cannot use I2C devices.").arg(i));
 
-                pinCapabilityMarks.at(i)->setToolTip("ADC indicates whether this pin can read Analog Inputs.\n"
-                                                     "I2C indicates if this pin can interact with I2C devices, and what channel and type it uses.\n"
-                                                     "SPI indicates if this pin can interact with SPI devices, and what channel and type it uses.\n"
-                                                     "(*) means pin can use any type via automated software selectable channels/type.");
+                pinCapabilityMarks.at(i)->setToolTip(tr("ADC indicates whether this pin can read Analog Inputs.\n"
+                                                        "I2C indicates if this pin can interact with I2C devices, and what channel and type it uses.\n"
+                                                        "SPI indicates if this pin can interact with SPI devices, and what channel and type it uses.\n"
+                                                        "(*) means pin can use any type via automated software selectable channels/type."));
             }
 
             // Drawing the actual board view page by referencing the board maps data from OpenFIREshared.h

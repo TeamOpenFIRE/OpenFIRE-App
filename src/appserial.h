@@ -107,7 +107,7 @@ public:
     void RebootToBootldr();
 
     /// @brief      Show error message popup regarding serial
-    void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
+    void ShowError(const QString& titleText, const QString& text, const QMessageBox::Icon icon = QMessageBox::Warning) {
         if(!syncError.isVisible()) {
             syncError.setWindowTitle(titleText);
             syncError.setText(text);
@@ -127,7 +127,7 @@ signals:
     void Serial_SetProgressRange(const int &);
 
     /// @brief
-    void Serial_ProgressUpdate(const int &, const char* = nullptr);
+    void Serial_ProgressUpdate(const int &, const QString& = nullptr);
 };
 
 #endif // APPSERIAL_H
