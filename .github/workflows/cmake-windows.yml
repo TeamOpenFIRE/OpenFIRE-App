@@ -21,7 +21,7 @@ jobs:
             cmake_gen: "MinGW Makefiles"
             pretty: "Windows Artifact (MinGW)"
           - win_arch: win64_msvc2022_64
-            cmake_gen: "Visual Studio 17 2022"
+            cmake_gen: "Visual Studio 18 2026"
             pretty: "Windows Artifact (MSVC)"
         # MSVC insists on being weird with its Debug path, and can't be assed to fix it
         exclude:
@@ -29,7 +29,7 @@ jobs:
             build_type: Debug
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: 'true'
 
@@ -37,9 +37,8 @@ jobs:
       id: get-short-sha
       run: echo "id=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
 
-    # TODO: using install-qt-action fork until https://github.com/jurplel/install-qt-action/issues/248 is resolved & merged
     - name: Install Qt6
-      uses: jdpurcell/install-qt-action@v5
+      uses: jurplel/install-qt-action@v4
       with:
         version: '6.8.3'
         arch: '${{ matrix.win_arch }}'
@@ -67,7 +66,7 @@ jobs:
         mv "${{ github.workspace }}/build/out/bin" "${{ github.workspace }}/build/out/OpenFIRE App"
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         # Artifact name
         name: OpenFIREapp-${{ matrix.pretty }}-Qt6-${{ matrix.build_type }} # optional, default is artifact
@@ -75,4 +74,4 @@ jobs:
         path: build/out
 
     - name: Download a Build Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
