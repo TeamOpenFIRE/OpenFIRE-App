@@ -958,6 +958,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->tempShutoffBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::tempShutdown]);
 
             ui->i2cOLEDtoggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::i2cOLED]);
+            if(App_Common::settingsTable[App_Common::dataOrig][OF_Const::i2cOLED]) ui->i2cOLEDtypeBox->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::i2cOLEDType]);
             ui->oledAltAddrsToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::i2cOLEDaltAddr]);
 
             ui->neopixelStrandLengthBox->setValue(App_Common::settingsTable[App_Common::dataOrig][OF_Const::customLEDcount]);
@@ -1600,10 +1601,19 @@ void guiWindow::on_i2cOLEDtoggle_stateChanged(int arg1)
 {
     App_Common::boolSettings[App_Common::dataCurrent][OF_Const::i2cOLED] = arg1;
     ui->oledGroup->setEnabled(arg1);
+    if(arg1)
+        ui->i2cGroup->setVisible(App_Common::settingsTable[App_Common::dataCurrent][OF_Const::i2cOLEDType] == OF_Const::I2Cdisp_SSD1306
+                                                                                                                ? true : false);
 
     DiffUpdate();
 }
 
+void guiWindow::on_i2cOLEDtypeBox_currentIndexChanged(int index)
+{
+    // index offset shift (TODO: might be changed)
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::i2cOLEDType] = index;
+    ui->i2cGroup->setVisible(index == OF_Const::I2Cdisp_SSD1306 ? true : false);
+}
 
 void guiWindow::on_oledAltAddrsToggle_stateChanged(int arg1)
 {
