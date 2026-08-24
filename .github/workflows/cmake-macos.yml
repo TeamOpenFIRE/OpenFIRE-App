@@ -1,0 +1,88 @@
+name: CMake - macOS DMGs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        os: [macos-latest]
+        qt_version: [6.9.2]
+        build_type: [Debug, Release]
+        include:
+          - os: macos-latest
+            qt_host: mac
+            qt_arch: clang_64
+            sys_arch: universal
+            pretty: "macOS Universal DMG"
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'true'
+
+    - name: Get short SHA
+      id: get-short-sha
+      run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Install Qt6
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '${{ matrix.qt_version }}'
+        host: '${{ matrix.qt_host }}'
+        arch: '${{ matrix.qt_arch }}'
+        modules: 'qtserialport'
+        archives: 'qtbase qttranslations qttools qtsvg'
+        cache: true
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -B "${{ github.workspace }}/build"
+        -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}"
+        -DOFAPP_GITHASH="${{steps.get-short-sha.outputs.id}}"
+        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        -S "${{ github.workspace }}"
+
+    - name: Build
+      # Build your program with the given configuration. Note that --config is needed if using a multi-config generator (such as Xcode on macOS).
+      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
+
+    - name: Deploy macOS App & DMG
+      run: |
+        cmake --install "${{ github.workspace }}/build" --prefix "${{ github.workspace }}/build/out"
+        APP_BUNDLE="${{ github.workspace }}/build/out/OpenFIREapp.app"
+        if [ ! -d "$APP_BUNDLE" ]; then
+          echo "Application bundle not found!"
+          exit 1
+        fi
+        echo "==== Verifying Universal Binary ===="
+        file "$APP_BUNDLE/Contents/MacOS/OpenFIREapp"
+        lipo -info "$APP_BUNDLE/Contents/MacOS/OpenFIREapp"
+        echo "===================================="
+        macdeployqt "$APP_BUNDLE" -dmg
+        DMG="${{ github.workspace }}/build/out/OpenFIREapp.dmg"
+        if [ ! -f "$DMG" ]; then
+          echo "DMG was not created!"
+          exit 1
+        fi
+        mv "$DMG" "${{ github.workspace }}/build/out/OpenFIREapp-${{ matrix.sys_arch }}.dmg"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        # Artifact name
+        name: OpenFIREapp-${{ matrix.pretty }}-Qt${{ matrix.qt_version }}-${{ matrix.build_type }}
+        # A file, directory or wildcard pattern that describes what to upload
+        path: build/out/OpenFIREapp-${{ matrix.sys_arch }}.dmg
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v8
