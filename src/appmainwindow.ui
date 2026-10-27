@@ -1432,7 +1432,7 @@
                   <string/>
                  </property>
                  <property name="whatsThis">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; to select, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting determines how Pause Mode functions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Enabled,&lt;/span&gt; Pause Mode will use a scrolling menu layout - navigate by using the &lt;span style=&quot; font-style:italic;&quot;&gt;D-pad Up/Down&lt;/span&gt; if the gun has a D-pad &lt;span style=&quot; font-style:italic;&quot;&gt;(i.e. both Up and Down are mapped to a pin)&lt;/span&gt;, or &lt;span style=&quot; font-style:italic;&quot;&gt;Button A/B&lt;/span&gt; otherwise, and press Trigger to activate.&lt;br/&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;When Disabled,&lt;/span&gt; Pause Menu options are activated with hotkeys.&lt;/p&gt;&lt;p&gt;Enabled is recommended for guns &lt;span style=&quot; font-weight:700;&quot;&gt;with less than two sub buttons,&lt;/span&gt; but &lt;span style=&quot; font-weight:700;&quot;&gt;requires an LED or OLED Display for visual feedback!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="accessibleName">
                   <string>Simple Pause Menu Toggle</string>
@@ -2258,7 +2258,7 @@
              <height>612</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_10" stretch="0,0,0,1,0,0">
+           <layout class="QVBoxLayout" name="verticalLayout_10" stretch="0,0,0,1">
             <property name="leftMargin">
              <number>4</number>
             </property>
@@ -2465,50 +2465,230 @@
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="Line" name="line_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="dangerZoneBox">
-              <property name="title">
-               <string>Board Actions</string>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0">
-               <item>
-                <widget class="QPushButton" name="baudResetBtn">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="text">
-                  <string>Reboot to Bootloader</string>
-                 </property>
-                 <property name="icon">
-                  <iconset theme="system-reboot"/>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="clearEepromBtn">
-                 <property name="styleSheet">
-                  <string notr="true">color: red;</string>
-                 </property>
-                 <property name="text">
-                  <string>Clear Save Memory [!]</string>
-                 </property>
-                 <property name="icon">
-                  <iconset theme="edit-delete"/>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="firmwareTab">
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <attribute name="icon">
+        <iconset theme="system-software-update"/>
+       </attribute>
+       <attribute name="title">
+        <string>Gun Firmware</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="firmwareLayout">
+        <item>
+         <spacer name="firmwareSpacerTop">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="firmwareStatusLabel">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="firmwareDetailLabel">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="firmwareJobLabel">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="margin">
+           <number>10</number>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="firmwareProgress">
+          <property name="visible">
+           <bool>false</bool>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="firmwareButtonsLayout">
+          <item>
+           <spacer name="firmwareButtonsSpacerLeft">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="firmwareInstallBtn">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Download and Install Update</string>
+            </property>
+            <property name="icon">
+             <iconset theme="system-software-update"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="firmwareLocalBtn">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Install a firmware file (.uf2) from your computer, for example a self-built or older version.</string>
+            </property>
+            <property name="text">
+             <string>Install from File...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="document-open"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="firmwareCancelBtn">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Cancel</string>
+            </property>
+            <property name="icon">
+             <iconset theme="process-stop"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="firmwareButtonsSpacerRight">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="firmwareSpacerBottom">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="dangerZoneBox">
+          <property name="title">
+           <string>Board Actions</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0">
+           <item>
+            <widget class="QPushButton" name="baudResetBtn">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Reboot to Bootloader</string>
+             </property>
+             <property name="icon">
+              <iconset theme="system-reboot"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clearEepromBtn">
+             <property name="styleSheet">
+              <string notr="true">color: red;</string>
+             </property>
+             <property name="text">
+              <string>Clear Save Memory [!]</string>
+             </property>
+             <property name="icon">
+              <iconset theme="edit-delete"/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>

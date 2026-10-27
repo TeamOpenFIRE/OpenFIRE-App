@@ -36,6 +36,10 @@
 #include <QInputDialog>
 #include <QDesktopServices>
 #include <QFontDatabase>
+#include <QScreen>
+#include <QScrollArea>
+#include <QStandardPaths>
+#include <QStackedWidget>
 #include <QUrl>
 
 guiWindow::guiWindow(QWidget *parent)
@@ -75,9 +79,26 @@ guiWindow::guiWindow(QWidget *parent)
 
     connect(&aliveTimer, &QTimer::timeout, this, &guiWindow::aliveTimer_timeout);
 
+    // Look up the latest firmware release in the background; the app doesn't wait for it.
+    connect(&updater, &AppUpdate::Finished, this, &guiWindow::updater_finished);
+    updater.CheckLatest();
+    FirmwareTabUpdate();
+
+    // Firmware installation
+    connect(&flasher, &AppFlash::Status, ui->firmwareJobLabel, &QLabel::setText);
+    connect(&flasher, &AppFlash::Progress, this, &guiWindow::flasher_progress);
+    connect(&flasher, &AppFlash::StateChanged, this, &guiWindow::flasher_stateChanged);
+    connect(&flasher, &AppFlash::ConfirmRequested, this, &guiWindow::flasher_confirmRequested);
+    connect(&flasher, &AppFlash::Finished, this, &guiWindow::flasher_finished);
+    gunWaitTimer.setSingleShot(true);
+    connect(&gunWaitTimer, &QTimer::timeout, this, &guiWindow::gunWaitTimer_timeout);
+
     // Start initial serial search
     aliveTimer.start(ALIVE_TIMER);
     aliveTimer_timeout();
+
+    // Once shown (so sizes are known), make sure the tab bar isn't cut off
+    QTimer::singleShot(0, this, [this]() { FitWindowToContent(false); });
 
 #ifdef OFAPP_GITHASH
     this->setWindowTitle("OpenFIRE App - " + QString(OFAPP_CODENAME) + " [v" + QString(OFAPP_VERSION) + '-' + QString(OFAPP_GITHASH) + ']');
@@ -245,8 +266,8 @@ guiWindow::guiWindow(QWidget *parent)
     statusProgressBar->setVisible(false);
     ui->statusBar->addPermanentWidget(statusProgressBar);
 
-    // Disable ONLY the tab widget (doing this from the form also disables children, including the scroll area)
-    ui->tabWidget->setEnabled(false);
+    // Nothing to configure until a gun is connected (the Gun Firmware tab stays available)
+    DeviceTabsSetEnabled(false);
 
     // light mode styling adjustments:
     if(this->palette().window().color().value() > this->palette().text().color().value()) {
@@ -419,6 +440,355 @@ void guiWindow::DiffUpdate()
         ui->confirmButton->setEnabled(false);
         ui->confirmButton->setIcon(QIcon());
     }
+}
+
+
+void guiWindow::FitWindowToContent(bool includeContent)
+{
+    // How much more room does each tab's content want than its scroll area currently has?
+    int growW = ui->tabWidget->tabBar()->sizeHint().width() - ui->tabWidget->tabBar()->width();
+    int growH = 0;
+
+    for(const auto &area : ui->tabWidget->findChildren<QScrollArea*>()) {
+        if(!includeContent)
+            break;
+
+        if(area->widget() == nullptr || area->parentWidget() == nullptr || area->parentWidget()->parentWidget() == nullptr)
+            continue;
+
+        // only the scroll areas that make up a tab
+        if(qobject_cast<QStackedWidget*>(area->parentWidget()->parentWidget()) == nullptr)
+            continue;
+
+        const QSize want = area->widget()->sizeHint();
+        const QSize have = area->viewport()->size();
+        growW = qMax(growW, want.width() - have.width());
+        growH = qMax(growH, want.height() - have.height());
+    }
+
+    if(growW <= 0 && growH <= 0)
+        return;
+
+    // keep the whole window (incl. title bar and borders) inside the screen...
+    const QScreen *screen = this->screen();
+    if(screen == nullptr)
+        return;
+
+    // ...and not take over the whole screen either: whatever still doesn't fit is reachable by scrolling.
+    constexpr double maxScreenShare = 0.8;
+    const QRect avail = screen->availableGeometry();
+    const QSize frameExtra = this->frameGeometry().size() - this->size();
+    const QSize newSize(qMin(this->width()  + qMax(growW, 0), static_cast<int>(avail.width()  * maxScreenShare) - frameExtra.width()),
+                        qMin(this->height() + qMax(growH, 0), static_cast<int>(avail.height() * maxScreenShare) - frameExtra.height()));
+
+    if(newSize.width() > this->width() || newSize.height() > this->height()) {
+        this->resize(newSize.expandedTo(this->size()));
+
+        // growing from the top-left corner may have pushed the window off-screen
+        QRect frame = this->frameGeometry();
+        this->move(qMax(avail.left(), qMin(frame.x(), avail.right()  - frame.width()  + 1)),
+                   qMax(avail.top(),  qMin(frame.y(), avail.bottom() - frame.height() + 1)));
+    }
+}
+
+
+void guiWindow::on_firmwareInstallBtn_clicked()
+{
+    const QString assetName = AppFlash::AssetNameForBoard(App_Common::board.type);
+    const AppUpdate::Asset *asset = assetName.isEmpty() ? nullptr : updater.FindAsset(assetName);
+    if(asset == nullptr || updater.state() != AppUpdate::stateSuccess || flasher.IsActive())
+        return;
+
+    QString info = tr("The firmware file for your board (%1) is downloaded from GitHub and checked before anything is written. "
+                      "You are then asked to put the gun into bootloader mode and to confirm the drive it shows up as.\n\n"
+                      "The gun does not work as a lightgun until the update is finished.").arg(asset->name);
+
+    if(ui->confirmButton->isEnabled())
+        info += "\n\n" + tr("You have unsaved changes: they are lost when the gun restarts. Save them first if you want to keep them.");
+
+    QMessageBox messageBox;
+    messageBox.setText(tr("Install firmware %1?").arg(updater.latestTag()));
+    messageBox.setInformativeText(info);
+    messageBox.setWindowTitle(tr("Firmware Update"));
+    messageBox.setIcon(QMessageBox::Question);
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+
+    if(messageBox.exec() != QMessageBox::Yes)
+        return;
+
+    flasher.Start(asset->url, asset->size, asset->sha256, asset->name, AppFlash::ChipForBoard(App_Common::board.type));
+}
+
+
+void guiWindow::on_firmwareLocalBtn_clicked()
+{
+    if(flasher.IsActive())
+        return;
+
+    const QString path = QFileDialog::getOpenFileName(this, tr("Select Firmware File"),
+                                                      QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                                                      tr("UF2 firmware files (*.uf2);;All files (*)"));
+    if(path.isEmpty())
+        return;
+
+    QString info = tr("The file is checked before anything is written. "
+                      "You are then asked to put the gun into bootloader mode and to confirm the drive it shows up as.\n\n"
+                      "The gun does not work as a lightgun until the update is finished.\n\n"
+                      "Only use firmware that is made for your board and comes from a source you trust.");
+
+    if(ui->confirmButton->isEnabled())
+        info += "\n\n" + tr("You have unsaved changes: they are lost when the gun restarts. Save them first if you want to keep them.");
+
+    QMessageBox messageBox;
+    messageBox.setText(tr("Install firmware from %1?").arg(QFileInfo(path).fileName()));
+    messageBox.setInformativeText(info);
+    messageBox.setWindowTitle(tr("Firmware Update"));
+    messageBox.setIcon(QMessageBox::Question);
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+
+    if(messageBox.exec() != QMessageBox::Yes)
+        return;
+
+    // the chip of the connected gun, if there is one, so that a file for another chip is turned down
+    flasher.StartLocal(path, AppFlash::ChipForBoard(App_Common::board.type));
+}
+
+
+void guiWindow::on_firmwareCancelBtn_clicked()
+{
+    flasher.Cancel();
+}
+
+
+void guiWindow::flasher_progress(qint64 done, qint64 total)
+{
+    if(total < 0) {
+        ui->firmwareProgress->setVisible(false);
+        return;
+    }
+
+    ui->firmwareProgress->setVisible(true);
+    if(total == 0) {
+        ui->firmwareProgress->setRange(0, 0);
+    } else {
+        ui->firmwareProgress->setRange(0, 100);
+        ui->firmwareProgress->setValue(static_cast<int>(qMin<qint64>(done * 100 / total, 100)));
+    }
+}
+
+
+void guiWindow::flasher_stateChanged(AppFlash::State state)
+{
+    // The gun's serial port goes away for the update. Remember how many there are then, to notice when it's back.
+    if(state == AppFlash::stateCopying) {
+        gunWaiting = true;
+        gunReappeared = false;
+        portsAtCopy = serial.currentPorts.size();
+        gunWaitTimer.stop();
+    }
+
+    // keep the serial side quiet while the board is being written to and restarting
+    ui->comPortSelector->setEnabled(state != AppFlash::stateCopying && state != AppFlash::stateWaitingReboot);
+
+    FirmwareJobUpdate();
+}
+
+
+void guiWindow::flasher_confirmRequested(int request, const QString &title, const QString &text)
+{
+    // not from inside the signal, so the job is not in the middle of something while the dialog is up
+    QTimer::singleShot(0, this, [this, request, title, text]() {
+        QMessageBox messageBox(request == AppFlash::requestFlash ? QMessageBox::Question : QMessageBox::Warning,
+                               title, text, QMessageBox::Yes | QMessageBox::No, this);
+        messageBox.setDefaultButton(QMessageBox::No);
+        flasher.Confirm(messageBox.exec() == QMessageBox::Yes);
+    });
+}
+
+
+void guiWindow::flasher_finished(bool ok, const QString &message)
+{
+    FirmwareJobUpdate();
+
+    if(!ok) {
+        gunWaiting = false;
+        statusBar()->showMessage(message.section('\n', 0, 0), 10000);
+        return;
+    }
+
+    gunWaitTimer.start(25000);
+    FirmwareResultUpdate();
+}
+
+
+void guiWindow::gunWaitTimer_timeout()
+{
+    gunWaiting = false;
+
+    if(!gunReappeared && flasher.state() == AppFlash::stateDone)
+        ui->firmwareJobLabel->setText(tr("<b>The firmware was copied</b>, but the gun has not shown up again yet.<br>"
+                                         "If it doesn't appear in the COM port list, unplug it and plug it in again."));
+}
+
+
+void guiWindow::FirmwareJobForget()
+{
+    if(flasher.IsActive())
+        return;
+
+    flasher.Reset();
+
+    gunWaitTimer.stop();
+    gunWaiting = false;
+    gunReappeared = false;
+
+    ui->firmwareJobLabel->clear();
+    ui->firmwareProgress->setVisible(false);
+}
+
+
+void guiWindow::FirmwareResultUpdate()
+{
+    if(flasher.state() != AppFlash::stateDone)
+        return;
+
+    if(gunReappeared)
+        ui->firmwareJobLabel->setText(tr("<b>Firmware update complete.</b><br>The gun restarted and is available again: "
+                                         "select it in the COM port list to reconnect."));
+    else
+        ui->firmwareJobLabel->setText(tr("<b>The firmware was installed.</b><br>Waiting for the gun to restart…"));
+}
+
+
+void guiWindow::FirmwareJobUpdate()
+{
+    const bool active = flasher.IsActive();
+
+    ui->firmwareCancelBtn->setVisible(active);
+    ui->firmwareCancelBtn->setEnabled(flasher.state() != AppFlash::stateCopying);
+
+    // brings the install button back (or not) once the job is over
+    FirmwareTabUpdate();
+}
+
+
+void guiWindow::closeEvent(QCloseEvent *event)
+{
+    if(flasher.IsCopying()) {
+        QMessageBox::warning(this, tr("Firmware update in progress"),
+                             tr("The firmware is being written to the board. Please wait until it is done before closing the app."));
+        event->ignore();
+        return;
+    }
+
+    if(flasher.IsActive())
+        flasher.Cancel();
+
+    QMainWindow::closeEvent(event);
+}
+
+
+void guiWindow::DeviceTabsSetEnabled(bool enabled)
+{
+    // Qt moves on to another tab when the current one gets disabled; stay on it, greyed out, instead.
+    const int current = ui->tabWidget->currentIndex();
+
+    // (this also enables/disables the tab's page)
+    for(int i = 0; i < ui->tabWidget->count(); ++i)
+        if(ui->tabWidget->widget(i) != ui->firmwareTab)
+            ui->tabWidget->setTabEnabled(i, enabled);
+
+    ui->tabWidget->setCurrentIndex(current);
+
+    // the board actions live on the firmware tab, but need a gun just the same
+    ui->dangerZoneBox->setEnabled(enabled);
+}
+
+
+void guiWindow::updater_finished()
+{
+    FirmwareTabUpdate();
+}
+
+
+void guiWindow::FirmwareTabUpdate()
+{
+    QString status, detail;
+    bool updateAvailable = false;
+    bool installable = false;
+
+    const bool connected = !App_Common::board.type.isEmpty();
+
+    if(updater.state() == AppUpdate::stateFailed) {
+        status = tr("Firmware versions could not be loaded from GitHub.");
+        detail = tr("Check your internet connection, or look for the latest release directly on <a href=\"%1\">GitHub</a>.")
+                 .arg(AppUpdate::releasesPage);
+        if(!updater.errorText().isEmpty())
+            detail = updater.errorText().toHtmlEscaped() + "<br>" + detail;
+    } else if(updater.state() != AppUpdate::stateSuccess) {
+        status = tr("Checking for firmware updates...");
+    } else {
+        const QString latestTag = updater.latestTag().toHtmlEscaped();
+        const QString releaseLink = tr("<a href=\"%1\">View release on GitHub</a>").arg(updater.latestUrl().toHtmlEscaped());
+
+        const QString installed = QString::fromLatin1(App_Common::board.version);
+        const QVersionNumber installedVer = AppUpdate::ParseVersion(installed);
+        const QVersionNumber latestVer = AppUpdate::ParseVersion(updater.latestTag());
+
+        if(!connected) {
+            status = tr("Latest stable release: <b>%1</b>").arg(latestTag);
+            detail = tr("Connect a gun to check if its firmware is up to date.") + "<br><br>" + releaseLink;
+        } else if(App_Common::board.arch == App_Common::OFPresets.boardArchs[OF_Const::boardESP32_S3]) {
+            // ESP32-S3 firmware is built and released separately from the main project, so its versions can't be compared.
+            status = tr("Firmware for this board is released separately.");
+            detail = tr("Installed firmware: <b>v%1</b>").arg(installed.toHtmlEscaped()) + "<br><br>" +
+                     tr("Look for updates on <a href=\"%1\">GitHub</a>.").arg("https://github.com/alessandro-satanassi/OpenFIRE-Firmware/releases");
+        } else if(installedVer.isNull()) {
+            status = tr("Latest stable release: <b>%1</b>").arg(latestTag);
+            detail = tr("The installed firmware version could not be determined.") + "<br><br>" + releaseLink;
+        } else if(installedVer >= latestVer) {
+            status = tr("No update available");
+            detail = tr("Installed firmware: <b>v%1</b>").arg(installed.toHtmlEscaped()) + "<br>" +
+                     tr("Latest stable release: <b>%1</b>").arg(latestTag) + "<br><br>" + releaseLink;
+        } else {
+            status = tr("Update available: <b>%1</b>").arg(latestTag);
+            detail = tr("Installed firmware: <b>v%1</b>").arg(installed.toHtmlEscaped()) + "<br><br>" + releaseLink;
+            updateAvailable = true;
+
+            // The app installs the update itself only from a file it knows belongs to this board.
+            const QString assetName = AppFlash::AssetNameForBoard(App_Common::board.type);
+            if(!assetName.isEmpty() && updater.FindAsset(assetName) != nullptr)
+                installable = true;
+            else detail += "<br><br>" + tr("The app can't install this update for your board by itself: download the right file from the release page.");
+        }
+    }
+
+    ui->firmwareStatusLabel->setText("<span style=\"font-size:x-large;\">" + status + "</span>");
+    ui->firmwareDetailLabel->setText(detail);
+
+    ui->firmwareInstallBtn->setVisible(installable && !flasher.IsActive() && flasher.state() != AppFlash::stateDone);
+
+    // A file works without GitHub and without a gun connected (e.g. one already in bootloader mode),
+    // but not for boards that are not flashed with UF2 files.
+    const bool esp32 = connected && App_Common::board.arch == App_Common::OFPresets.boardArchs[OF_Const::boardESP32_S3];
+    ui->firmwareLocalBtn->setVisible(!esp32 && !flasher.IsActive() && flasher.state() != AppFlash::stateDone);
+    if(installable)
+        ui->firmwareInstallBtn->setText(tr("Download and Install %1").arg(updater.latestTag()));
+
+    // Mark the tab with a red dot to draw attention to an available update.
+    // (the tab bar owns and deletes the old dot when it's replaced)
+    const int tabIndex = ui->tabWidget->indexOf(ui->firmwareTab);
+    QLabel *dot = nullptr;
+    if(updateAvailable) {
+        dot = new QLabel();
+        dot->setFixedSize(10, 10);
+        dot->setStyleSheet("background-color: #e53935; border-radius: 5px;");
+        dot->setAttribute(Qt::WA_TransparentForMouseEvents);
+    }
+    ui->tabWidget->tabBar()->setTabButton(tabIndex, QTabBar::RightSide, dot);
+    ui->tabWidget->setTabToolTip(tabIndex, updateAvailable ? tr("A firmware update is available") : QString());
 }
 
 
@@ -666,8 +1036,14 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 connect(irSens.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 runMode << new QComboBox();
-                runMode.at(i)->addItems({"Normal", "1-Frame Avg", "2-Frame Avg"});
-                runMode.at(i)->setCurrentIndex(App_Common::profilesTable.at(i).runMode);
+                // The item data is the firmware's run mode value; 3 is reserved there for the Processing test mode.
+                runMode.at(i)->addItem("Normal",      0);
+                runMode.at(i)->addItem("1-Frame Avg", 1);
+                runMode.at(i)->addItem("2-Frame Avg", 2);
+                // Older firmware resets run modes it doesn't know back to Normal on boot, so don't offer it there.
+                if(App_Common::board.versionNumber() >= App_Common::fwVersionOneEuro)
+                    runMode.at(i)->addItem("One Euro", 4);
+                runMode.at(i)->setCurrentIndex(qMax(0, runMode.at(i)->findData(App_Common::profilesTable.at(i).runMode)));
                 runMode.at(i)->installEventFilter(this);
                 runMode.at(i)->setProperty("slot", i);
                 runMode.at(i)->setProperty("type", App_Common::pBoxRunMode);
@@ -677,7 +1053,10 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                                                "<p>The movement of the aiming cursor can be smoothed out by averaging a select number of frames, "
                                                "at the cost of a small increase in latency; conversely, disabling this position averaging can "
                                                "reduce latency, at the cost of some added jitter in mouse movement.</p>"
-                                               "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people.</p>"));
+                                               "<p><b>One Euro</b> instead smooths the position of the IR emitters with an adaptive filter: "
+                                               "strong smoothing while aiming slowly, and almost none while moving fast.</p>"
+                                               "<p>The default is <b>1-Frame Avg</b>, which should be the preferred balance for most people; "
+                                               "boards based on the RP2350 default to <b>One Euro</b> instead.</p>"));
                 connect(runMode.at(i), SIGNAL(activated(int)), this, SLOT(profileBoxes_activated(int)));
 
                 layoutMode << new QComboBox();
@@ -931,7 +1310,7 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
                 if(ui->PinsRight->itemAtPosition(i, 0) == nullptr)
                     ui->PinsRight->setRowMinimumHeight(i, 25);
 
-            ui->tabWidget->setEnabled(true);
+            DeviceTabsSetEnabled(true);
             ui->customPinsEnabled->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]);
 
             ui->aStickModeBox->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::analogMode]);
@@ -1008,6 +1387,18 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->tabWidget->setCurrentIndex(0);
             ui->comPortSelector->setItemText(0, tr("[Disconnect Current Device]"));
 
+            // All tabs are populated now: let the layouts settle, then make the window big enough for them.
+            QTimer::singleShot(0, this, [this]() { FitWindowToContent(true); });
+
+            // try again if GitHub couldn't be reached earlier
+            if(updater.state() == AppUpdate::stateFailed)
+                updater.CheckLatest();
+
+            // A gun is connected: whatever the last installation reported is not about this gun
+            // (it may be another one), so the tab shows the state of the connected gun instead.
+            FirmwareJobForget();
+            FirmwareTabUpdate();
+
         } else ui->comPortSelector->setCurrentIndex(0);
 
         serialPort_progressSet(0);
@@ -1022,9 +1413,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         ui->settingsTab->setEnabled(true);
         ui->profilesTab->setEnabled(true);
         ui->feedbackTestsBox->setEnabled(true);
-        ui->dangerZoneBox->setEnabled(true);
 
-        ui->tabWidget->setEnabled(false);
+        DeviceTabsSetEnabled(false);
+        FirmwareTabUpdate();
 
         if(ui->comPortSelector->count() > 0)
             ui->comPortSelector->setItemText(0, tr("[Select a Device to Configure]"));
@@ -1743,7 +2134,7 @@ void guiWindow::profileBoxes_activated(int index)
         App_Common::profilesTable[sender()->property("slot").toInt()].irSensitivity = index;
         break;
     case App_Common::pBoxRunMode:
-        App_Common::profilesTable[sender()->property("slot").toInt()].runMode = index;
+        App_Common::profilesTable[sender()->property("slot").toInt()].runMode = static_cast<QComboBox*>(sender())->itemData(index).toUInt();
         break;
     case App_Common::pBoxLayout:
         App_Common::profilesTable[sender()->property("slot").toInt()].layoutType = index;
@@ -1911,6 +2302,21 @@ void guiWindow::on_clearEepromBtn_clicked()
 
 void guiWindow::on_baudResetBtn_clicked()
 {
+    QMessageBox messageBox;
+    messageBox.setText(tr("Really reboot to bootloader?"));
+    messageBox.setInformativeText(tr("The gun will disconnect and stop working as a lightgun until it is restarted "
+                                     "or new firmware is flashed.\n\n"
+                                     "Are you sure about this?"));
+    messageBox.setWindowTitle(tr("Reboot Confirmation"));
+    messageBox.setIcon(QMessageBox::Warning);
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+
+    if(messageBox.exec() != QMessageBox::Yes) {
+        ui->statusBar->showMessage(tr("Reboot operation canceled."), 3000);
+        return;
+    }
+
     serial.RebootToBootldr();
 
     /* test stuff for potential app FW update functionality
@@ -2076,6 +2482,13 @@ void guiWindow::serialPort_SearchFinished()
 {
     // if ports have changed
     if(serialSearchFuture.result()) {
+        // a gun showing up after the firmware was copied means that it restarted
+        if(gunWaiting && !gunReappeared && serial.currentPorts.size() > portsAtCopy) {
+            gunReappeared = true;
+            gunWaiting = false;
+            FirmwareResultUpdate();
+        }
+
         // ports have changed, update COM ports list
         // if comPort only has "Nothing", safe to add items
         if(ui->comPortSelector->count() == 0) {

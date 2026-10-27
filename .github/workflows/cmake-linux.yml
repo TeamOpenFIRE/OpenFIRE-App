@@ -110,3 +110,78 @@ jobs:
 
     - name: Download a Build Artifact
       uses: actions/download-artifact@v8
+
+  # Newer Ubuntu releases, built with the Qt that each of them ships (what somebody building from
+  # source with the distribution's packages gets), instead of the Qt from install-qt-action above.
+  #   Ubuntu 24.04: Qt 6.4.2 / Qt 5.15.13        Ubuntu 26.04: Qt 6.10.2 / Qt 5.15.18
+  build-distro:
+    name: ${{ matrix.os }}, Ubuntu's Qt ${{ matrix.qt_version }}, ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-26.04, ubuntu-26.04-arm]
+        qt_major: [5, 6]
+        build_type: [Debug, Release]
+        include:
+          - { os: ubuntu-24.04,     qt_major: 6, qt_version: "6.4.2" }
+          - { os: ubuntu-24.04-arm, qt_major: 6, qt_version: "6.4.2" }
+          - { os: ubuntu-24.04,     qt_major: 5, qt_version: "5.15.13" }
+          - { os: ubuntu-24.04-arm, qt_major: 5, qt_version: "5.15.13" }
+          - { os: ubuntu-26.04,     qt_major: 6, qt_version: "6.10.2" }
+          - { os: ubuntu-26.04-arm, qt_major: 6, qt_version: "6.10.2" }
+          - { os: ubuntu-26.04,     qt_major: 5, qt_version: "5.15.18" }
+          - { os: ubuntu-26.04-arm, qt_major: 5, qt_version: "5.15.18" }
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'true'
+
+    - name: Get short SHA
+      id: get-short-sha
+      run: echo "id=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Install Qt ${{ matrix.qt_version }} from Ubuntu
+      run: |
+        sudo apt-get update
+        if [ "${{ matrix.qt_major }}" = "6" ]; then
+          sudo apt-get install -y --no-install-recommends cmake build-essential pkg-config libgl-dev \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-svg-dev qt6-serialport-dev
+        else
+          sudo apt-get install -y --no-install-recommends cmake build-essential pkg-config libgl-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5svg5-dev libqt5serialport5-dev
+        fi
+
+    - name: Check that Ubuntu provides the expected Qt
+      run: |
+        if [ "${{ matrix.qt_major }}" = "6" ]; then package=qt6-base-dev; else package=qtbase5-dev; fi
+        installed=$(dpkg-query -W -f='${Version}' "$package")
+        echo "Ubuntu provides Qt $installed (this job is for Qt ${{ matrix.qt_version }})"
+        # Updates may bump the patch level; the release series (6.4, 6.10, 5.15) has to stay the one that is meant.
+        [ "$(echo "$installed" | cut -d. -f1,2)" = "$(echo "${{ matrix.qt_version }}" | cut -d. -f1,2)" ]
+
+    - name: Configure CMake
+      run: >
+        cmake -B "${{ github.workspace }}/build"
+        -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}"
+        -DOFAPP_QT_VERSION=Qt${{ matrix.qt_major }}
+        -DOFAPP_GITHASH="${{steps.get-short-sha.outputs.id}}"
+        -DCMAKE_INSTALL_PREFIX=/usr
+        -S "${{ github.workspace }}"
+
+    - name: Build
+      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --parallel
+
+    # With Qt 6 the translations are compiled as part of the build (older Qt 6 needs a different call than Qt >= 6.7)
+    - name: Check that the translations were compiled
+      if: ${{ matrix.qt_major == 6 }}
+      run: |
+        for language in de it_IT en_US; do
+          test -s "${{ github.workspace }}/build/AppTranslations_$language.qm"
+        done
+
+    - name: Install into a staging folder
+      run: DESTDIR="${{ runner.temp }}/stage" cmake --install "${{ github.workspace }}/build"

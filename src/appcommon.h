@@ -59,12 +59,18 @@ public:
     // Single instance of presets and board info
     static inline OF_Const OFPresets;
 
+    /// @brief      First firmware version that supports the One Euro run mode (profile run mode 4)
+    static constexpr double fwVersionOneEuro = 6.3;
+
     typedef struct boardInfo_t {
         int        selectedProfile;
         int        previousProfile;
         QByteArray type;
         QByteArray arch;
         QByteArray version;
+
+        /// @brief  Firmware version number without the git hash suffix ("7.0-abc123" -> 7.0), 0 if unparsable
+        double versionNumber() const { return version.split('-').first().toDouble(); }
     } boardInfo_s;
 
     typedef struct tinyUSBtable_t {

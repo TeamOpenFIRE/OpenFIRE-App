@@ -62,7 +62,7 @@ jobs:
     - name: Deploy Windows App & Libraries
       run: |
         cmake --install "${{ github.workspace }}/build" --prefix "${{ github.workspace }}/build/out" --strip
-        windeployqt "${{ github.workspace }}/build/out/bin/OpenFIREapp.exe" --no-translations --no-system-d3d-compiler --no-opengl-sw --no-network --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
+        windeployqt "${{ github.workspace }}/build/out/bin/OpenFIREapp.exe" --no-translations --no-system-d3d-compiler --no-opengl-sw --exclude-plugins qnetworklistmanager,qtuiotouchplugin,qsvgicon,qcertonlybackend,qchannelbackend
         mv "${{ github.workspace }}/build/out/bin" "${{ github.workspace }}/build/out/OpenFIRE App"
 
     - name: Upload Artifact

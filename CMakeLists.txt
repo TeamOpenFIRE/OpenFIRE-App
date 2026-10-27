@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(OpenFIREapp
-        VERSION 3.0.3
+        VERSION 3.1.0
         DESCRIPTION "OpenFIRE Configuration Desktop App"
         LANGUAGES CXX)
-set(OFAPP_CODENAME "Tokinomiya")
+set(OFAPP_CODENAME "Jikoku")
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -42,16 +42,21 @@ if(OFAPP_GITHASH)
 endif()
 
 if(NOT OFAPP_QT_VERSION)
-    find_package(QT NAMES Qt6 Qt5 REQUIRED)
+    # With both installed, "NAMES Qt6 Qt5" can still settle for Qt5, so look for Qt6 on its own first.
+    find_package(QT NAMES Qt6 QUIET)
+    if(NOT QT_FOUND)
+        find_package(QT NAMES Qt5 REQUIRED)
+    endif()
 else()
     find_package(QT NAMES ${OFAPP_QT_VERSION} REQUIRED)
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Concurrent SerialPort)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Concurrent Network SerialPort)
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
         translation/AppTranslations_it_IT.ts
+        translation/AppTranslations_de.ts
 )
 
 set(PROJECT_SOURCES
@@ -74,6 +79,10 @@ set(PROJECT_SOURCES
         src/appabout.h
         src/appabout.cpp
         src/appabout.ui
+        src/appupdate.h
+        src/appupdate.cpp
+        src/appflash.h
+        src/appflash.cpp
         img/vectors.qrc
         boards/boardPics/boards.qrc
         boards/OpenFIREshared.h
@@ -86,10 +95,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
-    qt_add_translations(
-        TARGETS OpenFIREapp
-        TS_FILES ${TS_FILES}
-    )
+    # The "TARGETS" form of qt_add_translations() is new in Qt 6.7; before that, the target comes first.
+    if(${QT_VERSION} VERSION_GREATER_EQUAL 6.7.0)
+        qt_add_translations(
+            TARGETS OpenFIREapp
+            TS_FILES ${TS_FILES}
+        )
+    else()
+        qt_add_translations(OpenFIREapp TS_FILES ${TS_FILES})
+    endif()
 else()
     add_executable(OpenFIREapp
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
@@ -98,7 +112,7 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort)
+target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::SerialPort)
 
 # SVG Renderer has a different package name >= 6.1 for some reason
 if(${QT_VERSION} VERSION_LESS 6.1.0)

@@ -29,9 +29,12 @@
 #include "appdebug.h"
 #endif
 #include "appserial.h"
+#include "appupdate.h"
+#include "appflash.h"
 #include "apppreviewer.h"
 
 #include <QMainWindow>
+#include <QCloseEvent>
 #include <QSerialPort>
 #include <QFuture>
 #include <QFutureWatcher>
@@ -62,8 +65,25 @@ public:
     guiWindow(QWidget *parent = nullptr);
     ~guiWindow();
 
+protected:
+    /// @brief      Keeps the app open while firmware is being written to a board
+    void closeEvent(QCloseEvent *event) override;
+
 private slots:
     void aliveTimer_timeout();
+
+    /// firmware update check
+    void updater_finished();
+
+    /// firmware installation
+    void on_firmwareInstallBtn_clicked();
+    void on_firmwareLocalBtn_clicked();
+    void on_firmwareCancelBtn_clicked();
+    void flasher_progress(qint64 done, qint64 total);
+    void flasher_stateChanged(AppFlash::State state);
+    void flasher_confirmRequested(int request, const QString &title, const QString &text);
+    void flasher_finished(bool ok, const QString &message);
+    void gunWaitTimer_timeout();
 
     /// global
     void on_comPortSelector_currentTextChanged(const QString &);
@@ -238,6 +258,28 @@ private:
     /// @details    Also invokes name prettification
     void LabelsUpdate();
 
+    /// @brief      Grows the window so the tab bar and each tab's contents fit without scrolling
+    /// @param      includeContent  false to only make room for the tab bar (nothing is loaded yet)
+    /// @details    Only ever grows the window, and never past the available screen area
+    void FitWindowToContent(bool includeContent);
+
+    /// @brief      Enables/disables the tabs that need a connected gun
+    /// @details    The Gun Firmware tab is left alone, as it works without one
+    void DeviceTabsSetEnabled(bool enabled);
+
+    /// @brief      Shows or hides the controls of a running firmware installation
+    void FirmwareJobUpdate();
+
+    /// @brief      Forgets how the last installation ended, so the tab doesn't claim anything about a different gun
+    /// @details    A running installation is left alone
+    void FirmwareJobForget();
+
+    /// @brief      Shows how a finished installation went, including whether the gun came back
+    void FirmwareResultUpdate();
+
+    /// @brief      Refreshes the Gun Firmware tab from the latest release lookup and the connected gun
+    void FirmwareTabUpdate();
+
     /// @brief      Converts system name to display name, provided in OF_Const::boardNames
     QString PrettifyName(QString);
 
@@ -263,6 +305,14 @@ private:
 
     // Instance of App's Serial operators
     AppSerial serial;
+    AppUpdate updater;
+    AppFlash  flasher;
+
+    // after a firmware copy: has the gun shown up again?
+    QTimer gunWaitTimer;
+    bool   gunWaiting = false;
+    bool   gunReappeared = false;
+    int    portsAtCopy = 0;
 
     /// @brief      Current pointers to device/layout maps for synced device
     std::unordered_map<std::string_view, std::vector<int>>::const_iterator presetMap;
